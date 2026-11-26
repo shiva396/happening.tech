@@ -1,5 +1,5 @@
 // Offline clay puppet studio. The baker injects Three.js into a headless canvas.
-function createStudio(THREE) {
+function createStudio(THREE, palette) {
   const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, preserveDrawingBuffer: true });
   renderer.setSize(144, 144);
   renderer.shadowMap.enabled = true;
@@ -9,7 +9,7 @@ function createStudio(THREE) {
   const camera = new THREE.OrthographicCamera(-1.32, 1.32, 1.32, -1.32, 0.1, 30);
   camera.position.set(0, 1.2, 8);
   camera.lookAt(0, 0.21, 0);
-  scene.add(new THREE.HemisphereLight(0xfff3dc, 0xaa91b1, 1.75));
+  scene.add(new THREE.HemisphereLight(palette.skyLight, palette.groundLight, 1.75));
   function light(color, power, x, y, z) {
     const lamp = new THREE.DirectionalLight(color, power);
     lamp.position.set(x, y, z);
@@ -22,8 +22,8 @@ function createStudio(THREE) {
     }
     scene.add(lamp);
   }
-  light(0xffedc7, 2.4, -3, 5, 4);
-  light(0xe2ddff, 2.7, 3, 3, -4);
+  light(palette.keyLight, 2.4, -3, 5, 4);
+  light(palette.rimLight, 2.7, 3, 3, -4);
   const sphere = new THREE.SphereGeometry(1, 30, 22);
   const materials = new Map();
   function material(color) {
@@ -50,15 +50,13 @@ function createStudio(THREE) {
     parent.add(mesh);
     for (const p of [points[0], points.at(-1)]) ball(parent, ...p, radius, radius, radius, color);
   }
-  const ink = "#282335";
+  const { ink, eyeHighlight } = palette;
   let puppet;
   const depthMaterial = new THREE.MeshBasicMaterial({ colorWrite: false });
   function sculpt(name) {
     if (puppet) scene.remove(puppet.root);
     const monkey = name === "monkey";
-    const coat = monkey ? "#a85b38" : "#8999a7";
-    const cream = monkey ? "#ffdbac" : "#e8e2d7";
-    const paw = monkey ? "#e4a06e" : "#747d89";
+    const { coat, cream, paw, innerEar } = palette[name];
     const root = joint(scene, 0, 0, 0);
     const hips = joint(root, 0, 0, 0);
     const head = joint(hips, 0, 0.41, 0.04);
@@ -81,12 +79,12 @@ function createStudio(THREE) {
           ball(ear, 0.14 * Math.cos(angle), 0.14 * Math.sin(angle), -0.012, 0.082, 0.077, 0.067, coat);
         }
       }
-      ball(ear, 0, 0, 0.077, radius * 0.7, radius * 0.7, 0.052, monkey ? "#df9472" : "#d6b6b8");
+      ball(ear, 0, 0, 0.077, radius * 0.7, radius * 0.7, 0.052, innerEar);
       if (monkey) ball(head, side * 0.15, 0.04, 0.256, 0.17, 0.169, 0.079, cream);
       const eye = joint(head, side * 0.151, 0.062, monkey ? 0.328 : 0.302);
       eyes.push(eye);
       ball(eye, 0, 0, 0, 0.044, 0.052, 0.037, ink);
-      ball(eye, -0.013, 0.018, 0.03, 0.013, 0.014, 0.008, "#fff8e5");
+      ball(eye, -0.013, 0.018, 0.03, 0.013, 0.014, 0.008, eyeHighlight);
       const arm = joint(hips, side * 0.263, 0.105, 0.035);
       const elbow = joint(arm, 0, -0.226, 0);
       const hand = joint(elbow, 0, -0.213, 0.022);

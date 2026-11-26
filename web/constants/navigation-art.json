@@ -1,0 +1,11 @@
+{
+  "background": "#00000000",
+  "skyLight": "#fff3dc",
+  "groundLight": "#aa91b1",
+  "keyLight": "#ffedc7",
+  "rimLight": "#e2ddff",
+  "ink": "#282335",
+  "eyeHighlight": "#fff8e5",
+  "monkey": { "coat": "#a85b38", "cream": "#ffdbac", "paw": "#e4a06e", "innerEar": "#df9472" },
+  "koala": { "coat": "#8999a7", "cream": "#e8e2d7", "paw": "#747d89", "innerEar": "#d6b6b8" }
+}

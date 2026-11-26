@@ -5,6 +5,7 @@ const os = require("node:os");
 const path = require("node:path");
 const { execFileSync } = require("node:child_process");
 const sharp = require("sharp");
+const palette = require("../../web/constants/navigation-art.json");
 const { chromium } = require("playwright-core");
 
 async function bake() {
@@ -20,9 +21,9 @@ async function bake() {
     });
     await page.addScriptTag({ path: require.resolve("three") });
     await page.addScriptTag({ path: path.join(__dirname, "studio.js") });
-    await page.evaluate(() => {
-      window.studio = createStudio(window.exports);
-    });
+    await page.evaluate((colors) => {
+      window.studio = createStudio(window.exports, colors);
+    }, palette);
     for (const name of ["monkey", "koala"]) {
       await page.evaluate((name) => studio.sculpt(name), name);
       const poses = [];
@@ -35,7 +36,7 @@ async function bake() {
           if (!image) continue;
           const file = name + "-" + plane + "-" + i + ".png";
           const { data, info } = await sharp(Buffer.from(image, "base64"))
-            .trim({ background: "#00000000", threshold: 3 })
+            .trim({ background: palette.background, threshold: 3 })
             .png({ palette: true, colours: 128, dither: 0 })
             .toBuffer({ resolveWithObject: true });
           await fs.writeFile(path.join(frames, file), data);

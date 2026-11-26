@@ -16,7 +16,7 @@ Open http://localhost:8080. For a production build, run `dart pub global run jas
 
 ## Interface theme
 
-Edit [the shared theme](web/theme.css) for light and dark colors, font weights, poster palettes, globe labels, calendar intensity levels and shared control sizes. Jaspr loads it before the page styles on every route. Poster illustrations and Lottie files carry their own artwork palettes.
+The [design constants](web/constants/) are CSS custom properties shared by every Jaspr page. Change [control sizes and padding](web/constants/controls.css) for buttons, inputs, and map controls, including their mobile and touch variants. The folder also holds [colors](web/constants/colors.css), [typography](web/constants/typography.css), [spacing](web/constants/spacing.css), [layout dimensions](web/constants/layout.css), [visual effects](web/constants/effects.css), and [motion](web/constants/motion.css). Component styles select the tokens for each state and breakpoint. The [navigation artwork palette](web/constants/navigation-art.json) is applied when baking the monkey and koala.
 
 ## Contribute an event
 

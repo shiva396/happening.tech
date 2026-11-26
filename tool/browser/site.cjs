@@ -43,6 +43,25 @@ async function layout(page, url) {
   await page.setViewportSize({ width: 1280, height: 800 });
 }
 
+async function eventListLayout(page) {
+  await page.evaluate(() => document.fonts.ready);
+  const layouts = [];
+  for (const width of widths) {
+    await page.setViewportSize({ width, height: 900 });
+    layouts.push(await page.locator(".event-list").evaluate((list) => {
+      const origin = list.getBoundingClientRect();
+      // Compare positions within the list, independent of the globe or filters above it.
+      const parts = list.querySelectorAll(".section-head, .section-head > *, .month, .event-row, .event-row > *, .row-info > *");
+      return Array.from(parts).filter((part) => part.getClientRects().length).map((part) => {
+        const rect = part.getBoundingClientRect();
+        return { text: part.textContent.trim().replace(/\s+/g, " "), box: [rect.x - origin.x, rect.y - origin.y, rect.width, rect.height] };
+      });
+    }));
+  }
+  await page.setViewportSize({ width: 1280, height: 800 });
+  return layouts;
+}
+
 async function programme(page) {
   await page.goto(root.href);
   const theme = page.locator("#theme-switch");
@@ -52,6 +71,26 @@ async function programme(page) {
   assert.equal(await page.locator("html").getAttribute("data-theme"), "dark");
   await theme.click();
   assert.equal(await page.locator("html").getAttribute("data-theme"), "light");
+  const sizes = await page.addStyleTag({
+    content: `:root {
+      --control-height: 54px;
+      --control-height-compact: 52px;
+      --list-button-padding: 6px 23px;
+      --list-button-height-mobile: 49px;
+      --list-button-padding-mobile: 4px 11px;
+    }`,
+  });
+  const action = page.locator(".mast-actions .list-event");
+  for (const [width, height, padding] of [[1280, "52px", "23px"], [390, "49px", "11px"]]) {
+    await page.setViewportSize({ width, height: 800 });
+    assert.equal(await theme.evaluate((el) => getComputedStyle(el).height), "54px");
+    assert.deepEqual(await action.evaluate((el) => {
+      const style = getComputedStyle(el);
+      return [style.minHeight, style.paddingInlineStart];
+    }), [height, padding]);
+  }
+  await sizes.evaluate((el) => el.remove());
+  await page.setViewportSize({ width: 1280, height: 800 });
   const rows = page.locator(".event-row:visible");
   const count = await rows.count();
   await page.locator("#query").fill("zz-no-such-gathering");
@@ -95,13 +134,17 @@ async function world(page) {
   assert.equal(await page.locator("#activity").count(), 0);
   // Change the design tokens at runtime to check that HTML and SVG consume the same theme.
   const overrides = await page.addStyleTag({
-    content: ":root { --accent: rgb(16, 80, 128); --weight-heading: 440; --globe-label: rgb(33, 66, 99); }",
+    content: ":root { --accent: rgb(16, 80, 128); --weight-heading: 440; --globe-label: rgb(33, 66, 99); --globe-control-size: 51px; }",
   });
   assert.equal(
     await page.locator(".mast-actions .list-event").evaluate((el) => getComputedStyle(el).backgroundColor),
     "rgb(16, 80, 128)",
   );
   assert.equal(await page.locator("h1").evaluate((el) => getComputedStyle(el).fontWeight), "440");
+  assert.deepEqual(await page.locator(".globe-controls button").first().evaluate((el) => {
+    const style = getComputedStyle(el);
+    return [style.width, style.height];
+  }), ["51px", "51px"]);
   const label = page.locator(".globe-name:not(.is-selected)").first();
   assert.deepEqual(await label.evaluate((el) => [getComputedStyle(el).fill, getComputedStyle(el).fontWeight]), [
     "rgb(33, 66, 99)",
@@ -276,6 +319,24 @@ eachBrowser(async (browser, name) => {
     new URL("submit/", root).href,
   ];
   for (const url of routes) await layout(page, url);
+  await page.goto(root.href);
+  const programmeList = await eventListLayout(page);
+  await page.goto(new URL("world/?country=", root).href);
+  const worldList = await eventListLayout(page);
+  // World view replaces the list with a country invitation when no upcoming events exist.
+  if (await page.locator(".event-list").isVisible()) {
+    for (const [index, width] of widths.entries()) {
+      const expected = worldList[index];
+      const actual = programmeList[index];
+      assert.equal(actual.length, expected.length, "Visible event list parts at " + width + "px");
+      for (const [i, part] of actual.entries()) {
+        assert.equal(part.text, expected[i].text);
+        // Document offsets can introduce fractional-pixel differences between the two grids.
+        assert(part.box.every((value, axis) => Math.abs(value - expected[i].box[axis]) < 0.1),
+          `Event list at ${width}px, "${part.text}": ${part.box} vs ${expected[i].box}`);
+      }
+    }
+  }
   const staticPage = await browser.newPage({ javaScriptEnabled: false });
   await staticPage.goto(eventUrl);
   assert(await staticPage.locator("h1").isVisible());

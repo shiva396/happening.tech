@@ -1,0 +1,90 @@
+:root {
+  /* Page */
+  --page-gutter: clamp(1rem, 3vw, 4rem);
+  --page-width: calc(100% - 2 * var(--page-gutter));
+
+  /* Icons */
+  --icon-size: 18px;
+  --icon-small: 16px;
+  --icon-tiny: 13px;
+  --icon-meta: 15px;
+  --icon-link: 14px;
+  --icon-relative: 1rem;
+
+  /* Component dimensions */
+  --skip-left: 12px;
+  --skip-top: -80px;
+  --skip-focus-top: 8px;
+  --header-min-height: 75px;
+  --nav-character-size: 47px;
+  --nav-character-size-mobile: 34px;
+  --filter-leading-icon-left: 10px;
+  --filter-trailing-icon-right: 9px;
+  --section-head-min-height: 34px;
+  --event-row-min-height: 76px;
+  --poster-min-height: 240px;
+  --poster-art-right: 2%;
+  --poster-art-width: 42%;
+  --poster-art-height: 77%;
+  --poster-art-top: 9%;
+  --summary-max-width: 72ch;
+  --facts-icon-top: 2px;
+  --detail-poster-min-height: 250px;
+  --detail-poster-title-max-width: 65%;
+  --detail-ticket-actions-max-width: 410px;
+  --empty-art-width: min(100%, 26rem);
+  --empty-art-aspect-ratio: 360/162;
+  --empty-copy-max-width: 32ch;
+  --country-menu-min-width: min(16rem, 90vw);
+  --country-menu-max-height: min(24rem, 54vh);
+  --globe-height: clamp(350px, 52vh, 610px);
+  --globe-height-mobile: clamp(265px, 82vw, 390px);
+  --poster-min-height-wide: 260px;
+  --poster-min-height-tablet: 200px;
+  --header-min-height-mobile: 65px;
+  --header-nav-height: 43px;
+  --detail-poster-min-height-mobile: 210px;
+  --detail-poster-title-max-width-mobile: 68%;
+  --poster-title-max-width: 59%;
+  --mobile-feature-poster-min-height: 152px;
+  --mobile-poster-art-width: 40%;
+  --mobile-poster-art-right: 3%;
+  --activity-month-min-width: 2ch;
+  --activity-weekdays-left: -3px;
+  --activity-legend-cell-size: .75rem;
+  --activity-preview-edge-px: 8;
+  --activity-preview-gap-px: 6;
+  --activity-preview-width: min(18.5rem, calc(100vw - var(--activity-preview-edge-px) * 2px));
+  --activity-preview-max-height: min(19rem, 60vh);
+  --motion-slot-size: 1.65rem;
+  --ticket-moths-min-height: 8rem;
+  --ticket-moths-aspect-ratio: 3.3;
+  --ticket-moths-min-height-mobile: 6.5rem;
+  --activity-ripple-inset: -1px;
+  --entry-review-max-width: 78ch;
+  --error-icon-size: 1rem;
+  --entry-preview-top: 1.5rem;
+
+  /* Navigation */
+  --nav-character-rest-y: 100px;
+  --nav-character-clip: inset(-12px -2px 0);
+
+  /* Grid tracks */
+  --spread-columns: minmax(0, 1.12fr) minmax(0, 1fr);
+  --event-row-columns: 52px 1fr 16px;
+  --empty-country-wide-columns: minmax(0, 20rem) minmax(0, 20rem);
+  --country-picker-columns: 1.1rem minmax(0, 1fr) .9rem;
+  --detail-ticket-card-columns: minmax(0, .85fr) minmax(0, 1fr);
+  --row-info-columns: minmax(0, 1fr) minmax(10rem, 35%);
+  --event-row-columns-tablet: 40px 1fr 14px;
+  --event-row-columns-mobile: 44px 1fr 16px;
+  --activity-weekdays-columns: 1.75rem;
+  --entry-layout-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+
+  /* Activity calendar */
+  --activity-cell: clamp(11px, .84vw, 15px);
+  --activity-cell-gap: 3px;
+  --activity-month-heading: 1.4rem;
+  --activity-cell-touch: 19px;
+  --activity-cell-gap-touch: 4px;
+}

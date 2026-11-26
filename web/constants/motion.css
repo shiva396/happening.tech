@@ -1,0 +1,32 @@
+:root {
+  /* Timing and easing */
+  --globe-iris-duration-ms: 560;
+  --ease-globe-iris: cubic-bezier(.45, 0, .25, 1);
+  --glow-stagger: .31s;
+  --duration-theme-iris: 520ms;
+  --ease-theme: cubic-bezier(.32, 0, .18, 1);
+  --duration-interaction: 150ms;
+  --ease-standard: ease;
+  --ease-out: ease-out;
+  --duration-reveal: 200ms;
+  --ease-reveal: cubic-bezier(.2,.7,.3,1);
+  --duration-activity-cycle: 4s;
+  --ease-cycle: ease-in-out;
+  --duration-feedback: 120ms;
+  --duration-count: 170ms;
+  --duration-reveal-short: 180ms;
+  --duration-activity-ripple: 1.5s;
+  --duration-validation: 160ms;
+
+  /* Transforms */
+  --transform-ticket-tilt: rotate(-17deg);
+  --transform-back-rotation: rotate(90deg);
+  --transform-row-nudge: translateX(3px);
+  --transform-button-press: translateY(2px);
+  --transform-reveal-start: translateY(5px);
+  --transform-count-start: translateY(3px);
+  --transform-tile-hover: scale(1.12);
+  --transform-link-nudge: translate(2px, -2px);
+  --transform-poster-tilt: rotate(-3deg);
+  --transform-tile-ripple: scale(1.85);
+}
