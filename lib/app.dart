@@ -23,7 +23,14 @@ class App extends StatelessComponent {
             span([.text('.tech')]),
           ]),
           PlayfulNavigation(path),
-          a(href: '/submit', classes: 'list-event', [icon('plus'), .text('List an event')]),
+          div(classes: 'mast-actions', [
+            button(
+              id: 'theme-switch',
+              attributes: {'type': 'button', 'aria-label': 'Switch theme'},
+              [icon('moon'), icon('sun')],
+            ),
+            a(href: '/submit', classes: 'list-event', [.text('List an event')]),
+          ]),
         ]),
       ]),
       main_(id: 'content', [

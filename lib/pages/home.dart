@@ -163,7 +163,7 @@ class Programme extends StatelessComponent {
                 h3([.text('No upcoming events here')]),
                 p([.text('Know a gathering here? Share it with the community.')]),
                 button(id: 'reset', attributes: {'hidden': ''}, [.text('Clear filters')]),
-                a(classes: 'list-event', href: '/submit', [icon('plus'), .text('List an event')]),
+                a(classes: 'list-event', href: '/submit', [.text('List an event')]),
               ]),
             ],
           ),

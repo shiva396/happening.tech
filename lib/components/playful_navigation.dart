@@ -39,11 +39,6 @@ class PlayfulNavigation extends StatelessComponent {
             ),
           ],
         ),
-      button(
-        id: 'theme-switch',
-        attributes: {'type': 'button', 'aria-label': 'Switch theme'},
-        [icon('moon'), icon('sun')],
-      ),
     ],
   );
 }
