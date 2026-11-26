@@ -1,3 +1,4 @@
+import '../components/motion.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
@@ -138,7 +139,7 @@ class SubmitPage extends StatelessComponent {
                 id: 'entry-output',
                 attributes: {'hidden': ''},
                 [
-                  h2([.text('Your listing is ready.')]),
+                  h2([motionSlot('check', .text('✓')), .text('Your listing is ready.')]),
                   p(id: 'entry-outcome', attributes: {'role': 'status'}, []),
                   div(classes: 'entry-actions', [
                     a(id: 'entry-download', href: '#', [.text('Download event file')]),

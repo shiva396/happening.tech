@@ -5,6 +5,7 @@ import 'package:jaspr/server.dart';
 import 'package:timezone/timezone.dart' as tz;
 import '../event.dart';
 import '../components/activity.dart';
+import '../components/motion.dart';
 
 Component icon(String name) => svg(
   classes: 'icon',
@@ -160,7 +161,7 @@ class Programme extends StatelessComponent {
             [
               div(classes: 'section-head', [
                 h2([.text('Event spotlight')]),
-                icon('ticket'),
+                motionSlot('ticket', icon('ticket')),
               ]),
               for (final e in entries)
                 div(
@@ -285,7 +286,7 @@ class EventTicket extends StatelessComponent {
               download: '${e.slug}.ics',
               classes: 'calendar-action',
               attributes: {'aria-label': 'Add ${e.title} to calendar', 'title': 'Add to calendar'},
-              [icon('calendar-plus')],
+              [motionSlot('check', icon('calendar-plus'))],
             ),
           ]),
           p(classes: 'summary', [.text(e.description)]),

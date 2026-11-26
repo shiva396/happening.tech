@@ -114,6 +114,9 @@
       }
       panel.hidden = !active;
     }
+    if (previousSelection !== undefined && selected && selected !== previousSelection) {
+      directory.querySelector('[data-motion="ticket"]').dispatchEvent(new Event("play-motion", { bubbles: true }));
+    }
     previousSelection = selected;
     if (caption) {
       const current = shown.find(row => row.dataset.slug === selected);
@@ -136,8 +139,10 @@
       feature.hidden =
         Boolean(query.value || city.value || topic.value) ||
         !shown.some((row) => row.dataset.slug === feature.dataset.feature);
-    count.textContent =
-      shown.length + (shown.length === 1 ? " event" : " events");
+    const nextCount = shown.length + (shown.length === 1 ? " event" : " events");
+    if (count.textContent !== nextCount) {
+      count.replaceChildren(Object.assign(document.createElement("span"), { textContent: nextCount }));
+    }
     document.getElementById("empty").hidden = shown.length > 0;
     directory.querySelector(".spotlight").hidden = shown.length === 0;
     clear.hidden = !query.value && !city.value && !topic.value;

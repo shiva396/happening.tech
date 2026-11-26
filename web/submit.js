@@ -263,6 +263,7 @@
       : "Download the TOML file to keep your listing. When the project repository opens, add it to the events folder in a pull request.";
     node("output").hidden = false;
     node("download").focus();
+    node("output").querySelector("[data-motion]").dispatchEvent(new Event("play-motion", { bubbles: true }));
   });
 
   node("submit").disabled = false;

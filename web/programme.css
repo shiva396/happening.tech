@@ -1046,3 +1046,63 @@ button.activity-cell:focus-visible { outline: 3px solid var(--accent); }
   .activity { margin-top: 0.75rem; }
   .section-head { flex-wrap: wrap; }
 }
+
+.motion-slot {
+  position: relative;
+  display: inline-grid;
+  width: 1.65rem;
+  height: 1.65rem;
+  flex: none;
+  place-items: center;
+  vertical-align: middle;
+}
+.motion-glyph { display: inline-flex; align-items: center; justify-content: center; }
+.motion-slot dotlottie-wc {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  opacity: 0;
+}
+.motion-slot[data-playing] dotlottie-wc { opacity: 1; }
+.motion-slot[data-playing] .motion-glyph { visibility: hidden; }
+#entry-output h2 { display: flex; align-items: center; gap: 0.4rem; }
+#entry-output .motion-glyph { color: var(--tile-three, light-dark(#277849, #7bd59a)); }
+
+@media (prefers-reduced-motion: no-preference) {
+  #count > span { display: inline-block; animation: count-in 170ms ease-out; }
+  @keyframes count-in {
+    from { opacity: .55; transform: translateY(3px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .pin[aria-pressed="true"]::after {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border: 2px solid var(--map-accent);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: locate 450ms ease-out both;
+  }
+  @keyframes locate {
+    from { opacity: .8; transform: scale(.8); }
+    to { opacity: 0; transform: scale(2.15); }
+  }
+
+  button.activity-cell { transition: transform 120ms ease-out; }
+  button.activity-cell:focus-visible { transform: scale(1.12); }
+  #activity-day > a { animation: reveal 180ms ease-out; }
+  #entry-studio details[open] > .entry-pair,
+  #entry-registration:not([hidden]) { animation: reveal 180ms ease-out; }
+
+  .primary-action > .icon, .mobile-feature .fold { transition: transform 180ms ease-out; }
+  @media (hover: hover) {
+    button.activity-cell:hover { transform: scale(1.12); }
+    .primary-action:hover > .icon { transform: translate(2px, -2px); }
+    .mobile-feature:hover .fold { transform: rotate(-3deg); }
+  }
+  .primary-action:focus-visible > .icon { transform: translate(2px, -2px); }
+  .mobile-feature:focus-visible .fold { transform: rotate(-3deg); }
+}

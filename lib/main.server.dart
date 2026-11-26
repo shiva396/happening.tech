@@ -17,6 +17,7 @@ void main() {
       head: [
         link(href: '/programme.css', rel: 'stylesheet'),
         link(href: '/favicon.ico?v=blank', rel: 'icon', type: 'image/x-icon'),
+        script(src: '/motion.js', defer: true),
         script(src: '/programme.js', defer: true),
       ],
       body: App(loadEvents()),
