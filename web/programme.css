@@ -1230,7 +1230,7 @@ button.activity-cell:focus-visible { outline: 1px solid var(--accent); }
   .ticket-moths { grid-column: 2; }
 }
 @media (max-width: 740px) {
-  .ticket-moths { aspect-ratio: 3.3; min-height: 6.5rem; }
+  .ticket-moths { width: 100%; min-width: 0; aspect-ratio: 3.3; min-height: 6.5rem; }
 }
 @media (prefers-reduced-motion: reduce) {
   .ticket-moths { cursor: default; }
