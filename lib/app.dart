@@ -28,7 +28,9 @@ class App extends StatelessComponent {
                   href: entry.$1,
                   classes: 'nav-item',
                   attributes: {
-                    if (entry.$1 == '/' ? path == '/' || path.startsWith('/events/') : path.startsWith('/world'))
+                    if (entry.$1 == '/'
+                        ? path == '/' || path.startsWith('/past') || path.startsWith('/events/')
+                        : path.startsWith('/world'))
                       'aria-current': 'page',
                   },
                   [icon(entry.$3), .text(entry.$2)],
@@ -46,6 +48,11 @@ class App extends StatelessComponent {
               path: '/world',
               title: 'World view · happening.tech',
               builder: (_, _) => Programme(events, world: true),
+            ),
+            Route(
+              path: '/past',
+              title: 'Past events · happening.tech',
+              builder: (_, _) => Programme(events, past: true),
             ),
             Route(path: '/submit', title: 'List an event · happening.tech', builder: (_, _) => const SubmitPage()),
             for (final event in events)

@@ -982,3 +982,67 @@ p {
     padding-top: 5px;
   }
 }
+
+.section-head .archive-link {
+  margin-inline-start: auto;
+  font-size: 0.875rem;
+  color: var(--accent);
+}
+.archive-link:hover, .activity a:hover { text-decoration: underline; }
+.activity {
+  --tile-empty: light-dark(#e9ece8, #2b3431);
+  --tile-one: light-dark(#87c299, #30764b);
+  --tile-two: light-dark(#4b9f6a, #359259);
+  --tile-three: light-dark(#277849, #48b574);
+  --tile-four: light-dark(#165735, #7bd59a);
+  margin-bottom: clamp(2rem, 4vw, 4rem);
+  padding: clamp(1rem, 2.6vw, 2.75rem);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: var(--surface);
+}
+.activity-head, .activity-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.65rem 1.25rem;
+}
+.activity-head h2 { font-size: clamp(1.25rem, 2vw, 1.75rem); font-weight: 550; }
+.activity-head p, .activity-foot { color: var(--muted); font-size: 0.875rem; }
+.activity a { color: var(--accent); font-size: 0.9rem; }
+.activity-scroll { overflow-x: auto; padding: 4px; margin-block: 1.25rem; }
+.activity-grid {
+  display: grid;
+  grid-template-columns: 2rem repeat(var(--weeks, 53), minmax(0, 1fr));
+  min-width: 52rem;
+  gap: clamp(3px, 0.28vw, 5px);
+  align-items: center;
+}
+.activity-label { font-size: 0.75rem; color: var(--muted); white-space: nowrap; }
+.activity-cell {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1;
+  padding: 0;
+  border: 0;
+  border-radius: 3px;
+  background: var(--tile-empty);
+}
+.activity-cell.level-1 { background: var(--tile-one); }
+.activity-cell.level-2 { background: var(--tile-two); }
+.activity-cell.level-3 { background: var(--tile-three); }
+.activity-cell.level-4 { background: var(--tile-four); }
+button.activity-cell:hover, button.activity-cell[aria-pressed=true] {
+  outline: 2px solid var(--ink);
+  outline-offset: 1px;
+}
+button.activity-cell:focus-visible { outline: 3px solid var(--accent); }
+.activity-key, #activity-day { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+.activity-key { gap: 4px; margin-inline-start: auto; font-size: 0.75rem; }
+.activity-key .activity-cell { width: 0.75rem; }
+#activity-day a { text-decoration: underline; text-underline-offset: 3px; }
+@media (max-width: 740px) {
+  .activity { margin-top: 0.75rem; }
+  .section-head { flex-wrap: wrap; }
+}

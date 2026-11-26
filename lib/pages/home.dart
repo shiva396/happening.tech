@@ -4,6 +4,7 @@ import 'package:jaspr/dom.dart';
 import 'package:jaspr/server.dart';
 import 'package:timezone/timezone.dart' as tz;
 import '../event.dart';
+import '../components/activity.dart';
 
 Component icon(String name) => svg(
   classes: 'icon',
@@ -52,24 +53,36 @@ String _month(Event e) => '${months[_hostDate(e).month - 1]} ${_hostDate(e).year
 class Programme extends StatelessComponent {
   final List<Event> events;
   final bool world;
-  const Programme(this.events, {this.world = false, super.key});
+  final bool past;
+  const Programme(this.events, {this.world = false, this.past = false, super.key});
 
   @override
   Component build(BuildContext context) {
-    final upcoming = events.where((e) => e.endsAtExclusive.isAfter(DateTime.now())).toList();
-    final cities = upcoming.map((e) => e.city).toSet().toList()..sort();
-    final topics = upcoming.map((e) => e.topic).toSet().toList()..sort();
+    final now = DateTime.now();
+    final ordered = past ? events.reversed.toList() : events;
+    final visible = ordered.where((e) => e.endsAtExclusive.isAfter(now) != past).toList();
+    // Include future entries in the static archive so the browser can reveal them as they end.
+    final entries = past ? ordered : visible;
+    final cities = entries.map((e) => e.city).toSet().toList()..sort();
+    final topics = entries.map((e) => e.topic).toSet().toList()..sort();
+    final listTitle = past ? 'Past events' : 'Upcoming events';
     return div(
       classes: 'wrap programme',
-      attributes: {'data-directory': ''},
+      attributes: {'data-directory': past ? 'past' : 'upcoming'},
       [
         header(classes: 'opening', [
           h1([
-            .text(world ? 'World view' : 'The programme'),
+            .text(
+              world
+                  ? 'World view'
+                  : past
+                  ? 'Past events'
+                  : 'The programme',
+            ),
             span([.text('.')]),
           ]),
         ]),
-        if (world && upcoming.isNotEmpty) worldMap(upcoming),
+        if (world && visible.isNotEmpty) worldMap(visible),
         div(
           classes: 'filters',
           attributes: {'data-interactive': ''},
@@ -94,36 +107,44 @@ class Programme extends StatelessComponent {
             ]),
           ],
         ),
-        if (!world && upcoming.isNotEmpty)
+        if (!world && !past && visible.isNotEmpty)
           a(
-            href: '/events/${upcoming.first.slug}',
+            href: '/events/${visible.first.slug}',
             classes: 'mobile-feature',
-            attributes: {'data-feature': upcoming.first.slug, 'aria-label': 'View ${upcoming.first.title}'},
+            attributes: {'data-feature': visible.first.slug, 'aria-label': 'View ${visible.first.title}'},
             [
-              eventPoster(upcoming.first),
+              eventPoster(visible.first),
             ],
           ),
         div(classes: 'spread', [
           section(
             classes: 'event-list',
-            attributes: {'aria-label': 'Upcoming events'},
+            attributes: {'aria-label': listTitle},
             [
               div(classes: 'section-head', [
-                h2([.text('Upcoming events')]),
+                h2([.text(listTitle)]),
                 span(
                   id: 'count',
                   attributes: {'aria-live': 'polite'},
-                  [.text('${upcoming.length} ${upcoming.length == 1 ? 'event' : 'events'}')],
+                  [.text('${visible.length} ${visible.length == 1 ? 'event' : 'events'}')],
                 ),
-              ]),
-              for (final group in upcoming.map(_month).toSet())
-                div(classes: 'month-group', [
-                  h3(classes: 'month', [.text(group)]),
-                  for (final e in upcoming.where((e) => _month(e) == group)) eventRow(e, e == upcoming.first),
+                a(classes: 'archive-link', href: past ? '/' : '/past', [
+                  .text(past ? 'See upcoming events' : 'See past events'),
                 ]),
+              ]),
+              for (final group in entries.map(_month).toSet())
+                div(
+                  classes: 'month-group',
+                  attributes: {if (!visible.any((e) => _month(e) == group)) 'hidden': ''},
+                  [
+                    h3(classes: 'month', [.text(group)]),
+                    for (final e in entries.where((e) => _month(e) == group))
+                      eventRow(e, e == visible.firstOrNull, hidden: past && e.endsAtExclusive.isAfter(now)),
+                  ],
+                ),
               div(
                 id: 'empty',
-                attributes: {if (upcoming.isNotEmpty) 'hidden': ''},
+                attributes: {if (visible.isNotEmpty) 'hidden': ''},
                 [
                   h3([.text('No events to show')]),
                   p([.text('Try another city or topic, or add a gathering from your community.')]),
@@ -141,15 +162,16 @@ class Programme extends StatelessComponent {
                 h2([.text('Event spotlight')]),
                 icon('ticket'),
               ]),
-              for (final e in upcoming)
+              for (final e in entries)
                 div(
                   classes: 'selected-panel',
-                  attributes: {'data-panel': e.slug, if (e != upcoming.first) 'hidden': ''},
+                  attributes: {'data-panel': e.slug, if (e != visible.firstOrNull) 'hidden': ''},
                   [EventTicket(e)],
                 ),
             ],
           ),
         ]),
+        EventActivity(events, onArchive: past),
       ],
     );
   }
@@ -168,12 +190,13 @@ Component facet(String id, String all, String symbol, List<String> values) => la
   icon('chevron-down'),
 ]);
 
-Component eventRow(Event e, bool first) {
+Component eventRow(Event e, bool first, {bool hidden = false}) {
   final day = _hostDate(e);
   return a(
     href: '/events/${e.slug}',
     classes: 'event-row',
     attributes: {
+      if (hidden) 'hidden': '',
       'data-slug': e.slug,
       'data-city': e.city,
       'data-topic': e.topic,
@@ -252,7 +275,7 @@ class EventTicket extends StatelessComponent {
               attributes: {'data-host-url': e.url},
               [
                 span([
-                  .text(elapsed ? 'Past event · organizer site' : (e.registrationLabel ?? 'Visit organizer site')),
+                  .text(elapsed ? 'Visit event archive' : (e.registrationLabel ?? 'Visit organizer site')),
                 ]),
                 icon('arrow-up-right'),
               ],

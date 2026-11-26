@@ -4,7 +4,7 @@
     if (Date.parse(card.dataset.end) <= Date.now()) {
       const link = card.querySelector("[data-host-url]");
       link.href = link.dataset.hostUrl;
-      link.querySelector("span").textContent = "Past event · organizer site";
+      link.querySelector("span").textContent = "Visit event archive";
     }
   }
 
@@ -48,12 +48,18 @@
   let previousSelection;
 
   function readLocation() {
+    const isPast = directory.dataset.directory === "past";
+    const available = rows.filter(row => (Date.parse(row.dataset.expires) <= Date.now()) === isPast);
     const params = new URLSearchParams(location.search);
     query.value = params.get("q") || "";
     for (const field of [city, topic]) {
+      const values = new Set(available.map(row => row.dataset[field.id]));
+      for (const option of field.options) {
+        option.hidden = Boolean(option.value) && !values.has(option.value);
+      }
       const requested = params.get(field.id);
       field.value = [...field.options].some(
-        (option) => option.value === requested,
+        (option) => !option.hidden && option.value === requested,
       )
         ? requested
         : "";
@@ -80,7 +86,7 @@
     const phrase = query.value.trim().toLowerCase();
     const shown = rows.filter((row) => {
       const match =
-        Date.parse(row.dataset.expires) > Date.now() &&
+        (Date.parse(row.dataset.expires) <= Date.now()) === (directory.dataset.directory === "past") &&
         (!city.value || city.value === row.dataset.city) &&
         (!topic.value || topic.value === row.dataset.topic) &&
         (row.textContent + " " + row.dataset.host)
