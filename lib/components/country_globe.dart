@@ -32,7 +32,8 @@ class CountryGlobe extends StatelessComponent {
       [
         div(classes: 'globe-toolbar', [
           label([
-            span([.text('Country')]),
+            icon('globe'),
+            span(classes: 'country-field-label', [.text('Country')]),
             select(id: 'country', [
               option(value: '', [.text('All countries')]),
               if (eventCountries.contains('Online')) option(value: 'Online', [.text('Online events')]),
@@ -46,9 +47,11 @@ class CountryGlobe extends StatelessComponent {
                   ],
                 ),
             ]),
+            icon('chevron-down'),
           ]),
         ]),
         div(classes: 'globe-stage', [
+          Component.element(tag: 'canvas', classes: 'earth-surface', attributes: {'aria-hidden': 'true', 'hidden': ''}),
           img(classes: 'globe-fallback', src: '/art/globe-india.webp', alt: 'Globe centred on India'),
           svg(
             id: 'country-globe',

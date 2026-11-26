@@ -12,7 +12,7 @@ import { loadComponent } from "./lottie-player.js";
     function finish() {
       player.remove();
       slot.removeAttribute("data-playing");
-      if (loop) slot.setAttribute('aria-pressed', 'false');
+      if (loop && slot.matches('button')) slot.setAttribute('aria-pressed', 'false');
       active.delete(slot);
     }
     active.set(slot, finish);
@@ -30,7 +30,7 @@ import { loadComponent } from "./lottie-player.js";
       const animation = player.dotLottie;
       animation.addEventListener("load", () => {
         slot.setAttribute("data-playing", "");
-        if (loop) slot.setAttribute("aria-pressed", "true");
+        if (loop && slot.matches('button')) slot.setAttribute("aria-pressed", "true");
       });
       animation.addEventListener("complete", finish);
       animation.addEventListener("loadError", finish);
@@ -59,6 +59,20 @@ import { loadComponent } from "./lottie-player.js";
     syncPreference();
     reduced.addEventListener("change", syncPreference);
     new IntersectionObserver(([entry]) => { if (!entry.isIntersecting) stop(); }).observe(artwork);
+  }
+
+  const valley = document.querySelector('.empty-art');
+  if (valley) {
+    let inView = false;
+    const sync = () => {
+      if (inView && !document.hidden && !reduced.matches) {
+        if (!active.has(valley)) play(valley, true);
+      } else active.get(valley)?.();
+    };
+    new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; sync(); }).observe(valley);
+    reduced.addEventListener("change", sync);
+    document.addEventListener("visibilitychange", sync);
+    window.addEventListener("pageshow", sync);
   }
 
   document.addEventListener("play-motion", event => play(event.target.closest("[data-motion]")));

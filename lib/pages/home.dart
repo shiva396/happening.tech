@@ -116,7 +116,7 @@ class Programme extends StatelessComponent {
           [
             h3([.text('No events to show')]),
             p([.text('Try another city or topic, or add a gathering from your community.')]),
-            button(id: 'reset', attributes: {'hidden': ''}, [.text('Clear filters')]),
+            if (!world) button(id: 'reset', attributes: {'hidden': ''}, [.text('Clear filters')]),
             a(href: '/submit', [.text('List an event')]),
           ],
         ),
@@ -144,9 +144,19 @@ class Programme extends StatelessComponent {
             id: 'country-empty',
             attributes: {if (initial.isNotEmpty) 'hidden': ''},
             [
-              h3([.text('No upcoming events here')]),
-              p([.text('Choose another country or add a local event.')]),
-              a(href: '/submit', [.text('List an event')]),
+              div(
+                classes: 'empty-art',
+                attributes: {'data-motion': 'balloon', 'aria-hidden': 'true'},
+                [
+                  img(src: '/art/balloon.webp', alt: ''),
+                ],
+              ),
+              div(classes: 'empty-copy', [
+                h3([.text('No upcoming events here')]),
+                p([.text('Know a gathering here? Share it with the community.')]),
+                button(id: 'reset', attributes: {'hidden': ''}, [.text('Clear filters')]),
+                a(classes: 'list-event', href: '/submit', [icon('plus'), .text('List an event')]),
+              ]),
             ],
           ),
         for (final e in entries)
@@ -209,7 +219,7 @@ class Programme extends StatelessComponent {
             ),
           ]),
         ],
-        EventActivity(events, onArchive: past),
+        if (!world) EventActivity(events, onArchive: past),
       ],
     );
   }

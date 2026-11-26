@@ -15,15 +15,8 @@ class EventActivity extends StatelessComponent {
   Component build(BuildContext context) => section(
     id: 'activity',
     classes: 'activity',
-    attributes: {'aria-labelledby': 'activity-title'},
+    attributes: {'aria-label': 'Event calendar for the past 12 months'},
     [
-      div(classes: 'activity-head', [
-        div([
-          h2(id: 'activity-title', [.text('Event activity')]),
-          p(id: 'activity-summary', [.text('The past 12 months')]),
-        ]),
-        if (!onArchive) a(href: '/past', [.text('Browse past events')]),
-      ]),
       div(id: 'activity-scroll', classes: 'activity-scroll', [
         div(id: 'activity-grid', classes: 'activity-grid', attributes: {'aria-label': 'Daily event counts'}, []),
       ]),
@@ -38,6 +31,7 @@ class EventActivity extends StatelessComponent {
         [],
       ),
       div(classes: 'activity-foot', [
+        if (!onArchive) a(classes: 'calendar-archive', href: '/past', [.text('Browse past events')]),
         div(id: 'activity-day', attributes: {'aria-live': 'polite'}, []),
         div(
           classes: 'activity-key',

@@ -97,3 +97,4 @@ TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
 THIS SOFTWARE.
 
 Country geometry: Natural Earth 1:50m, via world-atlas 2.0.2, simplified for small-screen display. https://www.naturalearthdata.com/
+Physical map: Natural Earth I with Shaded Relief and Water, 1:50m. Prepared from NE1_50M_SR_W for local display. https://www.naturalearthdata.com/downloads/50m-raster-data/50m-natural-earth-1/

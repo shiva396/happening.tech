@@ -18,13 +18,11 @@
   });
   const monthLabel = new Intl.DateTimeFormat(undefined, {timeZone: "UTC", month: "short"});
   const entriesByDay = new Map();
-  let eventCount = 0;
   for (const entry of section.querySelectorAll("[data-first-day]")) {
     if (Date.parse(entry.dataset.startInstant) > now.getTime()) continue;
     const start = Math.max(firstDay, Date.parse(entry.dataset.firstDay));
     const end = Math.min(today, Date.parse(entry.dataset.lastDay));
     if (end < start) continue;
-    eventCount++;
     for (let day = start; day <= end; day += dayMs) {
       if (!entriesByDay.has(day)) entriesByDay.set(day, []);
       entriesByDay.get(day).push(entry);
@@ -188,10 +186,6 @@
     const observer = new IntersectionObserver(([entry]) => section.classList.toggle("activity-offscreen", !entry.isIntersecting));
     observer.observe(section);
   }
-  const days = entriesByDay.size;
-  document.getElementById("activity-summary").textContent =
-    eventCount + (eventCount === 1 ? " event" : " events") + " across " +
-    days + (days === 1 ? " day" : " days") + " in the past 12 months";
   if (latest) {
     inspect(latest.day, latest.cell);
     scroll.scrollLeft += latest.cell.getBoundingClientRect().left - scroll.getBoundingClientRect().left - scroll.clientWidth / 2;

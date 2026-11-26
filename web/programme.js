@@ -129,6 +129,10 @@
       prev.hidden = next.hidden = shown.length < 2;
       const cities = new Set(rows.filter(row => (!country.value || row.dataset.country === country.value) &&
         Date.parse(row.dataset.expires) > Date.now()).map(row => row.dataset.city));
+      directory.querySelector(".filters").hidden = cities.size === 0;
+      directory.querySelector(".event-list").hidden = cities.size === 0;
+      document.querySelector("#country-empty h3").textContent = cities.size ? "No matching events" : "No upcoming events here";
+      document.querySelector("#country-empty p").textContent = cities.size ? "Try a different search, location, or topic." : "Know a gathering here? Share it with the community.";
       for (const option of city.options) option.hidden = !!option.value && !cities.has(option.value);
     }
     const feature = directory.querySelector("[data-feature]");
@@ -140,7 +144,7 @@
     if (count.textContent !== nextCount) {
       count.replaceChildren(Object.assign(document.createElement("span"), { textContent: nextCount }));
     }
-    document.getElementById("empty").hidden = shown.length > 0 || (country && !query.value && !city.value && !topic.value);
+    document.getElementById("empty").hidden = shown.length > 0 || Boolean(country);
     directory.querySelector(".spotlight").hidden = !country && shown.length === 0;
     clear.hidden = !query.value && !city.value && !topic.value;
   }

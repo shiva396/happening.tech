@@ -1,5 +1,7 @@
 import { feature, geoArea, geoCentroid, geoOrthographic, geoPath } from "./vendor/globe/geo.js";
 
+import { paintEarth } from "./earth-relief.js";
+
 async function mountGlobe() {
   const svg = document.getElementById("country-globe");
   if (!svg) return;
@@ -49,6 +51,7 @@ async function mountGlobe() {
     { cx: 260, cy: 177, fill: "url(#globe-light)", "pointer-events": "none" },
     svg,
   );
+  const focusRing = element("circle", {cx: 260, cy: 177, class: "globe-focus", "pointer-events": "none"}, svg);
   const label = element("g", { "pointer-events": "none" }, svg);
   const badge = element("rect", { class: "globe-tag", height: 19, y: -9.5, rx: 9.5 }, label);
   const caption = element("text", { class: "globe-tag-text", y: 3.6 }, label);
@@ -73,12 +76,23 @@ async function mountGlobe() {
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
   const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
   const wrap = (value) => ((((value + 540) % 360) + 360) % 360) - 180;
+  const canvas = atlas.querySelector(".earth-surface");
+  let paint;
   function draw() {
     drawing = 0;
     const radius = 153 * zoom;
     projection.rotate([-longitude, -latitude]).scale(radius);
     ocean.setAttribute("r", radius);
     shade.setAttribute("r", radius);
+    focusRing.setAttribute("r", radius + 2.2);
+    if (paint) {
+      // Match the SVG viewBox (72 0 376 350) with its centred aspect ratio.
+      const scale = Math.min(svg.clientWidth / 376, svg.clientHeight / 350);
+      const diameter = radius * 2 * scale;
+      canvas.style.width = canvas.style.height = diameter + "px";
+      canvas.style.top = "calc(50% + " + 2 * scale + "px)";
+      paint(longitude, latitude);
+    }
     for (const shape of shapes) shape.node.setAttribute("d", path(shape.country) || "");
     if (point) {
       const [x, y] = projection(point);
@@ -198,6 +212,16 @@ async function mountGlobe() {
   controls.hidden = false;
   updateZoom(1);
   selectCountry(false);
+  try {
+    paint = await paintEarth(canvas);
+    atlas.classList.add("has-relief");
+    ocean.setAttribute("fill", "transparent");
+    canvas.hidden = false;
+    new ResizeObserver(requestDraw).observe(svg);
+    requestDraw();
+  } catch {
+    // Country paths keep the globe interactive if the physical map cannot load.
+  }
 }
 
 mountGlobe().catch((error) => console.warn("Globe illustration unavailable.", error));
