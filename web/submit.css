@@ -2,9 +2,9 @@
   --entry-line: var(--line, #babbb0);
   --entry-dim: var(--muted, #555a50);
   --entry-accent: var(--accent, #4146a7);
-  max-width: 1200px;
+  width: var(--page-width);
   margin: 0 auto;
-  padding: clamp(2rem, 6vw, 5rem) clamp(1.1rem, 4vw, 3.5rem);
+  padding-block: clamp(2rem, 4vw, 4rem);
   color: var(--ink, #23261f);
 }
 #entry-studio * {
@@ -14,11 +14,8 @@
   display: none !important;
 }
 #entry-studio h1 {
-  font:
-    500 clamp(3.3rem, 7vw, 6.25rem) / 0.98 "Instrument Serif",
-    Georgia,
-    serif;
-  letter-spacing: -0.065em;
+  font: 550 var(--heading-size) / 1.08 var(--body);
+  letter-spacing: -0.045em;
   margin: 0;
 }
 #entry-studio .entry-period {
@@ -35,7 +32,7 @@
   display: grid;
   grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
   align-items: start;
-  gap: clamp(1.5rem, 6vw, 5rem);
+  gap: clamp(1.5rem, 3vw, 3.5rem);
 }
 #entry-studio fieldset {
   min-inline-size: 0;
@@ -46,10 +43,7 @@
 #entry-studio legend,
 #entry-studio .entry-preview h2,
 #entry-output h2 {
-  font:
-    550 1.55rem/1.2 "Instrument Serif",
-    Georgia,
-    serif;
+  font: 550 1.4rem/1.25 var(--body);
   letter-spacing: -0.035em;
   margin: 0 0 0.9rem;
   padding: 0;

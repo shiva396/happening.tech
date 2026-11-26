@@ -1,12 +1,7 @@
 @font-face {
-  font-family: Instrument Serif;
-  src: url(/fonts/instrumentserif.ttf) format("truetype");
-  font-display: swap;
-}
-@font-face {
-  font-family: DM Sans;
-  src: url(/fonts/dmsans.ttf) format("truetype");
-  font-weight: 100 1000;
+  font-family: "IBM Plex Sans";
+  src: url(/fonts/ibm-plex-sans.woff2) format("woff2");
+  font-weight: 100 700;
   font-display: swap;
 }
 :root {
@@ -19,9 +14,10 @@
   --wash: #eeeee7;
   --accent: #4a42c9;
   --tint: #efedfe;
-  --mono: ui-monospace, "SFMono-Regular", Consolas, monospace;
-  --display: "Instrument Serif", Georgia, serif;
-  --body: "DM Sans", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, sans-serif;
+  --page-gutter: clamp(1rem, 3vw, 4rem);
+  --page-width: calc(100% - 2 * var(--page-gutter));
+  --heading-size: clamp(2.25rem, 4.4vw, 4.75rem);
 }
 @media (prefers-color-scheme: dark) {
   :root {
@@ -75,7 +71,7 @@ p {
   margin: 0;
 }
 .wrap {
-  width: min(1220px, 90%);
+  width: var(--page-width);
   margin-inline: auto;
 }
 .icon {
@@ -117,7 +113,7 @@ p {
   display: inline-flex;
   align-items: center;
   font-size: 25px;
-  font-weight: 750;
+  font-weight: 650;
   letter-spacing: -1.6px;
   line-height: 1;
 }
@@ -184,9 +180,9 @@ p {
 .poster-top,
 .poster-foot,
 .date-block span {
-  font-family: var(--mono);
+  font-family: var(--body);
   font-weight: 500;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.07em;
   text-transform: uppercase;
 }
 .eyebrow,
@@ -207,8 +203,8 @@ p {
   flex-shrink: 0;
 }
 .opening h1 {
-  font: 400 clamp(66px, 7.7vw, 112px) / 1.02 var(--display);
-  letter-spacing: -0.055em;
+  font: 550 var(--heading-size) / 1.08 var(--body);
+  letter-spacing: -0.045em;
   margin: 9px 0 9px;
 }
 .opening h1 span {
@@ -237,7 +233,7 @@ p {
   display: block;
 }
 .coverage strong {
-  font-family: var(--display);
+  font-family: var(--body);
   font-weight: 400;
   line-height: 1.2;
   font-size: 25px;
@@ -324,7 +320,7 @@ p {
 .spread {
   display: grid;
   grid-template-columns: minmax(0, 1.12fr) minmax(0, 1fr);
-  gap: clamp(30px, 4.3vw, 72px);
+  gap: clamp(1.25rem, 3vw, 3.5rem);
   padding-top: 26px;
   padding-bottom: 60px;
   align-items: start;
@@ -342,7 +338,7 @@ p {
   letter-spacing: -0.045em;
 }
 .section-head #count {
-  font: 12px var(--mono);
+  font: 12px var(--body);
   border: 1px solid var(--line);
   border-radius: 99px;
   padding: 3px 8px;
@@ -390,7 +386,8 @@ p {
   color: var(--muted);
 }
 .date-block strong {
-  font: 400 36px/1 var(--display);
+  font: 450 1.75rem/1.12 var(--body);
+  font-variant-numeric: tabular-nums;
   color: var(--ink);
 }
 .date-block span {
@@ -409,7 +406,7 @@ p {
 }
 .topic {
   display: inline-block;
-  font: 11px/1.35 var(--mono);
+  font: 500 0.8125rem/1.35 var(--body);
   padding: 2px 7px;
   border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
   border-radius: 3px;
@@ -518,7 +515,7 @@ p {
   background: var(--poster-bg);
 }
 .poster-title {
-  font: 400 clamp(36px, 3.8vw, 65px) / 0.93 var(--display);
+  font: 550 clamp(1.75rem, 3.2vw, 3.75rem) / 1.04 var(--body);
   letter-spacing: -0.045em;
   max-width: 70%;
   text-shadow: 0 2px 5px #221c6559;
@@ -553,7 +550,8 @@ p {
 .summary {
   color: var(--muted);
   line-height: 1.55;
-  font-size: 15px;
+  font-size: 1rem;
+  max-width: 72ch;
 }
 .facts {
   display: grid;
@@ -640,7 +638,7 @@ p {
   color: var(--ink);
 }
 .detail {
-  max-width: 880px;
+  max-width: none;
   padding-block: 24px 50px;
 }
 .detail .back {
@@ -650,7 +648,7 @@ p {
   min-height: 250px;
 }
 .detail .poster-title {
-  font-size: clamp(44px, 6vw, 78px);
+  font-size: clamp(2rem, 4vw, 4rem);
   max-width: 65%;
 }
 .detail .ticket-info {
@@ -691,7 +689,7 @@ p {
 }
 .map-surface {
   aspect-ratio: 360/145;
-  width: min(100%, 860px);
+  width: min(100%, clamp(54rem, 70vw, 76rem));
   margin: auto;
   position: relative;
   background-image:
@@ -733,6 +731,24 @@ p {
   color: var(--accent);
   background: var(--tint);
 }
+@media (min-width: 64rem) {
+  .detail .ticket-card {
+    display: grid;
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+  }
+  .detail .poster { padding: clamp(1.5rem, 2.8vw, 3rem); }
+}
+@media (min-width: 88rem) {
+  .row-info {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(10rem, 35%);
+    align-items: center;
+    column-gap: 1.25rem;
+  }
+  .row-info .topic { justify-self: start; }
+  .row-info h4 { grid-column: 1; }
+  .row-info .row-meta { grid-area: 1 / 2 / span 2; }
+}
 @media (min-width: 1100px) {
   .opening {
     padding-top: 54px;
@@ -746,9 +762,6 @@ p {
   }
 }
 @media (max-width: 780px) {
-  .wrap {
-    width: 92%;
-  }
   .coverage {
     display: none;
   }
@@ -780,7 +793,7 @@ p {
     gap: 14px;
   }
 }
-@media (max-width: 640px) {
+@media (max-width: 740px) {
   .mast-inner {
     min-height: 65px;
     flex-wrap: wrap;
@@ -813,7 +826,7 @@ p {
     padding: 27px 0 22px;
   }
   .opening h1 {
-    font-size: clamp(58px, 14vw, 80px);
+    font-size: clamp(2.25rem, 8.7vw, 3.4rem);
   }
   .opening p {
     max-width: 350px;
@@ -884,22 +897,26 @@ p {
   }
 }
 @media (prefers-reduced-motion: no-preference) {
-  a,
-  .pin {
-    transition:
-      background-color 0.15s,
-      color 0.15s;
+  .event-row, .nav-item, .city-links button, .pin {
+    transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
   }
-  .selected-panel:not([hidden]) .fold {
-    animation: arrive 0.33s ease-out;
+  .event-row > .icon, .list-event, .primary-action, .calendar-action,
+  #entry-submit, .entry-actions a {
+    transition: transform 150ms ease-out, opacity 150ms ease-out;
   }
-  @keyframes arrive {
-    from {
-      transform: translate(4%, 2%) rotate(4deg);
-    }
-    to {
-      transform: none;
-    }
+  @media (hover: hover) {
+    .event-row:hover > .icon { transform: translateX(3px); }
+  }
+  .event-row:focus-visible > .icon { transform: translateX(3px); }
+  :is(.list-event, .primary-action, .calendar-action, #entry-submit, .entry-actions a):active {
+    transform: translateY(2px);
+  }
+  .selected-panel[data-reveal]:not([hidden]), #entry-output:not([hidden]) {
+    animation: reveal 200ms cubic-bezier(.2,.7,.3,1) both;
+  }
+  @keyframes reveal {
+    from { opacity: .6; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
   }
 }
 .mobile-feature {
@@ -926,7 +943,7 @@ p {
 .poster-foot {
   position: relative;
 }
-@media (max-width: 640px) {
+@media (max-width: 740px) {
   .mobile-feature {
     display: block;
     border-radius: 9px;
@@ -938,7 +955,7 @@ p {
     padding: 12px 16px;
   }
   .mobile-feature .poster-title {
-    font-size: 36px;
+    font-size: clamp(1.5rem, 6vw, 2.1rem);
     margin: 10px 0;
   }
   .mobile-feature .poster .fold {

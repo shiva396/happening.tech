@@ -38,6 +38,7 @@
   const clear = document.getElementById("reset");
   const count = document.getElementById("count");
   let selected;
+  let previousSelection;
 
   function readLocation() {
     const params = new URLSearchParams(location.search);
@@ -93,7 +94,14 @@
     }
     for (const group of groups)
       group.hidden = !group.querySelector(".event-row:not([hidden])");
-    for (const panel of panels) panel.hidden = panel.dataset.panel !== selected;
+    for (const panel of panels) {
+      const active = panel.dataset.panel === selected;
+      if (active && selected !== previousSelection) {
+        panel.toggleAttribute("data-reveal", previousSelection !== undefined);
+      }
+      panel.hidden = !active;
+    }
+    previousSelection = selected;
     for (const pin of pins)
       pin.setAttribute("aria-pressed", String(city.value === pin.dataset.pick));
     const feature = directory.querySelector("[data-feature]");
@@ -127,7 +135,7 @@
   for (const row of rows)
     row.addEventListener("click", (event) => {
       if (
-        matchMedia("(max-width:640px)").matches ||
+        !directory.querySelector(".spotlight").getClientRects().length ||
         event.ctrlKey ||
         event.metaKey ||
         event.shiftKey ||
