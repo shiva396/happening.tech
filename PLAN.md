@@ -11,6 +11,13 @@ An open-source, global platform to discover tech events happening around the wor
 - Automate event aggregation, duplicate detection and expiry of past events wherever possible.
 - Make the entire project open source and community-driven.
 
+## Event archive, contributions and notifications
+
+- [x] Give completed events a searchable archive at `/archive/` and redirect old `/past/` bookmarks.
+- [x] Link the footer’s **Contribute** action to the [GitHub contribution guide](CONTRIBUTING.md). Give **Contribute** and **Notifications** distinct animations.
+- [x] Publish the listing feed, implement browser opt-in and opt-out, and configure the private subscription store and VAPID keys.
+- [ ] Enable live push for newly published events. Host the subscription API over HTTPS, configure its URL and scoped GitHub token, and redeploy Pages. Verify that a subscribed device receives an alert with the site closed and that tapping it opens the event. Follow the [Web Push setup guide](tool/push/README.md).
+
 ## The Experience
 
 Rather than building another conventional event listing website, we could make it feel like a living atlas of the global tech community.
