@@ -7,6 +7,8 @@
   const field = (name) => form.elements.namedItem(name);
   const value = (name) => field(name).value.trim();
   const node = (name) => document.getElementById("entry-" + name);
+  const art = node("art");
+  const illustratedPlaces = new Set(art.dataset.places.split(" "));
   const repository = studio.dataset.repository;
   const hasRepository = /^[\w.-]+\/[\w.-]+$/.test(repository);
   let fileUrl;
@@ -50,8 +52,8 @@
       { flutter: "iris", python: "ember", "open source": "moss" }[topic] ||
       tones[sum % 3];
     node("poster").className = "poster " + tone;
-    node("art").src =
-      "/art/fold-" + ["iris", "ember", "moss"].indexOf(tone) + ".webp";
+    const place = online ? "online" : value("city").toLowerCase().replaceAll(" ", "-");
+    art.src = "/art/posters/" + (illustratedPlaces.has(place) ? place : "gathering") + ".webp";
     node("format").textContent = value("format");
     node("year").textContent = value("start_date").slice(0, 4);
     node("preview-place").textContent = online

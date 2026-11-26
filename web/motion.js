@@ -45,6 +45,18 @@
     }
   }
 
+  for (const character of document.querySelectorAll(".nav-character")) {
+    const link = character.closest("a");
+    const enter = () => { if (!active.has(character)) play(character); };
+    const leave = () => active.get(character)?.();
+    link.addEventListener("pointerenter", event => {
+      if (event.pointerType !== "touch") enter();
+    });
+    link.addEventListener("pointerleave", leave);
+    link.addEventListener("focus", () => { if (link.matches(":focus-visible")) enter(); });
+    link.addEventListener("blur", leave);
+  }
+
   const artwork = document.querySelector(".ticket-moths");
   if (artwork) {
     const stop = () => active.get(artwork)?.();

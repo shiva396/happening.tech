@@ -1,4 +1,5 @@
 import '../components/motion.dart';
+import '../components/poster_art.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
@@ -155,7 +156,7 @@ class SubmitPage extends StatelessComponent {
               [
                 h2([.text('Listing preview')]),
                 div(id: 'entry-poster', classes: 'poster iris', [
-                  img(src: '/art/fold-0.webp', id: 'entry-art', alt: '', classes: 'fold'),
+                  posterArt(preview: true),
                   div(classes: 'poster-top', [
                     span(id: 'entry-format', [.text('Meetup')]),
                     span(id: 'entry-year', []),

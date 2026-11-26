@@ -156,10 +156,21 @@ p {
   font-size: 14px;
 }
 .nav-item {
+  position: relative;
   border-bottom: 2px solid transparent;
   color: var(--muted);
   padding-top: 2px;
 }
+.nav-character {
+  position: absolute;
+  z-index: 3;
+  top: calc(50% + 2px);
+  left: -8px;
+  width: 80px;
+  height: 68px;
+  pointer-events: none;
+}
+.nav-character dotlottie-wc { display: block; width: 100%; height: 100%; }
 .nav-item[aria-current] {
   color: var(--ink);
   border-color: var(--accent);
@@ -187,7 +198,7 @@ p {
   justify-content: space-between;
   align-items: center;
   gap: 22px;
-  padding: 45px 0 30px;
+  padding-block: clamp(24px, 3vw, 44px);
 }
 .host-line,
 .month,
@@ -203,13 +214,6 @@ p {
   display: flex;
   align-items: center;
   gap: 10px;
-}
-.rule {
-  display: inline-block;
-  width: 25px;
-  height: 2px;
-  background: currentColor;
-  flex-shrink: 0;
 }
 .opening h1 {
   font: 550 var(--heading-size) / 1.08 var(--body);
@@ -475,13 +479,13 @@ p {
   background-size: 4px 4px;
   opacity: 0.12;
 }
-.poster .fold {
+.poster .poster-art {
   position: absolute;
-  right: -6%;
-  width: 68%;
-  height: 110%;
+  right: 2%;
+  width: 42%;
+  height: 77%;
   object-fit: contain;
-  top: -3%;
+  top: 9%;
   z-index: -1;
   filter: drop-shadow(-6px 6px 10px #1d12413a);
 }
@@ -520,10 +524,6 @@ p {
   font-size: 11px;
   color: var(--accent);
   letter-spacing: 0.065em;
-}
-.host-line .rule {
-  width: 16px;
-  height: 1px;
 }
 .ticket-info :is(h1, h3) {
   font-size: clamp(25px, 2vw, 32px);
@@ -803,10 +803,6 @@ p {
   .row-info .row-meta { grid-area: 1 / 2 / span 2; }
 }
 @media (min-width: 1100px) {
-  .opening {
-    padding-top: 54px;
-    padding-bottom: 38px;
-  }
   .event-row {
     min-height: 112px;
   }
@@ -868,9 +864,6 @@ p {
   .mast-inner .brand,
   .mast-inner > .list-event {
     margin-top: 12px;
-  }
-  .opening {
-    padding: 27px 0 22px;
   }
   .opening h1 {
     font-size: clamp(2.25rem, 8.7vw, 3.4rem);
@@ -974,7 +967,7 @@ p {
   z-index: -1;
   background: linear-gradient(90deg, var(--poster-bg) 0%, transparent 72%);
 }
-.poster:has(.fold) .poster-title {
+.poster:has(.poster-art) .poster-title {
   position: relative;
 }
 .poster-foot {
@@ -995,9 +988,9 @@ p {
     font-size: clamp(1.5rem, 6vw, 2.1rem);
     margin: 10px 0;
   }
-  .mobile-feature .poster .fold {
-    width: 47%;
-    right: 0;
+  .mobile-feature .poster .poster-art {
+    width: 40%;
+    right: 3%;
   }
   .mobile-feature .poster-foot {
     padding-top: 5px;
@@ -1197,14 +1190,14 @@ button.activity-cell:focus-visible { outline: 3px solid var(--accent); }
   #entry-studio details[open] > .entry-pair,
   #entry-registration:not([hidden]) { animation: reveal 180ms ease-out; }
 
-  .primary-action > .icon, .mobile-feature .fold { transition: transform 180ms ease-out; }
+  .primary-action > .icon, .mobile-feature .poster-art { transition: transform 180ms ease-out; }
   @media (hover: hover) {
     button.activity-cell:hover { transform: scale(1.12); }
     .primary-action:hover > .icon { transform: translate(2px, -2px); }
-    .mobile-feature:hover .fold { transform: rotate(-3deg); }
+    .mobile-feature:hover .poster-art { transform: rotate(-3deg); }
   }
   .primary-action:focus-visible > .icon { transform: translate(2px, -2px); }
-  .mobile-feature:focus-visible .fold { transform: rotate(-3deg); }
+  .mobile-feature:focus-visible .poster-art { transform: rotate(-3deg); }
 }
 
 .ticket-moths {

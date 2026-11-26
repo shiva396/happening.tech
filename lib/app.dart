@@ -23,7 +23,10 @@ class App extends StatelessComponent {
           nav(
             attributes: {'aria-label': 'Main navigation'},
             [
-              for (final entry in [('/', 'Programme', 'list'), ('/world', 'World view', 'globe')])
+              for (final entry in [
+                ('/', 'Programme', 'list', 'programme-volunteer'),
+                ('/world', 'World view', 'globe', 'world-traveller'),
+              ])
                 a(
                   href: entry.$1,
                   classes: 'nav-item',
@@ -33,7 +36,11 @@ class App extends StatelessComponent {
                         : path.startsWith('/world'))
                       'aria-current': 'page',
                   },
-                  [icon(entry.$3), .text(entry.$2)],
+                  [
+                    icon(entry.$3),
+                    .text(entry.$2),
+                    span(classes: 'nav-character', attributes: {'aria-hidden': 'true', 'data-motion': entry.$4}, []),
+                  ],
                 ),
               button(
                 id: 'theme-switch',

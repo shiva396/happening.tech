@@ -20,7 +20,7 @@
     };
     const local = new Intl.DateTimeFormat(undefined, options);
     const hostTime = line.textContent;
-    line.textContent = local.formatRange(start, end) + " your time";
+    line.textContent = local.formatRange(start, end).replace(/\s*[–—]\s*/u, " to ") + " your time";
     const host = document.createElement("span");
     host.textContent = "Starts " + hostTime + " at the event";
     line.after(host);

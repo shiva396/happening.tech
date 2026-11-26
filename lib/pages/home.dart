@@ -5,6 +5,7 @@ import 'package:jaspr/server.dart';
 import 'package:timezone/timezone.dart' as tz;
 import '../event.dart';
 import '../components/activity.dart';
+import '../components/poster_art.dart';
 import '../components/motion.dart';
 
 Component icon(String name) => svg(
@@ -48,7 +49,6 @@ String _tone(Event e) => switch (e.topic.toLowerCase()) {
   'open source' => 'moss',
   _ => ['iris', 'moss', 'ember'][e.community.codeUnits.fold(0, (int sum, unit) => sum + unit) % 3],
 };
-int _art(String tone) => ['iris', 'ember', 'moss'].indexOf(tone);
 String _month(Event e) => '${months[_hostDate(e).month - 1]} ${_hostDate(e).year}';
 
 class Programme extends StatelessComponent {
@@ -245,7 +245,7 @@ Component eventRow(Event e, bool first, {bool hidden = false}) {
 Component eventPoster(Event e) {
   final tone = _tone(e);
   return div(classes: 'poster $tone', [
-    img(src: '/art/fold-${_art(tone)}.webp', alt: '', classes: 'fold'),
+    posterArt(city: e.city),
     div(classes: 'poster-top', [
       span([.text(e.format)]),
       span([.text(_hostDate(e).year.toString())]),
@@ -267,7 +267,7 @@ class EventTicket extends StatelessComponent {
     final e = event;
     final start = _hostDate(e);
     final sameDay = _date(start) == _date(_hostDate(e, end: true));
-    final dates = sameDay ? _date(_hostDate(e)) : '${_date(_hostDate(e))} – ${_date(_hostDate(e, end: true))}';
+    final dates = sameDay ? _date(_hostDate(e)) : '${_date(_hostDate(e))} to ${_date(_hostDate(e, end: true))}';
     final elapsed = !e.endsAtExclusive.isAfter(DateTime.now());
     return article(
       classes: 'ticket-card',
@@ -275,7 +275,7 @@ class EventTicket extends StatelessComponent {
       [
         eventPoster(e),
         div(classes: 'ticket-info', [
-          div(classes: 'host-line', [span(classes: 'rule', []), .text('Hosted by ${e.community}')]),
+          div(classes: 'host-line', [.text('Hosted by ${e.community}')]),
           if (standalone)
             h1([.text(e.title)])
           else
