@@ -22,7 +22,7 @@ class PlayfulNavigation extends StatelessComponent {
           classes: 'nav-item',
           attributes: {
             if (href == '/'
-                ? path == '/' || path.startsWith('/past') || path.startsWith('/events/')
+                ? path == '/' || path.startsWith('/events/')
                 : path.startsWith('/world'))
               'aria-current': 'page',
           },

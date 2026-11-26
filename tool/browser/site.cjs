@@ -121,8 +121,21 @@ async function programme(page) {
     await page.mouse.move(0, 0);
     await page.locator("#activity-preview").waitFor({ state: "hidden" });
   }
-  await page.locator(".archive-link").click();
-  assert.equal(await page.locator("[data-directory]").getAttribute("data-directory"), "past");
+  assert.equal(await page.getByText("See past events").count(), 0);
+  await page.getByRole("link", { name: "Event archive", exact: true }).click();
+  assert.equal(await page.locator("[data-directory]").getAttribute("data-directory"), "archive");
+  assert(await page.getByRole("heading", { name: "Event archive." }).isVisible());
+  assert.equal(await page.locator("#activity").count(), 0);
+  assert(await page.locator(".event-row:visible").evaluateAll(rows =>
+    rows.every(row => Date.parse(row.dataset.expires) <= Date.now())));
+  await page.locator("#query").fill("no-such-archived-event");
+  assert(await page.locator("#empty").isVisible());
+  await page.locator("#reset").click();
+  await page.goto(new URL("past/?q=FOSDEM", root).href);
+  await page.waitForURL(url => url.pathname.endsWith("/archive/"));
+  assert.equal(await page.locator("#query").inputValue(), "FOSDEM");
+  assert.match(await page.getByRole("link", { name: "Contribute", exact: true }).getAttribute("href"),
+    /^https:\/\/github\.com\/[^/]+\/[^/]+\/blob\/main\/CONTRIBUTING\.md$/);
   // The static archive contains every listing, including future entries hidden by the browser.
   const href = await page.locator(".event-row").first().getAttribute("href");
   return new URL(href, root).href;
@@ -312,7 +325,8 @@ eachBrowser(async (browser, name) => {
   await listing(page);
   const routes = [
     root.href,
-    new URL("past/", root).href,
+    new URL("archive/", root).href,
+    new URL("notifications/", root).href,
     eventUrl,
     new URL("world/?country=", root).href,
     emptyUrl,

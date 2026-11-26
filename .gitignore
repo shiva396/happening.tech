@@ -31,3 +31,5 @@ migrate_working_dir/
 
 # Browser regression tooling
 /tool/browser/node_modules/
+
+/tool/push/node_modules/

@@ -4,7 +4,7 @@
     if (Date.parse(card.dataset.end) <= Date.now()) {
       const link = card.querySelector("[data-host-url]");
       link.href = link.dataset.hostUrl;
-      link.querySelector("span").textContent = "Visit event archive";
+      link.querySelector("span").textContent = "Visit organizer site";
     }
   }
 
@@ -27,7 +27,15 @@
   }
 
   const directory = document.querySelector("[data-directory]");
+  if (document.getElementById("legacy-archive")) {
+    const archive = new URL("archive/", document.baseURI);
+    archive.search = location.search;
+    archive.hash = location.hash;
+    location.replace(archive.href);
+  }
   if (!directory) return;
+  const isArchive = directory.dataset.directory === "archive";
+  const spotlight = directory.querySelector(".spotlight");
   const query = document.getElementById("query");
   const city = document.getElementById("city");
   const topic = document.getElementById("topic");
@@ -43,8 +51,7 @@
   let previousSelection;
 
   function readLocation() {
-    const isPast = directory.dataset.directory === "past";
-    const available = rows.filter(row => (Date.parse(row.dataset.expires) <= Date.now()) === isPast);
+    const available = rows.filter(row => (Date.parse(row.dataset.expires) <= Date.now()) === isArchive);
     const params = new URLSearchParams(location.search);
     query.value = params.get("q") || "";
     if (country) {
@@ -87,7 +94,7 @@
     const phrase = query.value.trim().toLowerCase();
     const shown = rows.filter((row) => {
       const match =
-        (Date.parse(row.dataset.expires) <= Date.now()) === (directory.dataset.directory === "past") &&
+        (Date.parse(row.dataset.expires) <= Date.now()) === isArchive &&
         (!country?.value || country.value === row.dataset.country) &&
         (!city.value || city.value === row.dataset.city) &&
         (!topic.value || topic.value === row.dataset.topic) &&
@@ -97,7 +104,7 @@
       row.hidden = !match;
       return match;
     });
-    selected =
+    selected = isArchive ? "" :
       shown.find((row) => row.dataset.slug === selected)?.dataset.slug ||
       shown[0]?.dataset.slug ||
       "";
@@ -146,7 +153,7 @@
       count.replaceChildren(Object.assign(document.createElement("span"), { textContent: nextCount }));
     }
     document.getElementById("empty").hidden = shown.length > 0 || Boolean(country);
-    directory.querySelector(".spotlight").hidden = !country && shown.length === 0;
+    if (spotlight) spotlight.hidden = !country && shown.length === 0;
     clear.hidden = !query.value && !city.value && !topic.value;
   }
 
@@ -181,7 +188,7 @@
   for (const row of rows)
     row.addEventListener("click", (event) => {
       if (
-        !directory.querySelector(".spotlight").getClientRects().length ||
+        !spotlight?.getClientRects().length ||
         event.ctrlKey ||
         event.metaKey ||
         event.shiftKey ||

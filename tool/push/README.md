@@ -1,0 +1,10 @@
+# Enable browser notifications
+
+The Jaspr site asks for permission only when a visitor chooses **Enable notifications**. A small API manages subscriptions in a private GitHub repository. After a successful Pages deployment, GitHub Actions sends encrypted Web Push messages signed with the project’s VAPID key. Keep the same key pair across deployments.
+
+1. The private store for this project is `shiva396/happening-tech-push-subscriptions`. Create a fine-grained token scoped to that repository with Contents read and write. Keep its files and commit history private.
+2. Deploy this directory (`tool/push`) as a Vercel project with the **Other** preset, no build command, and Node.js 22 or newer. Set `SITE_ORIGIN` to the exact live origin (for the current Pages site, `https://shiva396.github.io`), `PUSH_STORE_REPO` to the private owner/repository, and `PUSH_STORE_TOKEN` to the token. The public endpoint is `https://<your-deployment>/api/subscriptions`.
+3. In the site repository’s Actions settings, add the endpoint as variable `PUSH_SUBSCRIPTION_URL` and the token as secret `PUSH_STORE_TOKEN`. This project already has the store name and VAPID key pair configured. For an independent deployment, generate a fresh pair with `npx web-push generate-vapid-keys` after `npm ci`, save the public key as variable `VAPID_PUBLIC_KEY`, the private key as secret `VAPID_PRIVATE_KEY`, and the store name as variable `PUSH_STORE_REPO`.
+4. Run **Publish GitHub Pages** on `main`. Open **Notifications** on a supported browser, enable alerts, then close the tab. The next newly published, unexpired listing triggers an alert. Select it to open the event. Turn it off from the same settings page. On iOS or iPadOS, use the site from the Home Screen.
+
+An edit to an existing listing does not send a new-event alert. Delivery uses the previous successful publication as its baseline, and expired subscriptions are removed from the active list. Without push configuration the settings page provides the listing feed.

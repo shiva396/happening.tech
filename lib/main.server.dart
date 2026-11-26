@@ -17,6 +17,7 @@ void main() {
       },
       head: [
         script(src: 'theme.js'),
+        link(href: 'manifest.webmanifest', rel: 'manifest'),
         for (final sheet in ['colors', 'typography', 'spacing', 'controls', 'layout', 'effects', 'motion'])
           link(href: 'constants/$sheet.css', rel: 'stylesheet'),
         link(href: 'programme.css', rel: 'stylesheet'),

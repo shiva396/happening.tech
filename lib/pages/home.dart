@@ -47,20 +47,20 @@ String _month(Event e) => '${months[_hostDate(e).month - 1]} ${_hostDate(e).year
 class Programme extends StatelessComponent {
   final List<Event> events;
   final bool world;
-  final bool past;
-  const Programme(this.events, {this.world = false, this.past = false, super.key});
+  final bool archive;
+  const Programme(this.events, {this.world = false, this.archive = false, super.key});
 
   @override
   Component build(BuildContext context) {
     final now = DateTime.now();
-    final ordered = past ? events.reversed.toList() : events;
-    final visible = ordered.where((e) => e.endsAtExclusive.isAfter(now) != past).toList();
+    final ordered = archive ? events.reversed.toList() : events;
+    final visible = ordered.where((e) => e.endsAtExclusive.isAfter(now) != archive).toList();
     final initial = world ? visible.where((e) => e.country == 'India').toList() : visible;
     // Include future entries in the static archive so the browser can reveal them as they end.
-    final entries = past ? ordered : visible;
+    final entries = archive ? ordered : visible;
     final cities = entries.map((e) => e.city).toSet().toList()..sort();
     final topics = entries.map((e) => e.topic).toSet().toList()..sort();
-    final listTitle = past ? 'Past events' : 'Upcoming events';
+    final listTitle = archive ? 'Archived events' : 'Upcoming events';
     final filters = div(
       classes: 'filters',
       attributes: {'data-interactive': ''},
@@ -96,9 +96,6 @@ class Programme extends StatelessComponent {
             attributes: {'aria-live': 'polite'},
             [.text('${initial.length} ${initial.length == 1 ? 'event' : 'events'}')],
           ),
-          a(classes: 'archive-link', href: past ? './' : 'past/', [
-            .text(past ? 'See upcoming events' : 'See past events'),
-          ]),
         ]),
         for (final group in entries.map(_month).toSet())
           div(
@@ -107,7 +104,7 @@ class Programme extends StatelessComponent {
             [
               h3(classes: 'month', [.text(group)]),
               for (final e in entries.where((e) => _month(e) == group))
-                eventRow(e, e == initial.firstOrNull, hidden: !initial.contains(e)),
+                eventRow(e, !archive && e == initial.firstOrNull, hidden: !initial.contains(e)),
             ],
           ),
         div(
@@ -115,9 +112,15 @@ class Programme extends StatelessComponent {
           attributes: {if (initial.isNotEmpty || world) 'hidden': ''},
           [
             h3([.text('No events to show')]),
-            p([.text('Try another city or topic, or add a gathering from your community.')]),
+            p([
+              .text(
+                archive
+                    ? 'Try another search, location, or topic.'
+                    : 'Try another city or topic, or add a gathering from your community.',
+              ),
+            ]),
             if (!world) button(id: 'reset', attributes: {'hidden': ''}, [.text('Clear filters')]),
-            a(href: 'submit', [.text('List an event')]),
+            if (!archive) a(href: 'submit', [.text('List an event')]),
           ],
         ),
       ],
@@ -177,15 +180,15 @@ class Programme extends StatelessComponent {
     );
     return div(
       classes: 'wrap programme',
-      attributes: {'data-directory': past ? 'past' : 'upcoming'},
+      attributes: {'data-directory': archive ? 'archive' : 'upcoming'},
       [
         header(classes: 'opening', [
           h1([
             .text(
               world
                   ? 'World view'
-                  : past
-                  ? 'Past events'
+                  : archive
+                  ? 'Event archive'
                   : 'The programme',
             ),
             span([.text('.')]),
@@ -202,7 +205,7 @@ class Programme extends StatelessComponent {
           ])
         else ...[
           filters,
-          if (!world && !past && visible.isNotEmpty)
+          if (!world && !archive && visible.isNotEmpty)
             a(
               href: 'events/${visible.first.slug}',
               classes: 'mobile-feature',
@@ -211,9 +214,9 @@ class Programme extends StatelessComponent {
                 eventPoster(visible.first),
               ],
             ),
-          div(classes: 'spread', [listing, spotlight]),
+          if (archive) div(classes: 'archive-list', [listing]) else div(classes: 'spread', [listing, spotlight]),
         ],
-        if (!world) EventActivity(events),
+        if (!world && !archive) EventActivity(events),
       ],
     );
   }
@@ -318,7 +321,7 @@ class EventTicket extends StatelessComponent {
               attributes: {'data-host-url': e.url},
               [
                 span([
-                  .text(elapsed ? 'Visit event archive' : (e.registrationLabel ?? 'Visit organizer site')),
+                  .text(elapsed ? 'Visit organizer site' : (e.registrationLabel ?? 'Visit organizer site')),
                 ]),
                 icon('arrow-up-right'),
               ],
@@ -373,7 +376,10 @@ class EventPage extends StatelessComponent {
   @override
   Component build(BuildContext context) => div(classes: 'wrap detail', [
     Document.head(meta: {'description': event.description}),
-    a(href: './', classes: 'back', [.text('←  The programme')]),
+    if (event.endsAtExclusive.isAfter(DateTime.now()))
+      a(href: './', classes: 'back', [.text('← The programme')])
+    else
+      a(href: 'archive/', classes: 'back', [.text('← Event archive')]),
     EventTicket(event, standalone: true),
   ]);
 }

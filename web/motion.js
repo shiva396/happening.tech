@@ -38,6 +38,16 @@ import { loadComponent } from "./lottie-player.js";
     }
   }
 
+  for (const link of document.querySelectorAll(".community-action")) {
+    const animate = () => {
+      const slot = link.querySelector("[data-motion]");
+      if (!active.has(slot)) play(slot);
+    };
+    link.addEventListener("pointerenter", animate);
+    link.addEventListener("focus", animate);
+    link.addEventListener("pointerdown", animate);
+  }
+
   const invitation = document.querySelector('.empty-art');
   if (invitation) {
     let inView = false;

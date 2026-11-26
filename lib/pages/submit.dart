@@ -1,10 +1,11 @@
 import '../components/motion.dart';
+import '../project.dart';
 import '../components/poster_art.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
 class SubmitPage extends StatelessComponent {
-  const SubmitPage({this.repository = const String.fromEnvironment('HAPPENING_REPOSITORY'), super.key});
+  const SubmitPage({this.repository = projectRepository, super.key});
 
   final String repository;
 
