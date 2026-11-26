@@ -6,31 +6,21 @@
 }
 :root {
   color-scheme: light dark;
-  --paper: #faf9f5;
-  --surface: #fffefa;
-  --ink: #20211f;
-  --muted: #62645e;
-  --line: #d8d9cf;
-  --wash: #eeeee7;
-  --accent: #4a42c9;
-  --tint: #efedfe;
+  --paper: light-dark(#faf9f5, #191a18);
+  --surface: light-dark(#fffefa, #20211f);
+  --ink: light-dark(#20211f, #f5f3ea);
+  --muted: light-dark(#62645e, #b3b7ad);
+  --line: light-dark(#d8d9cf, #43453e);
+  --wash: light-dark(#eeeee7, #272924);
+  --accent: light-dark(#4a42c9, #b2abff);
+  --tint: light-dark(#efedfe, #302e44);
   --body: "IBM Plex Sans", system-ui, sans-serif;
   --page-gutter: clamp(1rem, 3vw, 4rem);
   --page-width: calc(100% - 2 * var(--page-gutter));
   --heading-size: clamp(2.25rem, 4.4vw, 4.75rem);
 }
-@media (prefers-color-scheme: dark) {
-  :root {
-    --paper: #191a18;
-    --surface: #20211f;
-    --ink: #f5f3ea;
-    --muted: #b3b7ad;
-    --line: #43453e;
-    --wash: #272924;
-    --accent: #b2abff;
-    --tint: #302e44;
-  }
-}
+:root[data-theme=light] { color-scheme: light; }
+:root[data-theme=dark] { color-scheme: dark; }
 * {
   box-sizing: border-box;
 }
@@ -126,6 +116,36 @@ p {
   align-self: stretch;
   margin-left: auto;
   gap: 28px;
+}
+#theme-switch {
+  display: grid;
+  place-items: center;
+  align-self: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+}
+#theme-switch:hover, #theme-switch:focus-visible { color: var(--accent); background: var(--tint); }
+:root:not([data-theme]) #theme-switch { visibility: hidden; }
+:root[data-theme=dark] #theme-switch .icon:first-child,
+:root[data-theme=light] #theme-switch .icon:last-child { display: none; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .theme-iris::view-transition-old(root), .theme-iris::view-transition-new(root) {
+    animation: none;
+    mix-blend-mode: normal;
+  }
+  .theme-iris::view-transition-new(root) {
+    animation: theme-iris-open 520ms cubic-bezier(.32, 0, .18, 1) both;
+  }
+  @keyframes theme-iris-open {
+    from { clip-path: circle(0 at var(--iris-x) var(--iris-y)); }
+    to { clip-path: circle(var(--iris-radius) at var(--iris-x) var(--iris-y)); }
+  }
 }
 .nav-item,
 .list-event {
@@ -844,6 +864,7 @@ p {
     height: 43px;
     margin: 0;
   }
+  #theme-switch { margin-inline-start: auto; }
   .mast-inner .brand,
   .mast-inner > .list-event {
     margin-top: 12px;

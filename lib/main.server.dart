@@ -15,6 +15,7 @@ void main() {
         'description': 'An independent guide to developer meetups, workshops and conferences around the world.',
       },
       head: [
+        script(src: '/theme.js'),
         link(href: '/programme.css', rel: 'stylesheet'),
         link(
           href: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAEklEQVR4nGNgGAWjYBSMAggAAAQQAAFVN1rQAAAAAElFTkSuQmCC',

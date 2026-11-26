@@ -35,6 +35,11 @@ class App extends StatelessComponent {
                   },
                   [icon(entry.$3), .text(entry.$2)],
                 ),
+              button(
+                id: 'theme-switch',
+                attributes: {'type': 'button', 'aria-label': 'Switch theme'},
+                [icon('moon'), icon('sun')],
+              ),
             ],
           ),
           a(href: '/submit', classes: 'list-event', [icon('plus'), .text('List an event')]),
