@@ -26,14 +26,14 @@ async function mountGlobe() {
   const defs = element("defs", {}, svg);
   const light = element("radialGradient", { id: "globe-light", cx: ".34", cy: ".27", r: ".78" }, defs);
   for (const [offset, color, opacity] of [
-    [0, "#fff8ed", 0.27],
-    [0.57, "#fff8ed", 0],
-    [0.85, "#42465f", 0.065],
-    [1, "#353953", 0.24],
+    [0, "var(--globe-light)", 0.27],
+    [0.57, "var(--globe-light)", 0],
+    [0.85, "var(--globe-penumbra)", 0.065],
+    [1, "var(--globe-limb)", 0.24],
   ]) {
     element("stop", { offset, "stop-color": color, "stop-opacity": opacity }, light);
   }
-  const ocean = element("circle", { cx: 260, cy: 177, fill: "var(--sea)" }, svg);
+  const ocean = element("circle", { cx: 260, cy: 177, fill: "var(--globe-sea)" }, svg);
   const lands = element("g", {}, svg);
   const shapes = countries.map((country) => {
     const name = country.properties.name;
@@ -74,16 +74,18 @@ async function mountGlobe() {
     })
     .sort((a, b) => b.area - a.area);
   let selectedName;
+  const labelStyle = getComputedStyle(svg);
+  const baseSize = parseFloat(labelStyle.getPropertyValue("--globe-label-base"));
   function measureNames() {
     const context = document.createElement("canvas").getContext("2d");
-    context.font = "550 9px " + getComputedStyle(svg).fontFamily;
+    context.font = labelStyle.getPropertyValue("--weight-heading") + " " + baseSize + "px " + labelStyle.fontFamily;
     for (const name of names) name.width = context.measureText(name.name).width;
   }
   function drawNames(radius, viewWidth, viewHeight, scale) {
     const boxes = [];
     const north = latitude * rad;
-    const fontScale = Math.max(1, 10 / (9 * scale));
-    lettering.style.setProperty("--globe-name-size", 9 * fontScale + "px");
+    const fontScale = Math.max(1, 10 / (baseSize * scale));
+    lettering.style.setProperty("--globe-name-size", baseSize * fontScale + "px");
     const halfWidth = viewWidth / (2 * scale),
       halfHeight = viewHeight / (2 * scale);
     function place(entry, selected) {
@@ -391,7 +393,7 @@ async function mountGlobe() {
     paint = await paintEarth(canvas, "art/earth-relief.webp");
     switcher.hidden = false;
     atlas.classList.add("has-relief");
-    ocean.setAttribute("fill", "transparent");
+    ocean.setAttribute("fill", "var(--clear)");
     canvas.hidden = false;
     new ResizeObserver(requestDraw).observe(svg);
     requestDraw();

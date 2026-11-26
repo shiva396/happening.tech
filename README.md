@@ -14,6 +14,10 @@ dart pub global run jaspr_cli:jaspr serve
 
 Open http://localhost:8080. For a production build, run `dart pub global run jaspr_cli:jaspr build`. The static site is generated in `build/jaspr/`.
 
+## Interface theme
+
+Edit [the shared theme](web/theme.css) for light and dark colors, font weights, poster palettes, globe labels, calendar intensity levels and shared control sizes. Jaspr loads it before the page styles on every route. Poster illustrations and Lottie files carry their own artwork palettes.
+
 ## Contribute an event
 
 Use **List an event** to preview a listing and download its TOML file. Add that file to `events/`, run `dart run tool/validate.dart`, and open a pull request. Existing files show how to represent date-only and timed events. Use the official organizer’s URL and include a registration URL only when it is available.

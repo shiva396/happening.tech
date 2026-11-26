@@ -17,6 +17,7 @@ void main() {
       },
       head: [
         script(src: 'theme.js'),
+        link(href: 'theme.css', rel: 'stylesheet'),
         link(href: 'programme.css', rel: 'stylesheet'),
         link(href: 'favicon.ico?v=globe', rel: 'icon', type: 'image/x-icon'),
         script(src: 'motion.js', attributes: {'type': 'module'}),

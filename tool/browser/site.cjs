@@ -93,6 +93,21 @@ async function world(page) {
   await page.goto(new URL("world/", root).href);
   await page.locator("#country-globe").waitFor();
   assert.equal(await page.locator("#activity").count(), 0);
+  // Change the design tokens at runtime to check that HTML and SVG consume the same theme.
+  const overrides = await page.addStyleTag({
+    content: ":root { --accent: rgb(16, 80, 128); --weight-heading: 440; --globe-label: rgb(33, 66, 99); }",
+  });
+  assert.equal(
+    await page.locator(".mast-actions .list-event").evaluate((el) => getComputedStyle(el).backgroundColor),
+    "rgb(16, 80, 128)",
+  );
+  assert.equal(await page.locator("h1").evaluate((el) => getComputedStyle(el).fontWeight), "440");
+  const label = page.locator(".globe-name:not(.is-selected)").first();
+  assert.deepEqual(await label.evaluate((el) => [getComputedStyle(el).fill, getComputedStyle(el).fontWeight]), [
+    "rgb(33, 66, 99)",
+    "440",
+  ]);
+  await overrides.evaluate((el) => el.remove());
   const country = page.locator("#country");
   const empty = await country
     .locator('optgroup[label="Other countries and territories"] option')
