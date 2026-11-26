@@ -27,8 +27,23 @@ class EventActivity extends StatelessComponent {
       div(id: 'activity-scroll', classes: 'activity-scroll', [
         div(id: 'activity-grid', classes: 'activity-grid', attributes: {'aria-label': 'Daily event counts'}, []),
       ]),
+      div(
+        id: 'activity-preview',
+        classes: 'activity-preview',
+        attributes: {
+          'hidden': '',
+          'role': 'dialog',
+          'aria-label': 'Events on this day',
+        },
+        [],
+      ),
       div(classes: 'activity-foot', [
         div(id: 'activity-day', attributes: {'aria-live': 'polite'}, []),
+        button(
+          id: 'activity-motion',
+          attributes: {'hidden': '', 'type': 'button', 'aria-label': 'Pause calendar animation'},
+          [.text('Pause animation')],
+        ),
         div(
           classes: 'activity-key',
           attributes: {'aria-label': 'Number of events per day, from zero to four or more'},
@@ -49,6 +64,8 @@ class EventActivity extends StatelessComponent {
                 'data-first-day': _day(event.startsAt, event.timezone),
                 'data-last-day': _day(event.endsAtExclusive.subtract(const Duration(microseconds: 1)), event.timezone),
                 'data-start-instant': event.startsAt.toIso8601String(),
+                'data-host': event.community,
+                'data-place': event.city,
               },
               [.text(event.title)],
             ),
