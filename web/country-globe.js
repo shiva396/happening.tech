@@ -26,10 +26,10 @@ async function mountGlobe() {
   const defs = element("defs", {}, svg);
   const light = element("radialGradient", { id: "globe-light", cx: ".34", cy: ".27", r: ".78" }, defs);
   for (const [offset, color, opacity] of [
-    [0, "var(--globe-light)", 0.27],
+    [0, "var(--globe-light)", "var(--globe-highlight-opacity)"],
     [0.57, "var(--globe-light)", 0],
-    [0.85, "var(--globe-penumbra)", 0.065],
-    [1, "var(--globe-limb)", 0.24],
+    [0.85, "var(--globe-penumbra)", "var(--globe-penumbra-opacity)"],
+    [1, "var(--globe-limb)", "var(--globe-limb-opacity)"],
   ]) {
     element("stop", { offset, "stop-color": color, "stop-opacity": opacity }, light);
   }
@@ -182,13 +182,14 @@ async function mountGlobe() {
     if (current === wanted) return;
     canvas.hidden = satellite.hidden = false;
     // Keep the incoming texture registered to the same geographic point during a drag or pinch.
+    const duration = Number(labelStyle.getPropertyValue("--globe-iris-duration-ms"));
     iris = satellite.animate([{ clipPath: "circle(0% at 50% 50%)" }, { clipPath: "circle(72% at 50% 50%)" }], {
-      duration: 560,
-      easing: "cubic-bezier(.45,0,.25,1)",
+      duration,
+      easing: labelStyle.getPropertyValue("--ease-globe-iris").trim(),
       fill: "both",
     });
     if (mode === "terrain") {
-      iris.currentTime = 560;
+      iris.currentTime = duration;
       iris.playbackRate = -1;
     }
     iris.onfinish = finishStyle;

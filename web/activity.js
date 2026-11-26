@@ -48,12 +48,15 @@
       dismiss();
       return;
     }
+    const style = getComputedStyle(preview);
+    const edge = Number(style.getPropertyValue("--activity-preview-edge-px"));
+    const gap = Number(style.getPropertyValue("--activity-preview-gap-px"));
     const width = preview.offsetWidth;
     const height = preview.offsetHeight;
-    const left = Math.min(innerWidth - width - 8, Math.max(8, tile.left + tile.width / 2 - width / 2));
-    const top = tile.top >= height + 8 ? tile.top - height - 6 : Math.min(innerHeight - height - 8, tile.bottom + 6);
+    const left = Math.min(innerWidth - width - edge, Math.max(edge, tile.left + tile.width / 2 - width / 2));
+    const top = tile.top >= height + edge ? tile.top - height - gap : Math.min(innerHeight - height - edge, tile.bottom + gap);
     preview.style.left = left + "px";
-    preview.style.top = Math.max(8, top) + "px";
+    preview.style.top = Math.max(edge, top) + "px";
   }
 
   function showPreview(day, button) {
@@ -144,7 +147,7 @@
       cell.setAttribute("aria-haspopup", "dialog");
       cell.setAttribute("aria-controls", preview.id);
       cell.setAttribute("aria-expanded", "false");
-      cell.style.setProperty("--glow-delay", -(day / dayMs % 11) * 0.31 + "s");
+      cell.style.setProperty("--glow-phase", -(day / dayMs % 11));
       cell.addEventListener("pointerenter", event => {
         if (event.pointerType !== "touch") showPreview(day, cell);
       });
