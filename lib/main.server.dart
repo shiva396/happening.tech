@@ -16,7 +16,7 @@ void main() {
       },
       head: [
         link(href: '/programme.css', rel: 'stylesheet'),
-        link(href: 'data:,', rel: 'icon'),
+        link(href: '/favicon.ico?v=blank', rel: 'icon', type: 'image/x-icon'),
         script(src: '/programme.js', defer: true),
       ],
       body: App(loadEvents()),
