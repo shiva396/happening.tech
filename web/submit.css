@@ -1,0 +1,210 @@
+#entry-studio {
+  --entry-line: var(--line, #babbb0);
+  --entry-dim: var(--muted, #555a50);
+  --entry-accent: var(--accent, #4146a7);
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: clamp(2rem, 6vw, 5rem) clamp(1.1rem, 4vw, 3.5rem);
+  color: var(--ink, #23261f);
+}
+#entry-studio * {
+  box-sizing: border-box;
+}
+#entry-studio [hidden] {
+  display: none !important;
+}
+#entry-studio h1 {
+  font:
+    500 clamp(3.3rem, 7vw, 6.25rem) / 0.98 "Instrument Serif",
+    Georgia,
+    serif;
+  letter-spacing: -0.065em;
+  margin: 0;
+}
+#entry-studio .entry-period {
+  color: var(--entry-accent);
+}
+#entry-studio .entry-intro {
+  max-width: 57ch;
+  color: var(--entry-dim);
+  margin: 1rem 0 2rem;
+  font-size: 1.06rem;
+  line-height: 1.55;
+}
+#entry-studio .entry-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(1.5rem, 6vw, 5rem);
+}
+#entry-studio fieldset {
+  min-inline-size: 0;
+  margin: 0 0 1.8rem;
+  padding: 0;
+  border: 0;
+}
+#entry-studio legend,
+#entry-studio .entry-preview h2,
+#entry-output h2 {
+  font:
+    550 1.55rem/1.2 "Instrument Serif",
+    Georgia,
+    serif;
+  letter-spacing: -0.035em;
+  margin: 0 0 0.9rem;
+  padding: 0;
+}
+#entry-studio .entry-fields {
+  border-top: 1px solid var(--entry-line);
+  padding-top: 1rem;
+}
+#entry-studio .entry-fields,
+#entry-place {
+  display: grid;
+  gap: 1rem;
+}
+#entry-studio .entry-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+#entry-studio label {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+#entry-studio :is(input, select, textarea) {
+  width: 100%;
+  min-width: 0;
+  border: 1px solid var(--entry-line);
+  border-radius: 0.4rem;
+  padding: 0.68rem 0.75rem;
+  font: inherit;
+  font-size: 1rem;
+  font-weight: 400;
+  min-height: 44px;
+  background: var(--paper, #faf9f2);
+  color: inherit;
+}
+#entry-studio select {
+  appearance: auto;
+}
+#entry-studio :is(input, textarea)::placeholder {
+  color: var(--entry-dim);
+  opacity: 0.85;
+}
+#entry-studio textarea {
+  resize: vertical;
+}
+#entry-studio .entry-check {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-height: 44px;
+}
+#entry-studio input[type="checkbox"] {
+  width: 1.15rem;
+  height: 1.15rem;
+  min-height: 0;
+  accent-color: var(--entry-accent);
+}
+#entry-studio summary {
+  width: fit-content;
+  padding: 0.65rem 0;
+  cursor: pointer;
+  color: var(--entry-accent);
+}
+#entry-studio .entry-preview {
+  position: sticky;
+  top: 1.5rem;
+  padding: 0;
+  border: 0;
+}
+#entry-poster {
+  border-radius: 10px;
+}
+#entry-studio .entry-preview p {
+  margin: 0.7rem 0;
+}
+#entry-studio .entry-preview :is(p, strong, span) {
+  overflow-wrap: anywhere;
+}
+#entry-preview-host {
+  font-weight: 650;
+}
+#entry-preview-description {
+  line-height: 1.55;
+}
+#entry-submit,
+#entry-studio .entry-actions a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  background: var(--ink, #20231f);
+  color: var(--paper, #faf9f2);
+  border: 1px solid var(--ink, #20231f);
+  border-radius: 0.4rem;
+  font: inherit;
+  font-weight: 600;
+  min-height: 44px;
+  text-decoration: none;
+  cursor: pointer;
+}
+#entry-submit:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+#entry-studio :is(button, a, input, textarea, select, summary):focus-visible {
+  outline: 3px solid var(--entry-accent);
+  outline-offset: 2px;
+}
+#entry-note,
+#entry-outcome {
+  color: var(--entry-dim);
+  line-height: 1.5;
+  margin: 0.65rem 0;
+}
+#entry-output {
+  margin-top: 1.3rem;
+  border-top: 1px solid var(--entry-line);
+  padding: 1rem 0;
+}
+#entry-studio .entry-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  margin: 1rem 0;
+}
+#entry-studio .entry-actions a + a {
+  background: transparent;
+  color: var(--ink, #20231f);
+}
+#entry-studio .entry-jump {
+  display: none;
+}
+@media (max-width: 740px) {
+  #entry-studio .entry-jump {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+    margin: -0.8rem 0 1rem;
+    color: var(--entry-accent);
+  }
+  #entry-studio aside .entry-jump {
+    margin: 0.4rem 0 0;
+  }
+  #entry-studio .entry-layout {
+    grid-template-columns: 1fr;
+  }
+  #entry-studio .entry-preview {
+    position: static;
+  }
+}
+@media (max-width: 450px) {
+  #entry-studio .entry-pair {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,0 +1,364 @@
+import 'dart:convert';
+
+import 'package:jaspr/dom.dart';
+import 'package:jaspr/server.dart';
+import 'package:timezone/timezone.dart' as tz;
+import '../event.dart';
+
+Component icon(String name) => svg(
+  classes: 'icon',
+  viewBox: '0 0 24 24',
+  attributes: {'aria-hidden': 'true'},
+  [
+    Component.element(tag: 'use', attributes: {'href': '/art/icons.svg#$name'}),
+  ],
+);
+
+const months = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
+const weekdays = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+DateTime _hostDate(Event event, {bool end = false}) {
+  final raw = end ? event.end : event.start;
+  if (event.allDay) return DateTime.parse(raw);
+  return tz.TZDateTime.from(DateTime.parse(raw), tz.getLocation(event.timezone));
+}
+
+String _date(DateTime d) {
+  return '${d.day} ${months[d.month - 1].substring(0, 3)} ${d.year}';
+}
+
+String _place(Event e) => e.city.toLowerCase() == 'online' ? 'Online' : '${e.city}, ${e.country}';
+String _tone(Event e) => switch (e.topic.toLowerCase()) {
+  'flutter' => 'iris',
+  'python' => 'ember',
+  'open source' => 'moss',
+  _ => ['iris', 'moss', 'ember'][e.community.codeUnits.fold(0, (int sum, unit) => sum + unit) % 3],
+};
+int _art(String tone) => ['iris', 'ember', 'moss'].indexOf(tone);
+String _month(Event e) => '${months[_hostDate(e).month - 1]} ${_hostDate(e).year}';
+
+class Programme extends StatelessComponent {
+  final List<Event> events;
+  final bool world;
+  const Programme(this.events, {this.world = false, super.key});
+
+  @override
+  Component build(BuildContext context) {
+    final upcoming = events.where((e) => e.endsAtExclusive.isAfter(DateTime.now())).toList();
+    final cities = upcoming.map((e) => e.city).toSet().toList()..sort();
+    final topics = upcoming.map((e) => e.topic).toSet().toList()..sort();
+    return div(
+      classes: 'wrap programme',
+      attributes: {'data-directory': ''},
+      [
+        section(classes: 'opening', [
+          div([
+            div(classes: 'eyebrow', [span(classes: 'rule', []), .text('Community event directory')]),
+            h1([
+              .text(world ? 'World view' : 'The programme'),
+              span([.text('.')]),
+            ]),
+            p([
+              .text(
+                world
+                    ? 'Pick a city and meet the communities building there.'
+                    : 'Find your next developer meetup, workshop or conference.',
+              ),
+            ]),
+          ]),
+          div(classes: 'coverage', [
+            icon('globe'),
+            div([
+              strong([.text('Global edition')]),
+              span([
+                .text(
+                  '${cities.where((city) => city.toLowerCase() != 'online').length} cities · ${upcoming.where((event) => event.city.toLowerCase() == 'online').length} online',
+                ),
+              ]),
+            ]),
+          ]),
+        ]),
+        if (world) worldMap(cities),
+        div(
+          classes: 'filters',
+          attributes: {'data-interactive': ''},
+          [
+            label(classes: 'search', [
+              icon('search'),
+              Component.element(
+                tag: 'input',
+                attributes: {
+                  'type': 'search',
+                  'placeholder': 'Search events',
+                  'aria-label': 'Search events or communities',
+                  'id': 'query',
+                },
+              ),
+            ]),
+            facet('city', 'All locations', 'map-pin', cities),
+            facet('topic', 'All topics', 'layers', topics),
+            span(classes: 'zone', [
+              icon('clock-3'),
+              span([.text('Dates in the host’s time zone')]),
+            ]),
+          ],
+        ),
+        if (!world && upcoming.isNotEmpty)
+          a(
+            href: '/events/${upcoming.first.slug}',
+            classes: 'mobile-feature',
+            attributes: {'data-feature': upcoming.first.slug, 'aria-label': 'View ${upcoming.first.title}'},
+            [
+              eventPoster(upcoming.first),
+            ],
+          ),
+        div(classes: 'spread', [
+          section(
+            classes: 'event-list',
+            attributes: {'aria-label': 'Upcoming events'},
+            [
+              div(classes: 'section-head', [
+                h2([.text('Upcoming events')]),
+                span(
+                  id: 'count',
+                  attributes: {'aria-live': 'polite'},
+                  [.text('${upcoming.length} ${upcoming.length == 1 ? 'event' : 'events'}')],
+                ),
+              ]),
+              for (final group in upcoming.map(_month).toSet())
+                div(classes: 'month-group', [
+                  h3(classes: 'month', [.text(group)]),
+                  for (final e in upcoming.where((e) => _month(e) == group)) eventRow(e, e == upcoming.first),
+                ]),
+              div(
+                id: 'empty',
+                attributes: {if (upcoming.isNotEmpty) 'hidden': ''},
+                [
+                  h3([.text('No events to show')]),
+                  p([.text('Try another city or topic, or add a gathering from your community.')]),
+                  button(id: 'reset', attributes: {'hidden': ''}, [.text('Clear filters')]),
+                  a(href: '/submit', [.text('List an event')]),
+                ],
+              ),
+            ],
+          ),
+          section(
+            classes: 'spotlight',
+            attributes: {'aria-label': 'Selected event'},
+            [
+              div(classes: 'section-head', [
+                h2([.text('Event spotlight')]),
+                icon('ticket'),
+              ]),
+              for (final e in upcoming)
+                div(
+                  classes: 'selected-panel',
+                  attributes: {'data-panel': e.slug, if (e != upcoming.first) 'hidden': ''},
+                  [EventTicket(e)],
+                ),
+            ],
+          ),
+        ]),
+      ],
+    );
+  }
+}
+
+Component facet(String id, String all, String symbol, List<String> values) => label(classes: 'facet', [
+  icon(symbol),
+  select(
+    id: id,
+    attributes: {'aria-label': all},
+    [
+      option(value: '', [.text(all)]),
+      for (final v in values) option(value: v, [.text(v)]),
+    ],
+  ),
+  icon('chevron-down'),
+]);
+
+Component eventRow(Event e, bool first) {
+  final day = _hostDate(e);
+  return a(
+    href: '/events/${e.slug}',
+    classes: 'event-row',
+    attributes: {
+      'data-slug': e.slug,
+      'data-city': e.city,
+      'data-topic': e.topic,
+      'data-host': e.community,
+      'data-expires': e.endsAtExclusive.toIso8601String(),
+      if (first) 'data-selected': 'true',
+    },
+    [
+      div(classes: 'date-block', [
+        span([.text(weekdays[day.weekday - 1])]),
+        strong([.text(day.day.toString().padLeft(2, '0'))]),
+      ]),
+      div(classes: 'row-info', [
+        span(classes: 'topic ${_tone(e)}', [.text(e.topic)]),
+        h4([.text(e.title)]),
+        div(classes: 'row-meta', [
+          icon('map-pin'),
+          .text(_place(e)),
+          span(classes: 'dot', [.text('·')]),
+          .text(e.format),
+        ]),
+      ]),
+      icon('chevron-right'),
+    ],
+  );
+}
+
+Component eventPoster(Event e) {
+  final tone = _tone(e);
+  return div(classes: 'poster $tone', [
+    img(src: '/art/fold-${_art(tone)}.webp', alt: '', classes: 'fold'),
+    div(classes: 'poster-top', [
+      span([.text(e.format)]),
+      span([.text(_hostDate(e).year.toString())]),
+    ]),
+    div(classes: 'poster-title', [.text(e.title)]),
+    div(classes: 'poster-foot', [
+      span([.text(e.city)]),
+      span([.text(_date(_hostDate(e)))]),
+    ]),
+  ]);
+}
+
+class EventTicket extends StatelessComponent {
+  final Event event;
+  final bool standalone;
+  const EventTicket(this.event, {this.standalone = false, super.key});
+  @override
+  Component build(BuildContext context) {
+    final e = event;
+    final start = _hostDate(e);
+    final sameDay = _date(start) == _date(_hostDate(e, end: true));
+    final dates = sameDay ? _date(_hostDate(e)) : '${_date(_hostDate(e))} – ${_date(_hostDate(e, end: true))}';
+    final elapsed = !e.endsAtExclusive.isAfter(DateTime.now());
+    return article(
+      classes: 'ticket-card',
+      attributes: {'data-end': e.endsAtExclusive.toIso8601String()},
+      [
+        eventPoster(e),
+        div(classes: 'ticket-info', [
+          div(classes: 'host-line', [span(classes: 'rule', []), .text('Hosted by ${e.community}')]),
+          if (standalone)
+            h1([.text(e.title)])
+          else
+            h3([
+              a(href: '/events/${e.slug}', [.text(e.title)]),
+            ]),
+          div(classes: 'ticket-actions', [
+            a(
+              href: elapsed ? e.url : (e.registrationUrl ?? e.url),
+              classes: 'primary-action',
+              attributes: {'data-host-url': e.url},
+              [
+                span([
+                  .text(elapsed ? 'Past event · organizer site' : (e.registrationLabel ?? 'Visit organizer site')),
+                ]),
+                icon('arrow-up-right'),
+              ],
+            ),
+            a(
+              href: Uri.dataFromString(e.ics, mimeType: 'text/calendar', encoding: utf8).toString(),
+              download: '${e.slug}.ics',
+              classes: 'calendar-action',
+              attributes: {'aria-label': 'Add ${e.title} to calendar', 'title': 'Add to calendar'},
+              [icon('calendar-plus')],
+            ),
+          ]),
+          p(classes: 'summary', [.text(e.description)]),
+          div(classes: 'facts', [
+            div([
+              icon('calendar-days'),
+              div([
+                strong([.text(dates)]),
+                if (!e.allDay)
+                  span(
+                    attributes: {'data-local-start': e.start, 'data-local-end': e.end},
+                    [.text('${start.toIso8601String().substring(11, 16)} · ${e.timezone}')],
+                  ),
+              ]),
+            ]),
+            div([
+              icon('map-pin'),
+              div([
+                strong([.text(e.venue)]),
+                if (e.city != e.venue) span([.text(_place(e))]),
+              ]),
+            ]),
+            if (e.price != null)
+              div([
+                icon('ticket'),
+                strong([.text(e.price!)]),
+              ]),
+          ]),
+          if (!standalone)
+            a(classes: 'permalink', href: '/events/${e.slug}', [.text('Full event details'), icon('chevron-right')])
+          else if (e.registrationUrl != null && e.registrationUrl != e.url)
+            a(classes: 'permalink', href: e.url, [.text('Organizer’s event page'), icon('arrow-up-right')]),
+        ]),
+      ],
+    );
+  }
+}
+
+class EventPage extends StatelessComponent {
+  final Event event;
+  const EventPage(this.event, {super.key});
+  @override
+  Component build(BuildContext context) => div(classes: 'wrap detail', [
+    Document.head(meta: {'description': event.description}),
+    a(href: '/', classes: 'back', [.text('←  The programme')]),
+    EventTicket(event, standalone: true),
+  ]);
+}
+
+// Equirectangular map, using the same longitude and latitude extent as the land artwork.
+const _centres = <String, (double, double)>{
+  'Ahmedabad': (23.02, 72.57),
+  'Kochi': (9.93, 76.27),
+  'London': (51.51, -0.13),
+  'Brussels': (50.85, 4.35),
+  'Barcelona': (41.39, 2.17),
+  'Long Beach': (33.77, -118.19),
+};
+Component worldMap(List<String> cities) => section(
+  classes: 'atlas',
+  attributes: {'aria-label': 'Cities with upcoming events'},
+  [
+    div(classes: 'map-surface', [
+      img(src: '/art/world.svg', alt: 'World map'),
+      for (final city in cities)
+        if (_centres[city] case final centre?)
+          button(
+            classes: 'pin',
+            attributes: {
+              'data-pick': city,
+              'aria-label': 'Browse events in $city',
+              'title': city,
+              'style': 'left:${(centre.$2 + 180) / 360 * 100}%;top:${(85 - centre.$1) / 145 * 100}%',
+            },
+            [],
+          ),
+    ]),
+    div(classes: 'city-links', [
+      for (final city in cities) button(attributes: {'data-pick': city}, [.text(city)]),
+    ]),
+  ],
+);

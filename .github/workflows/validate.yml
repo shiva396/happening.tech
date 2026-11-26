@@ -1,0 +1,20 @@
+name: Validate event listings
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.14.0
+      - run: dart pub get --enforce-lockfile
+      - run: dart run tool/validate.dart
