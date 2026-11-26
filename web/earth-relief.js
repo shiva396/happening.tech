@@ -53,7 +53,11 @@ export async function paintEarth(canvas, textureUrl) {
     if (canvas.width !== size) canvas.width = canvas.height = size;
     surface.putImageData(image, 0, 0);
   }
+  let previousLon, previousLat;
   return (lon, lat) => {
+    if (lon === previousLon && lat === previousLat) return;
+    previousLon = lon;
+    previousLat = lat;
     clearTimeout(settle);
     render(lon, lat, 256);
     settle = setTimeout(() => render(lon, lat, 640), 100);

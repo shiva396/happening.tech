@@ -198,7 +198,7 @@
           details.tabIndex = -1;
           details.focus({ preventScroll: true });
         }
-        details.scrollIntoView({block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"});
+        if (matchMedia("(max-width: 740px)").matches) details.scrollIntoView({block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"});
       }
     });
   window.addEventListener("pageshow", readLocation);

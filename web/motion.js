@@ -61,15 +61,15 @@ import { loadComponent } from "./lottie-player.js";
     new IntersectionObserver(([entry]) => { if (!entry.isIntersecting) stop(); }).observe(artwork);
   }
 
-  const valley = document.querySelector('.empty-art');
-  if (valley) {
+  const invitation = document.querySelector('.empty-art');
+  if (invitation) {
     let inView = false;
     const sync = () => {
       if (inView && !document.hidden && !reduced.matches) {
-        if (!active.has(valley)) play(valley, true);
-      } else active.get(valley)?.();
+        if (!active.has(invitation)) play(invitation, true);
+      } else active.get(invitation)?.();
     };
-    new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; sync(); }).observe(valley);
+    new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; sync(); }).observe(invitation);
     reduced.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
     window.addEventListener("pageshow", sync);

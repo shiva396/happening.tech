@@ -4,9 +4,8 @@ import 'package:timezone/timezone.dart' as tz;
 import '../event.dart';
 
 class EventActivity extends StatelessComponent {
-  const EventActivity(this.events, {this.onArchive = false, super.key});
+  const EventActivity(this.events, {super.key});
   final List<Event> events;
-  final bool onArchive;
 
   String _day(DateTime instant, String zone) =>
       tz.TZDateTime.from(instant, tz.getLocation(zone)).toIso8601String().substring(0, 10);
@@ -31,8 +30,6 @@ class EventActivity extends StatelessComponent {
         [],
       ),
       div(classes: 'activity-foot', [
-        if (!onArchive) a(classes: 'calendar-archive', href: '/past', [.text('Browse past events')]),
-        div(id: 'activity-day', attributes: {'aria-live': 'polite'}, []),
         div(
           classes: 'activity-key',
           attributes: {'aria-label': 'Number of events per day, from zero to four or more'},

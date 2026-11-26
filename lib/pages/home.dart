@@ -154,9 +154,9 @@ class Programme extends StatelessComponent {
             [
               div(
                 classes: 'empty-art',
-                attributes: {'data-motion': 'balloon', 'aria-hidden': 'true'},
+                attributes: {'data-motion': 'invitation', 'aria-hidden': 'true'},
                 [
-                  img(src: '/art/balloon.webp', alt: ''),
+                  img(src: '/art/invitation.webp', alt: ''),
                 ],
               ),
               div(classes: 'empty-copy', [
@@ -196,8 +196,7 @@ class Programme extends StatelessComponent {
             CountryGlobe(visible.map((e) => e.city.toLowerCase() == 'online' ? 'Online' : e.country).toSet()),
             div(classes: 'country-programme', [
               h2(id: 'country-title', [.text('Events in India')]),
-              filters,
-              listing,
+              div(classes: 'country-list', [filters, listing]),
               spotlight,
             ]),
           ])
@@ -230,7 +229,7 @@ class Programme extends StatelessComponent {
             ),
           ]),
         ],
-        if (!world) EventActivity(events, onArchive: past),
+        if (!world) EventActivity(events),
       ],
     );
   }

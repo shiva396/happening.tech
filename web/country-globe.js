@@ -14,7 +14,7 @@ async function mountGlobe() {
   const eventCountries = new Set(
     [...select.querySelectorAll('optgroup[label="With upcoming events"] option')].map((o) => o.value),
   );
-  const projection = geoOrthographic().translate([260, 177]).precision(0.65);
+  const projection = geoOrthographic().translate([260, 177]).precision(0.35);
   const path = geoPath(projection).digits(1);
   const ns = "http://www.w3.org/2000/svg";
   function element(tag, attrs, parent) {
@@ -83,14 +83,13 @@ async function mountGlobe() {
     context.font = "550 9px " + getComputedStyle(svg).fontFamily;
     for (const name of names) name.width = context.measureText(name.name).width;
   }
-  function drawNames(radius) {
+  function drawNames(radius, viewWidth, viewHeight, scale) {
     const boxes = [];
     const north = latitude * rad;
-    const scale = Math.min(svg.clientWidth / 376, svg.clientHeight / 350);
     const fontScale = Math.max(1, 10 / (9 * scale));
     lettering.style.setProperty("--globe-name-size", 9 * fontScale + "px");
-    const halfWidth = svg.clientWidth / (2 * scale),
-      halfHeight = svg.clientHeight / (2 * scale);
+    const halfWidth = viewWidth / (2 * scale),
+      halfHeight = viewHeight / (2 * scale);
     function place(entry, selected) {
       const [lon, lat] = entry.anchor;
       const facing =
@@ -121,6 +120,10 @@ async function mountGlobe() {
   let longitude = 79,
     latitude = 22,
     zoom = 1,
+    targetZoom = 1,
+    lastFrame = 0,
+    paintedLon,
+    paintedLat,
     flight,
     drawing,
     drag;
@@ -200,17 +203,31 @@ async function mountGlobe() {
   reduced.addEventListener("change", () => {
     if (reduced.matches && iris) finishStyle();
   });
-  function draw() {
+  function draw(now) {
     drawing = 0;
+    const dt = lastFrame ? Math.min(48, now - lastFrame) : 16;
+    lastFrame = now;
+    zoom += (targetZoom - zoom) * (reduced.matches ? 1 : 1 - Math.exp(-dt / 60));
+    if (Math.abs(zoom - targetZoom) < .001) zoom = targetZoom;
+    const viewWidth = svg.clientWidth, viewHeight = svg.clientHeight;
+    const scale = Math.min(viewWidth / 376, viewHeight / 350);
+    // Zoom is a uniform transform of the existing orthographic drawing.
+    // Only a rotation changes the projected outlines or the sampled terrain.
+    if (longitude !== paintedLon || latitude !== paintedLat) {
+      projection.rotate([-longitude, -latitude]).scale(153);
+      for (const shape of shapes) shape.node.setAttribute("d", path(shape.country) || "");
+      paintedLon = longitude;
+      paintedLat = latitude;
+    }
+    lands.setAttribute("transform", "translate(260 177) scale(" + zoom + ") translate(-260 -177)");
     const radius = 153 * zoom;
-    projection.rotate([-longitude, -latitude]).scale(radius);
+    projection.scale(radius);
     ocean.setAttribute("r", radius);
     shade.setAttribute("r", radius);
     focusRing.setAttribute("r", radius + 2.2);
     if (paint) {
       // Match the SVG viewBox (72 0 376 350) with its centred aspect ratio.
-      const scale = Math.min(svg.clientWidth / 376, svg.clientHeight / 350);
-      const diameter = radius * 2 * scale;
+      const diameter = 306 * scale;
       for (const [layer, renderer] of [
         [canvas, paint],
         [satellite, paintSatellite],
@@ -218,11 +235,13 @@ async function mountGlobe() {
         if (layer.hidden || !renderer) continue;
         layer.style.width = layer.style.height = diameter + "px";
         layer.style.top = "calc(50% + " + 2 * scale + "px)";
+        layer.style.transform = "translate(-50%, -50%) scale(" + zoom + ")";
         renderer(longitude, latitude);
       }
     }
-    for (const shape of shapes) shape.node.setAttribute("d", path(shape.country) || "");
-    drawNames(radius);
+    drawNames(radius, viewWidth, viewHeight, scale);
+    if (zoom !== targetZoom) requestDraw();
+    else lastFrame = 0;
   }
   function requestDraw() {
     if (!drawing) drawing = requestAnimationFrame(draw);
@@ -259,10 +278,11 @@ async function mountGlobe() {
   const controls = atlas.querySelector(".globe-controls");
   const minZoom = 0.8,
     maxZoom = 4;
-  function updateZoom(value) {
-    zoom = clamp(value, minZoom, maxZoom);
-    controls.querySelector('[data-globe-action="out"]').disabled = zoom <= minZoom;
-    controls.querySelector('[data-globe-action="in"]').disabled = zoom >= maxZoom;
+  function updateZoom(value, direct = false) {
+    targetZoom = clamp(value, minZoom, maxZoom);
+    if (direct) zoom = targetZoom;
+    controls.querySelector('[data-globe-action="out"]').disabled = targetZoom <= minZoom;
+    controls.querySelector('[data-globe-action="in"]').disabled = targetZoom >= maxZoom;
     requestDraw();
   }
   controls.addEventListener("click", (e) => {
@@ -270,7 +290,7 @@ async function mountGlobe() {
     if (action === "reset") {
       updateZoom(1);
       selectCountry(true);
-    } else if (action) updateZoom(zoom + (action === "in" ? 0.4 : -0.4));
+    } else if (action) updateZoom(targetZoom + (action === "in" ? 0.4 : -0.4));
   });
   svg.addEventListener(
     "wheel",
@@ -279,8 +299,8 @@ async function mountGlobe() {
       if (Math.hypot(p.x - 260, p.y - 177) > 153 * zoom || !e.deltaY) return;
       const units = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? svg.clientHeight : 1;
       const factor = Math.exp(-clamp(e.deltaY * units, -240, 240) * (e.ctrlKey ? 0.012 : 0.0025));
-      const next = clamp(zoom * factor, minZoom, maxZoom);
-      if (next === zoom && !e.ctrlKey) return;
+      const next = clamp(targetZoom * factor, minZoom, maxZoom);
+      if (next === targetZoom && next === zoom && !e.ctrlKey) return;
       e.preventDefault();
       updateZoom(next);
     },
@@ -311,7 +331,7 @@ async function mountGlobe() {
     if (!pointers.has(e.pointerId)) return;
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pinch) {
-      updateZoom((pinch.zoom * distance()) / pinch.distance);
+      updateZoom((pinch.zoom * distance()) / pinch.distance, true);
       return;
     }
     const dx = e.clientX - drag.x,
@@ -341,7 +361,7 @@ async function mountGlobe() {
   svg.addEventListener("keydown", (e) => {
     if (["+", "=", "-"].includes(e.key)) {
       e.preventDefault();
-      updateZoom(zoom + (e.key === "-" ? -0.4 : 0.4));
+      updateZoom(targetZoom + (e.key === "-" ? -0.4 : 0.4));
       return;
     }
     const step = e.shiftKey ? 25 : 10,

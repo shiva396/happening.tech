@@ -3,7 +3,6 @@
   if (!section) return;
 
   const grid = document.getElementById("activity-grid");
-  const output = document.getElementById("activity-day");
   const dayMs = 86400000;
   const now = new Date();
   // Use UTC arithmetic on civil dates so DST never adds or skips a square.
@@ -30,7 +29,6 @@
   }
 
   let anchor;
-  let pinned = false;
   let hideTimer;
 
   function dismiss() {
@@ -38,7 +36,6 @@
     if (!anchor) return;
     const previous = anchor;
     anchor = null;
-    pinned = false;
     previous.setAttribute("aria-expanded", "false");
     preview.hidden = true;
   }
@@ -84,10 +81,12 @@
     positionPreview();
   }
 
-  function scheduleDismiss() {
+  function scheduleDismiss(event) {
+    if (event.pointerType === "touch") return;
     clearTimeout(hideTimer);
-    if (!pinned) hideTimer = setTimeout(() => dismiss(), 180);
+    hideTimer = setTimeout(dismiss, 150);
   }
+  section.addEventListener("pointerleave", scheduleDismiss);
   preview.addEventListener("pointerenter", () => clearTimeout(hideTimer));
   preview.addEventListener("pointerleave", scheduleDismiss);
   preview.addEventListener("focusout", event => {
@@ -105,22 +104,6 @@
   });
   document.addEventListener("scroll", positionPreview, true);
   window.addEventListener("resize", positionPreview);
-
-  let selected;
-  function inspect(day, button) {
-    selected?.setAttribute("aria-pressed", "false");
-    selected = button;
-    button.setAttribute("aria-pressed", "true");
-    const text = document.createElement("span");
-    text.textContent = dateLabel.format(day);
-    output.replaceChildren(text);
-    for (const entry of entriesByDay.get(day)) {
-      const link = document.createElement("a");
-      link.href = entry.href;
-      link.textContent = entry.textContent;
-      output.append(link);
-    }
-  }
 
   const weekdays = document.createElement("div");
   weekdays.className = "activity-weekdays";
@@ -158,13 +141,12 @@
     if (count) {
       cell.type = "button";
       cell.setAttribute("aria-label", dateLabel.format(day) + " · " + count + (count === 1 ? " event" : " events"));
-      cell.setAttribute("aria-pressed", "false");
       cell.setAttribute("aria-haspopup", "dialog");
       cell.setAttribute("aria-controls", preview.id);
       cell.setAttribute("aria-expanded", "false");
       cell.style.setProperty("--glow-delay", -(day / dayMs % 11) * 0.31 + "s");
       cell.addEventListener("pointerenter", event => {
-        if (event.pointerType !== "touch" && (!pinned || anchor !== cell)) showPreview(day, cell);
+        if (event.pointerType !== "touch") showPreview(day, cell);
       });
       cell.addEventListener("pointerleave", scheduleDismiss);
       cell.addEventListener("focus", () => showPreview(day, cell));
@@ -172,12 +154,10 @@
         if (!preview.contains(event.relatedTarget) && cell === anchor) dismiss();
       });
       cell.addEventListener("click", event => {
-        inspect(day, cell);
         showPreview(day, cell);
-        pinned = true;
         if (event.detail === 0) preview.querySelector("a").focus({preventScroll: true});
       });
-      latest = {day, cell};
+      latest = cell;
     }
     monthGrid.append(cell);
   }
@@ -187,7 +167,6 @@
     observer.observe(section);
   }
   if (latest) {
-    inspect(latest.day, latest.cell);
-    scroll.scrollLeft += latest.cell.getBoundingClientRect().left - scroll.getBoundingClientRect().left - scroll.clientWidth / 2;
+    scroll.scrollLeft += latest.getBoundingClientRect().left - scroll.getBoundingClientRect().left - scroll.clientWidth / 2;
   }
 })();
