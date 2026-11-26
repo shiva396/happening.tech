@@ -19,11 +19,11 @@ jobs:
       pages: read
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dart-lang/setup-dart@v1
         with:
           sdk: 3.14.0
-      - uses: actions/configure-pages@v5
+      - uses: actions/configure-pages@v6
         id: pages
       - run: dart pub get --enforce-lockfile
       - run: dart run tool/validate.dart
@@ -35,7 +35,7 @@ jobs:
           dart pub global run jaspr_cli:jaspr build
           --dart-define-server="SITE_BASE_PATH=$SITE_BASE_PATH"
           --dart-define-server="HAPPENING_REPOSITORY=$GITHUB_REPOSITORY"
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-pages-artifact@v5
         with:
           path: build/jaspr
 
@@ -50,4 +50,4 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
