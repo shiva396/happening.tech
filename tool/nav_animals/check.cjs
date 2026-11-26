@@ -1,10 +1,16 @@
 const assert = require("node:assert/strict");
-const { chromium } = require("playwright-core");
+const { chromium, firefox, webkit } = require("playwright-core");
 async function check() {
-  const browser = await chromium.launch({
-    executablePath: process.env.CHROME_BIN || "/usr/bin/google-chrome",
-    args: ["--no-sandbox"],
-  });
+  const name = process.env.BROWSER_ENGINE || "chromium";
+  const engine = { chromium, firefox, webkit }[name];
+  if (!engine) throw new Error("Unknown browser engine: " + name);
+  const browser = await engine.launch(
+    engine === chromium
+      ? {
+          executablePath: process.env.CHROME_BIN,
+        }
+      : {},
+  );
   try {
     const page = await browser.newPage();
     const base = process.env.PREVIEW_URL || "http://localhost:4173";
@@ -14,7 +20,16 @@ async function check() {
       "monkey",
       "koala",
     ]);
-    await page.getByRole("link", { name: "World view", exact: true }).hover();
+    await page.waitForFunction(() => customElements.get("nav-performance") !== undefined);
+    assert.equal(await nav.locator("dotlottie-wc").count(), 0);
+    const programme = page.getByRole("link", { name: "Programme", exact: true });
+    const world = page.getByRole("link", { name: "World view", exact: true });
+    await programme.hover();
+    await page.waitForFunction(
+      () => document.querySelector('[data-animal="monkey"] dotlottie-wc')?.dotLottie?.isPlaying,
+    );
+    assert.equal(await page.locator('[data-animal="koala"] dotlottie-wc').count(), 0);
+    await world.hover();
     await page.waitForFunction(
       () =>
         [...document.querySelectorAll(".nav-back dotlottie-wc")].filter((el) => el.dotLottie?.isPlaying)
@@ -27,9 +42,10 @@ async function check() {
       });
       assert.deepEqual(timing, [10, "body", "paws"]);
     }
-    await page.waitForFunction(
-      () => document.querySelector(".nav-back dotlottie-wc")?.dotLottie?.currentFrame >= 160,
-    );
+    await page.waitForFunction(() => {
+      const bodies = [...document.querySelectorAll(".nav-back dotlottie-wc")];
+      return bodies.length === 2 && bodies.every((el) => el.dotLottie?.currentFrame >= 160);
+    });
     for (const actor of await nav.all()) {
       const planes = await actor.evaluate((node) =>
         [...node.querySelectorAll(".nav-plane")].map((plane) => {
@@ -46,18 +62,60 @@ async function check() {
     await page.waitForFunction(() => !document.querySelector("nav-performance dotlottie-wc"), null, {
       timeout: 12000,
     });
-    const remaining = await page.evaluate(() => Number(sessionStorage.getItem("nav-rest-monkey")) - Date.now());
-    assert(remaining > 57000 && remaining <= 60000);
-    await page.reload();
-    await page.waitForTimeout(50);
-    assert.equal(await nav.locator("dotlottie-wc").count(), 0);
-    await page.waitForTimeout(54_000);
-    assert.equal(await nav.locator("dotlottie-wc").count(), 0);
-    await page.locator('[data-animal="monkey"] .nav-back dotlottie-wc').waitFor({state: "attached", timeout: 9_000});
+    await programme.hover();
+    await page.waitForFunction(
+      () => document.querySelector('[data-animal="monkey"] dotlottie-wc')?.dotLottie?.isPlaying,
+    );
+    await world.click();
+    await page.waitForURL(/\/world\/?$/);
+    await page.mouse.move(0, 0);
+    await page.waitForFunction(
+      () => document.querySelector('[data-animal="koala"] dotlottie-wc')?.dotLottie?.isPlaying,
+    );
+    await page.waitForFunction(() => !document.querySelector("nav-performance dotlottie-wc"), null, {
+      timeout: 14000,
+    });
+    await page.waitForFunction(
+      () =>
+        [...document.querySelectorAll(".nav-back dotlottie-wc")].filter((el) => el.dotLottie?.isPlaying)
+          .length === 2,
+      null,
+      { timeout: 60000 },
+    );
+    const elapsed = await page.evaluate(
+      () => Date.now() - Number(sessionStorage.getItem("nav-performance:" + document.baseURI + ":beat")),
+    );
+    assert(elapsed >= 0 && elapsed < 8000, "Both animals should play on the first scheduled beat");
     await page.emulateMedia({ reducedMotion: "reduce" });
     await page.waitForFunction(() => !document.querySelector("nav-performance dotlottie-wc"));
+    const keyboard = await browser.newPage();
+    await keyboard.goto(base);
+    await keyboard.keyboard.press("Tab");
+    const keyboardWorld = keyboard.getByRole("link", { name: "World view", exact: true });
+    await keyboardWorld.focus();
+    await keyboard.waitForFunction(
+      () => document.querySelector('[data-animal="koala"] dotlottie-wc')?.dotLottie?.isPlaying,
+    );
+    await keyboard.keyboard.press("Enter");
+    await keyboard.waitForURL(/\/world\/?$/);
+    await keyboard.waitForFunction(
+      () => document.querySelector('[data-animal="koala"] dotlottie-wc')?.dotLottie?.isPlaying,
+    );
+    await keyboard.close();
+    const touch = await browser.newPage({
+      hasTouch: true,
+      isMobile: engine !== firefox,
+      viewport: { width: 390, height: 844 },
+    });
+    await touch.goto(base);
+    await touch.waitForFunction(() => customElements.get("nav-performance") !== undefined);
+    await touch.getByRole("link", { name: "World view", exact: true }).tap();
+    await touch.waitForURL(/\/world\/?$/);
+    await touch.waitForFunction(
+      () => document.querySelector('[data-animal="koala"] dotlottie-wc')?.dotLottie?.isPlaying,
+    );
     console.log(
-      "Verified both complete ten-second takes, separated body and paw pixels, persistent cooldown and replay.",
+      "Verified hover replay, keyboard, click and tap across navigation, layered animation, shared minute playback and reduced motion.",
     );
   } finally {
     await browser.close();

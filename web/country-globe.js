@@ -26,14 +26,14 @@ async function mountGlobe() {
   const defs = element("defs", {}, svg);
   const light = element("radialGradient", { id: "globe-light", cx: ".34", cy: ".27", r: ".78" }, defs);
   for (const [offset, color, opacity] of [
-    [0, "#fff8ed", 0.27],
-    [0.57, "#fff8ed", 0],
-    [0.85, "#42465f", 0.065],
-    [1, "#353953", 0.24],
+    [0, "var(--globe-light)", 0.27],
+    [0.57, "var(--globe-light)", 0],
+    [0.85, "var(--globe-penumbra)", 0.065],
+    [1, "var(--globe-limb)", 0.24],
   ]) {
     element("stop", { offset, "stop-color": color, "stop-opacity": opacity }, light);
   }
-  const ocean = element("circle", { cx: 260, cy: 177, fill: "var(--sea)" }, svg);
+  const ocean = element("circle", { cx: 260, cy: 177, fill: "var(--globe-sea)" }, svg);
   const lands = element("g", {}, svg);
   const shapes = countries.map((country) => {
     const name = country.properties.name;
@@ -74,16 +74,18 @@ async function mountGlobe() {
     })
     .sort((a, b) => b.area - a.area);
   let selectedName;
+  const labelStyle = getComputedStyle(svg);
+  const baseSize = parseFloat(labelStyle.getPropertyValue("--globe-label-base"));
   function measureNames() {
     const context = document.createElement("canvas").getContext("2d");
-    context.font = "550 9px " + getComputedStyle(svg).fontFamily;
+    context.font = labelStyle.getPropertyValue("--weight-heading") + " " + baseSize + "px " + labelStyle.fontFamily;
     for (const name of names) name.width = context.measureText(name.name).width;
   }
   function drawNames(radius, viewWidth, viewHeight, scale) {
     const boxes = [];
     const north = latitude * rad;
-    const fontScale = Math.max(1, 10 / (9 * scale));
-    lettering.style.setProperty("--globe-name-size", 9 * fontScale + "px");
+    const fontScale = Math.max(1, 10 / (baseSize * scale));
+    lettering.style.setProperty("--globe-name-size", baseSize * fontScale + "px");
     const halfWidth = viewWidth / (2 * scale),
       halfHeight = viewHeight / (2 * scale);
     function place(entry, selected) {
@@ -288,14 +290,16 @@ async function mountGlobe() {
       selectCountry(true);
     } else if (action) updateZoom(targetZoom + (action === "in" ? 0.4 : -0.4));
   });
+  let gestureZoom;
   svg.addEventListener(
     "wheel",
     (e) => {
-      // Keep trackpad scroll and pinch inside the whole map stage, even at a zoom limit.
+      // Trackpads mark pinch wheel events with Ctrl. Leave ordinary scrolling to the browser.
+      if (!e.ctrlKey || !e.deltaY) return;
       e.preventDefault();
-      if (!e.deltaY) return;
+      if (gestureZoom !== undefined || pointers.size) return;
       const units = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? svg.clientHeight : 1;
-      const factor = Math.exp(-clamp(e.deltaY * units, -240, 240) * (e.ctrlKey ? 0.012 : 0.0025));
+      const factor = Math.exp(-clamp(e.deltaY * units, -240, 240) * 0.012);
       const next = clamp(targetZoom * factor, minZoom, maxZoom);
       if (next === targetZoom) return;
       updateZoom(next);
@@ -305,6 +309,16 @@ async function mountGlobe() {
 
   const pointers = new Map();
   let pinch;
+  // Safari also reports trackpad magnification as a gesture scale.
+  svg.addEventListener("gesturestart", (e) => {
+    e.preventDefault();
+    if (!pointers.size) gestureZoom = zoom;
+  }, { passive: false });
+  svg.addEventListener("gesturechange", (e) => {
+    e.preventDefault();
+    if (gestureZoom !== undefined && !pointers.size && e.scale > 0) updateZoom(gestureZoom * e.scale, true);
+  }, { passive: false });
+  svg.addEventListener("gestureend", () => { gestureZoom = undefined; });
   function distance() {
     const [a, b] = pointers.values();
     return Math.hypot(a.x - b.x, a.y - b.y);
@@ -319,8 +333,7 @@ async function mountGlobe() {
     pointers.set(e.pointerId, pos);
     svg.setPointerCapture(e.pointerId);
     if (pointers.size === 2) {
-      const [a, b] = pointers.values();
-      pinch = { distance: Math.max(1, distance()), midpointY: (a.y + b.y) / 2, zoom };
+      pinch = { distance: Math.max(1, distance()), zoom };
       drag = null;
     } else startDrag(e.pointerId, pos, e.target.closest("[data-country]")?.dataset.country);
   });
@@ -328,12 +341,8 @@ async function mountGlobe() {
     if (!pointers.has(e.pointerId)) return;
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pinch) {
-      const [a, b] = pointers.values();
-      const spread = Math.log(Math.max(1, distance()) / pinch.distance);
-      const slide = (pinch.midpointY - (a.y + b.y) / 2) / 200;
-      // Pointer positions arrive separately. Re-evaluate their combined motion before each paint.
-      const change = Math.abs(spread) > Math.abs(slide) ? spread : slide;
-      updateZoom(pinch.zoom * Math.exp(change), true);
+      // The renderer paints the latest distance once per frame. Translation leaves it unchanged.
+      updateZoom(pinch.zoom * distance() / pinch.distance, true);
       return;
     }
     const dx = e.clientX - drag.x,
@@ -391,7 +400,7 @@ async function mountGlobe() {
     paint = await paintEarth(canvas, "art/earth-relief.webp");
     switcher.hidden = false;
     atlas.classList.add("has-relief");
-    ocean.setAttribute("fill", "transparent");
+    ocean.setAttribute("fill", "var(--clear)");
     canvas.hidden = false;
     new ResizeObserver(requestDraw).observe(svg);
     requestDraw();

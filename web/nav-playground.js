@@ -1,12 +1,14 @@
 import { loadComponent } from "./lottie-player.js";
 
-const cooldown = 60_000;
+const minute = 60_000;
+const storageKey = "nav-performance:" + document.baseURI;
+const ensemble = new EventTarget();
 const cache = new Map();
 function asset(url, json = false) {
   if (!cache.has(url)) {
     cache.set(
       url,
-      fetch(url)
+      fetch(url, { cache: "no-cache" })
         .then((response) => {
           if (!response.ok) throw new Error("Missing navigation asset: " + url);
           return json ? response.json() : response.arrayBuffer();
@@ -20,22 +22,34 @@ function asset(url, json = false) {
   return cache.get(url);
 }
 
-// Restore the quiet period across full-page Jaspr links in the same browser tab.
-const deadlines = new Map();
-function nextAllowed(animal) {
-  try {
-    return Number(sessionStorage.getItem("nav-rest-" + animal)) || deadlines.get(animal) || 0;
-  } catch {
-    return deadlines.get(animal) || 0;
-  }
+// Both links use the same beat, including across full-page navigation in this tab.
+let firstBeat = Date.now() + minute;
+try {
+  firstBeat = Number(sessionStorage.getItem(storageKey + ":beat")) || firstBeat;
+  sessionStorage.setItem(storageKey + ":beat", String(firstBeat));
+} catch {
+  /* A page-local clock also works when storage is unavailable. */
 }
-function rest(animal, until) {
-  deadlines.set(animal, until);
-  try {
-    sessionStorage.setItem("nav-rest-" + animal, String(until));
-  } catch {
-    /* In-memory fallback. */
-  }
+function scheduleBeat() {
+  const now = Date.now();
+  const delay = firstBeat > now ? firstBeat - now : minute - ((now - firstBeat) % minute);
+  return setTimeout(() => {
+    if (!document.hidden) ensemble.dispatchEvent(new Event("play"));
+    beatTimer = scheduleBeat();
+  }, delay);
+}
+let beatTimer;
+function syncBeat() {
+  clearTimeout(beatTimer);
+  if (!document.hidden) beatTimer = scheduleBeat();
+}
+document.addEventListener("visibilitychange", syncBeat);
+window.addEventListener("pagehide", () => clearTimeout(beatTimer));
+window.addEventListener("pageshow", syncBeat);
+syncBeat();
+
+function route(url) {
+  return new URL(url).pathname.replace(/\/$/, "");
 }
 
 function loadPlane(host, data, id, signal) {
@@ -66,24 +80,28 @@ function loadPlane(host, data, id, signal) {
 class NavPerformance extends HTMLElement {
   connectedCallback() {
     const animal = this.dataset.animal;
+    const archive = "motion/animals/" + animal + ".lottie";
     const link = this.closest("a");
     const label = link.querySelector(".nav-label");
     const back = this.querySelector(".nav-back"),
       front = this.querySelector(".nav-front");
-    const current = link.hasAttribute("aria-current");
     const reduced = matchMedia("(prefers-reduced-motion: reduce)");
     const listeners = new AbortController();
     const options = { signal: listeners.signal };
     let visible = false,
-      hovered = false,
-      focused = false,
-      away = false;
-    let run,
-      timer,
-      failed = false;
+      away = false,
+      requested = false,
+      run;
+    const handoff = storageKey + ":click:" + animal;
+    try {
+      const at = Number(sessionStorage.getItem(handoff));
+      sessionStorage.removeItem(handoff);
+      requested = at > Date.now() - 30_000 && route(location.href) === route(link.href);
+    } catch {
+      /* Navigation works independently of session storage. */
+    }
 
     function stop() {
-      clearTimeout(timer);
       run?.abort();
       run = null;
       link.style.removeProperty("--actor-x");
@@ -96,7 +114,7 @@ class NavPerformance extends HTMLElement {
       run = session;
       try {
         const [data, paths] = await Promise.all([
-          asset("motion/animals/" + animal + ".lottie"),
+          asset(archive),
           asset("motion/animals/paths.json", true),
           loadComponent(),
         ]);
@@ -152,60 +170,75 @@ class NavPerformance extends HTMLElement {
         });
         body.addEventListener("complete", () => {
           if (signal.aborted) return;
-          rest(animal, Date.now() + cooldown);
           stop();
-          sync();
         });
-        rest(animal, Date.now() + 10_000 + cooldown);
         body.play();
       } catch {
         if (!signal.aborted) {
-          failed = true;
+          // A successful HTTP response can still contain an unreadable archive.
+          cache.delete(archive);
           stop();
         }
       }
     }
 
     function sync() {
-      clearTimeout(timer);
-      if (!visible || away || document.hidden || reduced.matches) {
+      if (away || document.hidden || reduced.matches) {
+        requested = false;
         stop();
-        return;
+      } else if (!visible) {
+        stop();
+      } else if (requested) {
+        requested = false;
+        if (!run) perform();
       }
-      if (run || failed || !(current || hovered || focused)) return;
-      const wait = nextAllowed(animal) - Date.now();
-      if (wait > 0) timer = setTimeout(sync, wait);
-      else perform();
     }
-    link.addEventListener(
-      "pointerenter",
-      (e) => {
-        hovered = e.pointerType !== "touch";
-        sync();
+
+    function interact() {
+      requested = true;
+      sync();
+    }
+    ensemble.addEventListener(
+      "play",
+      () => {
+        if (visible) interact();
       },
       options,
     );
     link.addEventListener(
-      "pointerleave",
-      () => {
-        hovered = false;
-        sync();
+      "pointerenter",
+      (event) => {
+        if (event.pointerType !== "touch") interact();
       },
       options,
     );
     link.addEventListener(
       "focus",
       () => {
-        focused = link.matches(":focus-visible");
-        sync();
+        if (link.matches(":focus-visible")) interact();
       },
       options,
     );
     link.addEventListener(
-      "blur",
-      () => {
-        focused = false;
-        sync();
+      "click",
+      (event) => {
+        if (
+          event.defaultPrevented ||
+          event.button !== 0 ||
+          event.ctrlKey ||
+          event.metaKey ||
+          event.shiftKey ||
+          event.altKey ||
+          reduced.matches
+        )
+          return;
+        // Preserve the native link. Start the clicked animal's take on the destination.
+        try {
+          sessionStorage.setItem(handoff, String(Date.now()));
+        } catch {
+          /* Storage may be disabled. */
+        }
+        interact();
       },
       options,
     );

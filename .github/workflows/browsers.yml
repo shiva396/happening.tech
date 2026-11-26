@@ -1,0 +1,43 @@
+name: Browser checks
+
+on: pull_request
+
+permissions:
+  contents: read
+
+jobs:
+  browsers:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.14.0
+      - run: dart pub get --enforce-lockfile
+      - run: dart analyze --fatal-infos
+      - run: dart pub global activate jaspr_cli 0.24.0-beta.2
+      - name: Build a project-path preview
+        run: >
+          dart pub global run jaspr_cli:jaspr build
+          --dart-define-server=SITE_BASE_PATH=/happening.tech
+          --dart-define-server="HAPPENING_REPOSITORY=$GITHUB_REPOSITORY"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - run: npm ci --prefix tool/browser
+      - run: tool/browser/node_modules/.bin/playwright-core install --with-deps chromium firefox webkit
+      - name: Test the published layout and navigation
+        env:
+          PREVIEW_URL: http://127.0.0.1:4173/happening.tech/
+          NODE_PATH: ${{ github.workspace }}/tool/browser/node_modules
+        run: |
+          preview=$(mktemp -d)
+          ln -s "$PWD/build/jaspr" "$preview/happening.tech"
+          python3 -m http.server 4173 --bind 127.0.0.1 --directory "$preview" > "$RUNNER_TEMP/preview.log" 2>&1 &
+          trap 'kill $!' EXIT
+          curl --fail --retry 10 --retry-connrefused --retry-delay 1 --silent "$PREVIEW_URL" -o /dev/null
+          npm test --prefix tool/browser
+          for engine in chromium firefox webkit; do
+            BROWSER_ENGINE="$engine" node tool/nav_animals/check.cjs
+          done
