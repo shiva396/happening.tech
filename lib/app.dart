@@ -17,7 +17,6 @@ class App extends StatelessComponent {
       header(classes: 'masthead', [
         div(classes: 'wrap mast-inner', [
           a(href: '/', classes: 'brand', [
-            img(src: '/art/mark.svg', alt: ''),
             .text('happening'),
             span([.text('.tech')]),
           ]),
@@ -60,7 +59,6 @@ class App extends StatelessComponent {
       ]),
       footer(classes: 'site-foot wrap', [
         a(href: '/', classes: 'footer-brand', [.text('happening.tech')]),
-        span([.text('A community-built event directory.')]),
         a(href: '/submit', [.text('Contribute an event')]),
       ]),
     ]);

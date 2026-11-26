@@ -63,34 +63,13 @@ class Programme extends StatelessComponent {
       classes: 'wrap programme',
       attributes: {'data-directory': ''},
       [
-        section(classes: 'opening', [
-          div([
-            div(classes: 'eyebrow', [span(classes: 'rule', []), .text('Community event directory')]),
-            h1([
-              .text(world ? 'World view' : 'The programme'),
-              span([.text('.')]),
-            ]),
-            p([
-              .text(
-                world
-                    ? 'Pick a city and meet the communities building there.'
-                    : 'Find your next developer meetup, workshop or conference.',
-              ),
-            ]),
-          ]),
-          div(classes: 'coverage', [
-            icon('globe'),
-            div([
-              strong([.text('Global edition')]),
-              span([
-                .text(
-                  '${cities.where((city) => city.toLowerCase() != 'online').length} cities · ${upcoming.where((event) => event.city.toLowerCase() == 'online').length} online',
-                ),
-              ]),
-            ]),
+        header(classes: 'opening', [
+          h1([
+            .text(world ? 'World view' : 'The programme'),
+            span([.text('.')]),
           ]),
         ]),
-        if (world) worldMap(cities),
+        if (world && upcoming.isNotEmpty) worldMap(upcoming),
         div(
           classes: 'filters',
           attributes: {'data-interactive': ''},
@@ -199,6 +178,7 @@ Component eventRow(Event e, bool first) {
       'data-city': e.city,
       'data-topic': e.topic,
       'data-host': e.community,
+      'data-date': _date(_hostDate(e)),
       'data-expires': e.endsAtExclusive.toIso8601String(),
       if (first) 'data-selected': 'true',
     },
@@ -208,7 +188,10 @@ Component eventRow(Event e, bool first) {
         strong([.text(day.day.toString().padLeft(2, '0'))]),
       ]),
       div(classes: 'row-info', [
-        span(classes: 'topic ${_tone(e)}', [.text(e.topic)]),
+        div(classes: 'row-byline', [
+          span(classes: 'topic ${_tone(e)}', [.text(e.topic)]),
+          span([.text(e.community)]),
+        ]),
         h4([.text(e.title)]),
         div(classes: 'row-meta', [
           icon('map-pin'),
@@ -338,27 +321,62 @@ const _centres = <String, (double, double)>{
   'Barcelona': (41.39, 2.17),
   'Long Beach': (33.77, -118.19),
 };
-Component worldMap(List<String> cities) => section(
-  classes: 'atlas',
-  attributes: {'aria-label': 'Cities with upcoming events'},
-  [
-    div(classes: 'map-surface', [
-      img(src: '/art/world.svg', alt: 'World map'),
-      for (final city in cities)
-        if (_centres[city] case final centre?)
-          button(
-            classes: 'pin',
-            attributes: {
-              'data-pick': city,
-              'aria-label': 'Browse events in $city',
-              'title': city,
-              'style': 'left:${(centre.$2 + 180) / 360 * 100}%;top:${(85 - centre.$1) / 145 * 100}%',
-            },
-            [],
-          ),
-    ]),
-    div(classes: 'city-links', [
-      for (final city in cities) button(attributes: {'data-pick': city}, [.text(city)]),
-    ]),
-  ],
-);
+Component worldMap(List<Event> upcoming) {
+  final places = <String, Event>{};
+  for (final event in upcoming) {
+    places.putIfAbsent(event.city, () => event);
+  }
+  final cities = places.keys.toList()..sort();
+  return section(
+    classes: 'atlas',
+    attributes: {'aria-label': 'Explore events by city'},
+    [
+      div(classes: 'map-field', [
+        div(classes: 'map-surface', [
+          div(classes: 'map-land', attributes: {'aria-hidden': 'true'}, []),
+          for (final city in cities)
+            if (_centres[city] case final centre?)
+              button(
+                classes: 'pin',
+                attributes: {
+                  'data-pick': city,
+                  'aria-label': 'Browse events in $city',
+                  'style': 'left:${(centre.$2 + 180) / 360 * 100}%;top:${(85 - centre.$1) / 145 * 100}%',
+                },
+                [
+                  span(classes: 'pin-name', [.text(city)]),
+                ],
+              ),
+        ]),
+      ]),
+      div(classes: 'map-places', [
+        div(classes: 'place-head', [
+          h2([.text('Places')]),
+          span([.text('Local time')]),
+        ]),
+        div(classes: 'city-links', [
+          for (final city in cities)
+            button(
+              attributes: {'data-pick': city},
+              [
+                span([.text(city)]),
+                if (city.toLowerCase() == 'online')
+                  icon('globe')
+                else
+                  span(classes: 'city-clock', attributes: {'data-zone': places[city]!.timezone}, []),
+              ],
+            ),
+        ]),
+      ]),
+      div(
+        classes: 'map-caption',
+        attributes: {'aria-live': 'polite'},
+        [
+          icon('calendar-days'),
+          a(id: 'map-event', href: '/events/${upcoming.first.slug}', [.text(upcoming.first.title)]),
+          span(id: 'map-host', [.text('${upcoming.first.community} · ${_date(_hostDate(upcoming.first))}')]),
+        ],
+      ),
+    ],
+  );
+}

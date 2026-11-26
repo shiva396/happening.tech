@@ -35,6 +35,13 @@
   const panels = [...directory.querySelectorAll("[data-panel]")];
   const groups = [...directory.querySelectorAll(".month-group")];
   const pins = [...directory.querySelectorAll("[data-pick]")];
+  const caption = directory.querySelector(".map-caption");
+  const clocks = [...directory.querySelectorAll(".city-clock")].map(element => ({
+    element,
+    formatter: new Intl.DateTimeFormat(undefined, {
+      timeZone: element.dataset.zone, hour: "numeric", minute: "2-digit",
+    }),
+  }));
   const clear = document.getElementById("reset");
   const count = document.getElementById("count");
   let selected;
@@ -102,8 +109,22 @@
       panel.hidden = !active;
     }
     previousSelection = selected;
-    for (const pin of pins)
-      pin.setAttribute("aria-pressed", String(city.value === pin.dataset.pick));
+    if (caption) {
+      const current = shown.find(row => row.dataset.slug === selected);
+      for (const pin of pins) {
+        const place = pin.dataset.pick;
+        pin.setAttribute("aria-pressed", String(city.value === place));
+        pin.toggleAttribute("data-highlight", place === current?.dataset.city);
+      }
+      caption.hidden = !current;
+      if (current) {
+        const link = document.getElementById("map-event");
+        link.href = current.href;
+        link.textContent = current.querySelector("h4").textContent;
+        document.getElementById("map-host").textContent =
+          current.dataset.host + " · " + current.dataset.date;
+      }
+    }
     const feature = directory.querySelector("[data-feature]");
     if (feature)
       feature.hidden =
@@ -147,6 +168,20 @@
       render();
       saveLocation();
     });
+  if (clocks.length) {
+    let timer;
+    function updateLocalTimes() {
+      clearTimeout(timer);
+      if (document.hidden) return;
+      const now = new Date();
+      for (const { element, formatter } of clocks) {
+        element.textContent = formatter.format(now);
+      }
+      timer = setTimeout(updateLocalTimes, 60000 - now.getTime() % 60000);
+    }
+    document.addEventListener("visibilitychange", updateLocalTimes);
+    updateLocalTimes();
+  }
   window.addEventListener("pageshow", readLocation);
   readLocation();
 })();

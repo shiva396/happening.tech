@@ -16,7 +16,7 @@ void main() {
       },
       head: [
         link(href: '/programme.css', rel: 'stylesheet'),
-        link(href: '/art/mark.svg', rel: 'icon', type: 'image/svg+xml'),
+        link(href: 'data:,', rel: 'icon'),
         script(src: '/programme.js', defer: true),
       ],
       body: App(loadEvents()),
