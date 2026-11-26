@@ -57,9 +57,6 @@
   --activity-preview-width: min(18.5rem, calc(100vw - var(--activity-preview-edge-px) * 2px));
   --activity-preview-max-height: min(19rem, 60vh);
   --motion-slot-size: 1.65rem;
-  --ticket-moths-min-height: 8rem;
-  --ticket-moths-aspect-ratio: 3.3;
-  --ticket-moths-min-height-mobile: 6.5rem;
   --activity-ripple-inset: -1px;
   --entry-review-max-width: 78ch;
   --error-icon-size: 1rem;

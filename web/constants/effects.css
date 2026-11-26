@@ -23,7 +23,6 @@
   --country-menu-shadow: 0 8px 36px var(--globe-menu-shadow);
   --activity-preview-shadow: 0 6px 24px var(--tooltip-shadow);
   --active-tile-shadow: inset 0 1px 3px var(--tile-glint);
-  --moth-art-focus-filter: drop-shadow(0 0 3px var(--accent));
 
   /* Poster texture */
   --poster-dot-pattern: radial-gradient(currentColor .6px, var(--clear) .7px);

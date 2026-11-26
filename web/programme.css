@@ -1148,44 +1148,6 @@ button.activity-cell:focus-visible { outline: var(--stroke-thin) solid var(--acc
   .mobile-feature:focus-visible .poster-art { transform: var(--transform-poster-tilt); }
 }
 
-.ticket-moths {
-  position: relative;
-  isolation: isolate;
-  overflow: hidden;
-  align-self: stretch;
-  min-height: var(--ticket-moths-min-height);
-  padding: 0;
-  border: 0;
-  background: var(--clear);
-  -webkit-tap-highlight-color: var(--clear);
-}
-.ticket-moths img, .ticket-moths dotlottie-wc {
-  display: block;
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
-  pointer-events: none;
-}
-.ticket-moths dotlottie-wc, .ticket-moths[data-playing] img { opacity: 0; }
-.ticket-moths[data-playing] dotlottie-wc { opacity: 1; }
-.ticket-moths:focus-visible { outline: none; }
-.ticket-moths:focus-visible :is(img, dotlottie-wc) {
-  filter: var(--moth-art-focus-filter);
-}
-.spotlight[hidden] + .ticket-moths { display: none; }
-@media (min-width: 741px) {
-  .spread { grid-template-rows: auto 1fr; row-gap: var(--space-block); }
-  .spread > .event-list { grid-row: 1 / 3; }
-  .ticket-moths { grid-column: 2; }
-}
-@media (max-width: 740px) {
-  .ticket-moths { width: 100%; min-width: 0; aspect-ratio: var(--ticket-moths-aspect-ratio); min-height: var(--ticket-moths-min-height-mobile); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ticket-moths { cursor: default; }
-}
 @media (prefers-reduced-motion: no-preference) {
   button.activity-cell[aria-expanded=true] { z-index: 1; }
   button.activity-cell[aria-expanded=true]::before {

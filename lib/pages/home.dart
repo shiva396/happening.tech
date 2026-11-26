@@ -211,23 +211,7 @@ class Programme extends StatelessComponent {
                 eventPoster(visible.first),
               ],
             ),
-          div(classes: 'spread', [
-            listing,
-            spotlight,
-            button(
-              id: 'spotlight-art',
-              classes: 'ticket-moths',
-              attributes: {
-                'type': 'button',
-                'data-motion': 'ticket-moths',
-                'aria-label': 'Animate the ticket moths',
-                'aria-pressed': 'false',
-              },
-              [
-                img(src: 'art/ticket-moths.webp', alt: 'Three moths with ticket-stub wings circling a violet moon.'),
-              ],
-            ),
-          ]),
+          div(classes: 'spread', [listing, spotlight]),
         ],
         if (!world) EventActivity(events),
       ],
