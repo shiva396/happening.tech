@@ -126,19 +126,27 @@ class Programme extends StatelessComponent {
       classes: 'spotlight',
       attributes: {'aria-label': 'Selected event'},
       [
-        div(classes: 'section-head', [
-          h2(id: world ? 'country-title' : null, [.text(world ? 'Events in India' : 'Event spotlight')]),
-          if (world) span(id: 'country-paging', attributes: {'aria-live': 'polite'}, []),
-          if (world)
-            button(
-              id: 'country-prev',
-              attributes: {'aria-label': 'Previous event', 'hidden': ''},
-              [icon('chevron-down')],
-            ),
-          if (world)
-            button(id: 'country-next', attributes: {'aria-label': 'Next event', 'hidden': ''}, [icon('chevron-right')]),
-          motionSlot('ticket', icon('ticket')),
-        ]),
+        div(
+          classes: 'section-head',
+          attributes: {if (world) 'data-detail-heading': ''},
+          [
+            h2([.text(world ? 'Event details' : 'Event spotlight')]),
+            if (world) span(id: 'country-paging', attributes: {'aria-live': 'polite'}, []),
+            if (world)
+              button(
+                id: 'country-prev',
+                attributes: {'aria-label': 'Previous event', 'hidden': ''},
+                [icon('chevron-down')],
+              ),
+            if (world)
+              button(
+                id: 'country-next',
+                attributes: {'aria-label': 'Next event', 'hidden': ''},
+                [icon('chevron-right')],
+              ),
+            motionSlot('ticket', icon('ticket')),
+          ],
+        ),
         if (world)
           div(
             id: 'country-empty',
@@ -186,9 +194,12 @@ class Programme extends StatelessComponent {
         if (world)
           div(classes: 'world-layout', [
             CountryGlobe(visible.map((e) => e.city.toLowerCase() == 'online' ? 'Online' : e.country).toSet()),
-            spotlight,
-            filters,
-            listing,
+            div(classes: 'country-programme', [
+              h2(id: 'country-title', [.text('Events in India')]),
+              filters,
+              listing,
+              spotlight,
+            ]),
           ])
         else ...[
           filters,

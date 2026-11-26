@@ -49,16 +49,33 @@ class CountryGlobe extends StatelessComponent {
             ]),
             icon('chevron-down'),
           ]),
+          div(
+            classes: 'map-style',
+            attributes: {'role': 'group', 'aria-label': 'Globe view', 'hidden': ''},
+            [
+              for (final mode in [('terrain', 'Terrain'), ('satellite', 'Satellite')])
+                button(
+                  type: ButtonType.button,
+                  attributes: {'data-map-style': mode.$1, 'aria-pressed': '${mode.$1 == "terrain"}'},
+                  [.text(mode.$2)],
+                ),
+            ],
+          ),
         ]),
         div(classes: 'globe-stage', [
           Component.element(tag: 'canvas', classes: 'earth-surface', attributes: {'aria-hidden': 'true', 'hidden': ''}),
+          Component.element(
+            tag: 'canvas',
+            classes: 'earth-surface satellite-surface',
+            attributes: {'aria-hidden': 'true', 'hidden': ''},
+          ),
           img(classes: 'globe-fallback', src: '/art/globe-india.webp', alt: 'Globe centred on India'),
           svg(
             id: 'country-globe',
             viewBox: '72 0 376 350',
             attributes: {
               'role': 'img',
-              'aria-label': 'Rotatable globe. Use the arrow keys to rotate, or choose a country above.',
+              'aria-label': 'Rotatable globe. Use the arrow keys to rotate and the plus and minus keys to zoom.',
               'tabindex': '0',
               'hidden': '',
             },
@@ -69,12 +86,17 @@ class CountryGlobe extends StatelessComponent {
           classes: 'globe-controls',
           attributes: {'hidden': ''},
           [
-            span([.text('Drag to rotate')]),
+            span([
+              .text('Drag to rotate · '),
+              span(classes: 'wheel-zoom', [.text('Scroll to zoom')]),
+              span(classes: 'touch-zoom', [.text('Pinch to zoom')]),
+            ]),
             control('reset', 'Centre selected country', icon('globe')),
             control('out', 'Zoom out', .text('−')),
             control('in', 'Zoom in', icon('plus')),
           ],
         ),
+        p(classes: 'map-status', attributes: {'role': 'status', 'hidden': ''}, []),
         const script(src: '/country-globe.js', attributes: {'type': 'module'}),
       ],
     );

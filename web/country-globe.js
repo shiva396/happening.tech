@@ -51,11 +51,13 @@ async function mountGlobe() {
     { cx: 260, cy: 177, fill: "url(#globe-light)", "pointer-events": "none" },
     svg,
   );
-  const focusRing = element("circle", {cx: 260, cy: 177, class: "globe-focus", "pointer-events": "none"}, svg);
-  const label = element("g", { "pointer-events": "none" }, svg);
-  const badge = element("rect", { class: "globe-tag", height: 19, y: -9.5, rx: 9.5 }, label);
-  const caption = element("text", { class: "globe-tag-text", y: 3.6 }, label);
-
+  const focusRing = element(
+    "circle",
+    { cx: 260, cy: 177, class: "globe-focus", "pointer-events": "none" },
+    svg,
+  );
+  const lettering = element("g", { "pointer-events": "none", "aria-hidden": "true" }, svg);
+  const rad = Math.PI / 180;
   // For overseas territories, centre the primary landmass of the selected country.
   function centre(country) {
     const geo = country.geometry;
@@ -66,10 +68,59 @@ async function mountGlobe() {
     return geoCentroid(largest);
   }
 
+  // Place the selected name first, then fill the remaining space with legible land labels.
+  const names = shapes
+    .map(({ country, name }) => {
+      const anchor = centre(country);
+      const text = element("text", { class: "globe-name" }, lettering);
+      text.textContent = name;
+      return { name, text, anchor, area: geoArea(country), width: 0 };
+    })
+    .sort((a, b) => b.area - a.area);
+  let selectedName;
+  function measureNames() {
+    const context = document.createElement("canvas").getContext("2d");
+    context.font = "550 9px " + getComputedStyle(svg).fontFamily;
+    for (const name of names) name.width = context.measureText(name.name).width;
+  }
+  function drawNames(radius) {
+    const boxes = [];
+    const north = latitude * rad;
+    const scale = Math.min(svg.clientWidth / 376, svg.clientHeight / 350);
+    const fontScale = Math.max(1, 10 / (9 * scale));
+    lettering.style.setProperty("--globe-name-size", 9 * fontScale + "px");
+    const halfWidth = svg.clientWidth / (2 * scale),
+      halfHeight = svg.clientHeight / (2 * scale);
+    function place(entry, selected) {
+      const [lon, lat] = entry.anchor;
+      const facing =
+        Math.sin(north) * Math.sin(lat * rad) +
+        Math.cos(north) * Math.cos(lat * rad) * Math.cos((lon - longitude) * rad);
+      const width = (entry.width * (selected ? 1.35 : 1) * fontScale) / 2 + 3;
+      const [x, y] = projection(entry.anchor);
+      const box = { left: x - width, right: x + width, top: y - 7 * fontScale, bottom: y + 7 * fontScale };
+      const fits =
+        facing > (selected ? 0.12 : 0.38) &&
+        Math.abs(x - 260) + width < halfWidth &&
+        Math.abs(y - 175) + 7 < halfHeight &&
+        (selected ||
+          (entry.area * radius * radius * facing > width * 13 &&
+            Math.hypot(Math.abs(x - 260) + width, Math.abs(y - 177) + 6) < radius &&
+            !boxes.some(
+              (b) => b.left < box.right && b.right > box.left && b.top < box.bottom && b.bottom > box.top,
+            )));
+      entry.text.style.display = fits ? "" : "none";
+      if (!fits) return;
+      entry.text.setAttribute("x", x);
+      entry.text.setAttribute("y", y);
+      boxes.push(box);
+    }
+    if (selectedName) place(selectedName, true);
+    for (const entry of names) if (entry !== selectedName) place(entry, false);
+  }
   let longitude = 79,
     latitude = 22,
     zoom = 1,
-    point,
     flight,
     drawing,
     drag;
@@ -77,7 +128,78 @@ async function mountGlobe() {
   const clamp = (value, low, high) => Math.max(low, Math.min(high, value));
   const wrap = (value) => ((((value + 540) % 360) + 360) % 360) - 180;
   const canvas = atlas.querySelector(".earth-surface");
-  let paint;
+  const satellite = atlas.querySelector(".satellite-surface");
+  const switcher = atlas.querySelector(".map-style");
+  const status = atlas.querySelector(".map-status");
+  let paint, paintSatellite, satelliteLoad, iris;
+  let wanted = "terrain",
+    current = "terrain";
+  function updateButtons() {
+    for (const button of switcher.querySelectorAll("button")) {
+      button.setAttribute("aria-pressed", String(button.dataset.mapStyle === wanted));
+    }
+  }
+  function finishStyle() {
+    const animation = iris;
+    iris = null;
+    current = wanted;
+    satellite.hidden = current !== "satellite";
+    canvas.hidden = !satellite.hidden;
+    atlas.classList.toggle("satellite-view", current === "satellite");
+    animation?.cancel();
+    requestDraw();
+  }
+  async function chooseStyle(mode) {
+    wanted = mode;
+    updateButtons();
+    status.hidden = true;
+    if (mode === "satellite" && !paintSatellite) {
+      try {
+        satelliteLoad ??= paintEarth(satellite, "/art/earth-satellite.webp");
+        paintSatellite = await satelliteLoad;
+      } catch {
+        satelliteLoad = null;
+        if (wanted === "satellite") {
+          wanted = "terrain";
+          updateButtons();
+          status.textContent = "Satellite imagery couldn’t load. Select Satellite to try again.";
+          status.hidden = false;
+        }
+        return;
+      }
+    }
+    if (mode !== wanted) return;
+    if (reduced.matches || !satellite.animate) {
+      finishStyle();
+      return;
+    }
+    if (iris) {
+      iris.playbackRate = wanted === "satellite" ? 1 : -1;
+      iris.play();
+      return;
+    }
+    if (current === wanted) return;
+    canvas.hidden = satellite.hidden = false;
+    // Keep the incoming texture registered to the same geographic point during a drag or pinch.
+    iris = satellite.animate([{ clipPath: "circle(0% at 50% 50%)" }, { clipPath: "circle(72% at 50% 50%)" }], {
+      duration: 560,
+      easing: "cubic-bezier(.45,0,.25,1)",
+      fill: "both",
+    });
+    if (mode === "terrain") {
+      iris.currentTime = 560;
+      iris.playbackRate = -1;
+    }
+    iris.onfinish = finishStyle;
+    requestDraw();
+  }
+  switcher.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-map-style]");
+    if (button) chooseStyle(button.dataset.mapStyle);
+  });
+  reduced.addEventListener("change", () => {
+    if (reduced.matches && iris) finishStyle();
+  });
   function draw() {
     drawing = 0;
     const radius = 153 * zoom;
@@ -89,21 +211,18 @@ async function mountGlobe() {
       // Match the SVG viewBox (72 0 376 350) with its centred aspect ratio.
       const scale = Math.min(svg.clientWidth / 376, svg.clientHeight / 350);
       const diameter = radius * 2 * scale;
-      canvas.style.width = canvas.style.height = diameter + "px";
-      canvas.style.top = "calc(50% + " + 2 * scale + "px)";
-      paint(longitude, latitude);
+      for (const [layer, renderer] of [
+        [canvas, paint],
+        [satellite, paintSatellite],
+      ]) {
+        if (layer.hidden || !renderer) continue;
+        layer.style.width = layer.style.height = diameter + "px";
+        layer.style.top = "calc(50% + " + 2 * scale + "px)";
+        renderer(longitude, latitude);
+      }
     }
     for (const shape of shapes) shape.node.setAttribute("d", path(shape.country) || "");
-    if (point) {
-      const [x, y] = projection(point);
-      const rad = Math.PI / 180;
-      const facing =
-        Math.sin(latitude * rad) * Math.sin(point[1] * rad) +
-        Math.cos(latitude * rad) * Math.cos(point[1] * rad) * Math.cos((longitude - point[0]) * rad);
-      const show = facing > 0.15 && y > 8 && y < 316 && x > 25 && x < 495;
-      label.style.display = show ? "" : "none";
-      label.setAttribute("transform", "translate(" + x + " " + (y + 15) + ")");
-    } else label.style.display = "none";
+    drawNames(radius);
   }
   function requestDraw() {
     if (!drawing) drawing = requestAnimationFrame(draw);
@@ -130,22 +249,20 @@ async function mountGlobe() {
     flight = requestAnimationFrame(tick);
   }
   function selectCountry(animate) {
-    const selected = shapes.find((s) => s.name === select.value);
+    selectedName?.text.classList.remove("is-selected");
+    selectedName = names.find((entry) => entry.name === select.value);
+    selectedName?.text.classList.add("is-selected");
     for (const shape of shapes) shape.node.classList.toggle("selected", shape.name === select.value);
-    point = selected ? centre(selected.country) : null;
-    label.style.display = "";
-    caption.textContent = select.value;
-    const width = Math.max(38, caption.getComputedTextLength() + 16);
-    badge.setAttribute("width", width);
-    badge.setAttribute("x", -width / 2);
-    fly(point || [79, 22], animate);
+    fly(selectedName?.anchor || [79, 22], animate);
   }
 
   const controls = atlas.querySelector(".globe-controls");
+  const minZoom = 0.8,
+    maxZoom = 4;
   function updateZoom(value) {
-    zoom = clamp(value, 1, 2.6);
-    controls.querySelector('[data-globe-action="out"]').disabled = zoom <= 1;
-    controls.querySelector('[data-globe-action="in"]').disabled = zoom >= 2.6;
+    zoom = clamp(value, minZoom, maxZoom);
+    controls.querySelector('[data-globe-action="out"]').disabled = zoom <= minZoom;
+    controls.querySelector('[data-globe-action="in"]').disabled = zoom >= maxZoom;
     requestDraw();
   }
   controls.addEventListener("click", (e) => {
@@ -155,47 +272,78 @@ async function mountGlobe() {
       selectCountry(true);
     } else if (action) updateZoom(zoom + (action === "in" ? 0.4 : -0.4));
   });
+  svg.addEventListener(
+    "wheel",
+    (e) => {
+      const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse());
+      if (Math.hypot(p.x - 260, p.y - 177) > 153 * zoom || !e.deltaY) return;
+      const units = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? svg.clientHeight : 1;
+      const factor = Math.exp(-clamp(e.deltaY * units, -240, 240) * (e.ctrlKey ? 0.012 : 0.0025));
+      const next = clamp(zoom * factor, minZoom, maxZoom);
+      if (next === zoom && !e.ctrlKey) return;
+      e.preventDefault();
+      updateZoom(next);
+    },
+    { passive: false },
+  );
+
+  const pointers = new Map();
+  let pinch;
+  function distance() {
+    const [a, b] = pointers.values();
+    return Math.hypot(a.x - b.x, a.y - b.y);
+  }
+  function startDrag(id, pos, name, moved = false) {
+    drag = { id, ...pos, lon: longitude, lat: latitude, name, moved };
+  }
   svg.addEventListener("pointerdown", (e) => {
-    if (!e.isPrimary || e.button !== 0) return;
+    if (e.button !== 0 || pointers.size >= 2) return;
     cancelAnimationFrame(flight);
-    drag = {
-      id: e.pointerId,
-      x: e.clientX,
-      y: e.clientY,
-      lon: longitude,
-      lat: latitude,
-      name: e.target.closest("[data-country]")?.dataset.country,
-      moved: false,
-    };
+    const pos = { x: e.clientX, y: e.clientY };
+    pointers.set(e.pointerId, pos);
     svg.setPointerCapture(e.pointerId);
+    if (pointers.size === 2) {
+      pinch = { distance: Math.max(1, distance()), zoom };
+      drag = null;
+    } else startDrag(e.pointerId, pos, e.target.closest("[data-country]")?.dataset.country);
   });
   svg.addEventListener("pointermove", (e) => {
-    if (!drag || drag.id !== e.pointerId) return;
+    if (!pointers.has(e.pointerId)) return;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (pinch) {
+      updateZoom((pinch.zoom * distance()) / pinch.distance);
+      return;
+    }
     const dx = e.clientX - drag.x,
       dy = e.clientY - drag.y;
     if (!drag.moved && Math.hypot(dx, dy) < 4) return;
     drag.moved = true;
     svg.classList.add("is-turning");
-    const factor = 110 / (((svg.getBoundingClientRect().height * 153) / 350) * zoom);
+    const scale = Math.min(svg.clientWidth / 376, svg.clientHeight / 350);
+    const factor = 110 / (scale * 153 * zoom);
     longitude = wrap(drag.lon - dx * factor);
     latitude = clamp(drag.lat + dy * factor, -85, 85);
     requestDraw();
   });
-  svg.addEventListener("pointerup", (e) => {
-    if (!drag || drag.id !== e.pointerId) return;
-    const { moved, name } = drag;
-    drag = null;
+  function endPointer(e) {
+    if (!pointers.delete(e.pointerId)) return;
+    const tapped = e.type === "pointerup" && !pinch && drag && !drag.moved && drag.name;
+    pinch = drag = null;
     svg.classList.remove("is-turning");
-    if (!moved && name) {
-      select.value = name;
+    for (const [id, pos] of pointers) startDrag(id, pos, null, true);
+    if (tapped) {
+      select.value = tapped;
       select.dispatchEvent(new Event("change", { bubbles: true }));
     }
-  });
-  svg.addEventListener("lostpointercapture", () => {
-    drag = null;
-    svg.classList.remove("is-turning");
-  });
+  }
+  for (const type of ["pointerup", "pointercancel", "lostpointercapture"])
+    svg.addEventListener(type, endPointer);
   svg.addEventListener("keydown", (e) => {
+    if (["+", "=", "-"].includes(e.key)) {
+      e.preventDefault();
+      updateZoom(zoom + (e.key === "-" ? -0.4 : 0.4));
+      return;
+    }
     const step = e.shiftKey ? 25 : 10,
       dir = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, step], ArrowDown: [0, -step] }[e.key];
     if (!dir) return;
@@ -210,10 +358,16 @@ async function mountGlobe() {
   svg.removeAttribute("hidden");
   atlas.querySelector(".globe-fallback").hidden = true;
   controls.hidden = false;
+  measureNames();
+  document.fonts.ready.then(() => {
+    measureNames();
+    requestDraw();
+  });
   updateZoom(1);
   selectCountry(false);
   try {
-    paint = await paintEarth(canvas);
+    paint = await paintEarth(canvas, "/art/earth-relief.webp");
+    switcher.hidden = false;
     atlas.classList.add("has-relief");
     ocean.setAttribute("fill", "transparent");
     canvas.hidden = false;

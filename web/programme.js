@@ -124,6 +124,7 @@
       document.getElementById("country-title").textContent = country.value === "Online" ? "Online events" :
         country.value ? "Events in " + (["United States", "United Kingdom", "United Arab Emirates", "Netherlands", "Philippines", "Bahamas", "Maldives", "Seychelles"].includes(country.value) ? "the " : "") + country.value : "Events worldwide";
       document.getElementById("country-empty").hidden = shown.length > 0;
+      directory.querySelector("[data-detail-heading]").hidden = shown.length === 0;
       const index = shown.findIndex(row => row.dataset.slug === selected);
       document.getElementById("country-paging").textContent = shown.length > 1 ? (index + 1) + " of " + shown.length : "";
       prev.hidden = next.hidden = shown.length < 2;
@@ -164,6 +165,7 @@
     function step(direction) {
       const shown = rows.filter(row => !row.hidden);
       if (!shown.length) return;
+      directory.querySelector("[data-detail-heading]").hidden = shown.length === 0;
       const index = shown.findIndex(row => row.dataset.slug === selected);
       selected = shown[(index + direction + shown.length) % shown.length].dataset.slug;
       filter();
@@ -179,7 +181,6 @@
   for (const row of rows)
     row.addEventListener("click", (event) => {
       if (
-        (country && matchMedia("(max-width: 740px)").matches) ||
         !directory.querySelector(".spotlight").getClientRects().length ||
         event.ctrlKey ||
         event.metaKey ||
@@ -191,6 +192,14 @@
       selected = row.dataset.slug;
       render();
       saveLocation();
+      if (country) {
+        const details = directory.querySelector(".spotlight");
+        if (event.detail === 0) {
+          details.tabIndex = -1;
+          details.focus({ preventScroll: true });
+        }
+        details.scrollIntoView({block: "start", behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "instant" : "smooth"});
+      }
     });
   window.addEventListener("pageshow", readLocation);
   readLocation();

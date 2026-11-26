@@ -1,7 +1,7 @@
 // Inverse orthographic sampling keeps the physical map and the selectable country paths aligned.
-export async function paintEarth(canvas) {
+export async function paintEarth(canvas, textureUrl) {
   const source = new Image();
-  source.src = "/art/earth-relief.webp";
+  source.src = textureUrl;
   await source.decode();
   const raster = document.createElement("canvas");
   raster.width = source.width;
