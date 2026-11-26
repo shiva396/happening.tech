@@ -7,7 +7,7 @@ Component posterArt({String city = '', bool preview = false}) {
   final place = city.trim().toLowerCase().replaceAll(' ', '-');
   final design = _places.contains(place) ? place : 'gathering';
   return img(
-    src: '/art/posters/$design.webp',
+    src: 'art/posters/$design.webp',
     alt: '',
     classes: 'poster-art',
     id: preview ? 'entry-art' : null,

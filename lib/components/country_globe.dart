@@ -69,7 +69,7 @@ class CountryGlobe extends StatelessComponent {
             classes: 'earth-surface satellite-surface',
             attributes: {'aria-hidden': 'true', 'hidden': ''},
           ),
-          img(classes: 'globe-fallback', src: '/art/globe-india.webp', alt: 'Globe centred on India'),
+          img(classes: 'globe-fallback', src: 'art/globe-india.webp', alt: 'Globe centred on India'),
           svg(
             id: 'country-globe',
             viewBox: '72 0 376 350',
@@ -97,7 +97,7 @@ class CountryGlobe extends StatelessComponent {
           ],
         ),
         p(classes: 'map-status', attributes: {'role': 'status', 'hidden': ''}, []),
-        const script(src: '/country-globe.js', attributes: {'type': 'module'}),
+        const script(src: 'country-globe.js', attributes: {'type': 'module'}),
       ],
     );
   }

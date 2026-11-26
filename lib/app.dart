@@ -15,10 +15,10 @@ class App extends StatelessComponent {
   Component build(BuildContext context) {
     final path = Uri.parse(context.url).path;
     return div([
-      a(href: '$path#content', classes: 'skip', [.text('Skip to content')]),
+      a(href: '.$path#content', classes: 'skip', [.text('Skip to content')]),
       header(classes: 'masthead', [
         div(classes: 'wrap mast-inner', [
-          a(href: '/', classes: 'brand', [
+          a(href: './', classes: 'brand', [
             .text('happening'),
             span([.text('.tech')]),
           ]),
@@ -29,7 +29,7 @@ class App extends StatelessComponent {
               attributes: {'type': 'button', 'aria-label': 'Switch theme'},
               [icon('moon'), icon('sun')],
             ),
-            a(href: '/submit', classes: 'list-event', [.text('List an event')]),
+            a(href: 'submit', classes: 'list-event', [.text('List an event')]),
           ]),
         ]),
       ]),
@@ -58,8 +58,8 @@ class App extends StatelessComponent {
         ),
       ]),
       footer(classes: 'site-foot wrap', [
-        a(href: '/', classes: 'footer-brand', [.text('happening.tech')]),
-        a(href: '/submit', [.text('Contribute an event')]),
+        a(href: './', classes: 'footer-brand', [.text('happening.tech')]),
+        a(href: 'submit', [.text('Contribute an event')]),
       ]),
     ]);
   }

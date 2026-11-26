@@ -1,0 +1,53 @@
+name: Publish GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    permissions:
+      contents: read
+      pages: read
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dart-lang/setup-dart@v1
+        with:
+          sdk: 3.14.0
+      - uses: actions/configure-pages@v5
+        id: pages
+      - run: dart pub get --enforce-lockfile
+      - run: dart run tool/validate.dart
+      - run: dart pub global activate jaspr_cli 0.24.0-beta.2
+      - name: Build the static site
+        env:
+          SITE_BASE_PATH: ${{ steps.pages.outputs.base_path }}
+        run: >
+          dart pub global run jaspr_cli:jaspr build
+          --dart-define-server="SITE_BASE_PATH=$SITE_BASE_PATH"
+          --dart-define-server="HAPPENING_REPOSITORY=$GITHUB_REPOSITORY"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/jaspr
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

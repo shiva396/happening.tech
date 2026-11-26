@@ -7,7 +7,7 @@ async function mountGlobe() {
   if (!svg) return;
   const atlas = svg.closest(".country-atlas");
   const select = document.getElementById("country");
-  const response = await fetch("/art/countries.json");
+  const response = await fetch("art/countries.json");
   if (!response.ok) return;
   const topology = await response.json();
   const countries = feature(topology, topology.objects.countries).features;
@@ -33,10 +33,6 @@ async function mountGlobe() {
   ]) {
     element("stop", { offset, "stop-color": color, "stop-opacity": opacity }, light);
   }
-  const shadow = element("radialGradient", { id: "globe-shadow" }, defs);
-  element("stop", { offset: 0, "stop-color": "#61556e", "stop-opacity": 0.2 }, shadow);
-  element("stop", { offset: 1, "stop-color": "#61556e", "stop-opacity": 0 }, shadow);
-  element("ellipse", { cx: 260, cy: 334, rx: 104, ry: 7, fill: "url(#globe-shadow)" }, svg);
   const ocean = element("circle", { cx: 260, cy: 177, fill: "var(--sea)" }, svg);
   const lands = element("g", {}, svg);
   const shapes = countries.map((country) => {
@@ -158,7 +154,7 @@ async function mountGlobe() {
     status.hidden = true;
     if (mode === "satellite" && !paintSatellite) {
       try {
-        satelliteLoad ??= paintEarth(satellite, "/art/earth-satellite.webp");
+        satelliteLoad ??= paintEarth(satellite, "art/earth-satellite.webp");
         paintSatellite = await satelliteLoad;
       } catch {
         satelliteLoad = null;
@@ -295,13 +291,13 @@ async function mountGlobe() {
   svg.addEventListener(
     "wheel",
     (e) => {
-      const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(svg.getScreenCTM().inverse());
-      if (Math.hypot(p.x - 260, p.y - 177) > 153 * zoom || !e.deltaY) return;
+      // Keep trackpad scroll and pinch inside the whole map stage, even at a zoom limit.
+      e.preventDefault();
+      if (!e.deltaY) return;
       const units = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? svg.clientHeight : 1;
       const factor = Math.exp(-clamp(e.deltaY * units, -240, 240) * (e.ctrlKey ? 0.012 : 0.0025));
       const next = clamp(targetZoom * factor, minZoom, maxZoom);
-      if (next === targetZoom && next === zoom && !e.ctrlKey) return;
-      e.preventDefault();
+      if (next === targetZoom) return;
       updateZoom(next);
     },
     { passive: false },
@@ -323,7 +319,8 @@ async function mountGlobe() {
     pointers.set(e.pointerId, pos);
     svg.setPointerCapture(e.pointerId);
     if (pointers.size === 2) {
-      pinch = { distance: Math.max(1, distance()), zoom };
+      const [a, b] = pointers.values();
+      pinch = { distance: Math.max(1, distance()), midpointY: (a.y + b.y) / 2, zoom };
       drag = null;
     } else startDrag(e.pointerId, pos, e.target.closest("[data-country]")?.dataset.country);
   });
@@ -331,7 +328,12 @@ async function mountGlobe() {
     if (!pointers.has(e.pointerId)) return;
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pinch) {
-      updateZoom((pinch.zoom * distance()) / pinch.distance, true);
+      const [a, b] = pointers.values();
+      const spread = Math.log(Math.max(1, distance()) / pinch.distance);
+      const slide = (pinch.midpointY - (a.y + b.y) / 2) / 200;
+      // Pointer positions arrive separately. Re-evaluate their combined motion before each paint.
+      const change = Math.abs(spread) > Math.abs(slide) ? spread : slide;
+      updateZoom(pinch.zoom * Math.exp(change), true);
       return;
     }
     const dx = e.clientX - drag.x,
@@ -386,7 +388,7 @@ async function mountGlobe() {
   updateZoom(1);
   selectCountry(false);
   try {
-    paint = await paintEarth(canvas, "/art/earth-relief.webp");
+    paint = await paintEarth(canvas, "art/earth-relief.webp");
     switcher.hidden = false;
     atlas.classList.add("has-relief");
     ocean.setAttribute("fill", "transparent");

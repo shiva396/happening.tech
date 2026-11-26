@@ -6,6 +6,6 @@ Component icon(String name) => svg(
   viewBox: '0 0 24 24',
   attributes: {'aria-hidden': 'true'},
   [
-    Component.element(tag: 'use', attributes: {'href': '/art/icons.svg#$name'}),
+    Component.element(tag: 'use', attributes: {'href': 'art/icons.svg#$name'}),
   ],
 );

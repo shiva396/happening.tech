@@ -50,7 +50,7 @@
       tones[sum % 3];
     node("poster").className = "poster " + tone;
     const place = online ? "online" : value("city").toLowerCase().replaceAll(" ", "-");
-    art.src = "/art/posters/" + (illustratedPlaces.has(place) ? place : "gathering") + ".webp";
+    art.src = "art/posters/" + (illustratedPlaces.has(place) ? place : "gathering") + ".webp";
     node("format").textContent = value("format");
     node("year").textContent = value("start_date").slice(0, 4);
     node("preview-place").textContent = online

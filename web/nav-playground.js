@@ -96,8 +96,8 @@ class NavPerformance extends HTMLElement {
       run = session;
       try {
         const [data, paths] = await Promise.all([
-          asset("/motion/animals/" + animal + ".lottie"),
-          asset("/motion/animals/paths.json", true),
+          asset("motion/animals/" + animal + ".lottie"),
+          asset("motion/animals/paths.json", true),
           loadComponent(),
         ]);
         if (signal.aborted) return;

@@ -96,7 +96,7 @@ class Programme extends StatelessComponent {
             attributes: {'aria-live': 'polite'},
             [.text('${initial.length} ${initial.length == 1 ? 'event' : 'events'}')],
           ),
-          a(classes: 'archive-link', href: past ? '/' : '/past', [
+          a(classes: 'archive-link', href: past ? './' : 'past/', [
             .text(past ? 'See upcoming events' : 'See past events'),
           ]),
         ]),
@@ -117,7 +117,7 @@ class Programme extends StatelessComponent {
             h3([.text('No events to show')]),
             p([.text('Try another city or topic, or add a gathering from your community.')]),
             if (!world) button(id: 'reset', attributes: {'hidden': ''}, [.text('Clear filters')]),
-            a(href: '/submit', [.text('List an event')]),
+            a(href: 'submit', [.text('List an event')]),
           ],
         ),
       ],
@@ -156,14 +156,14 @@ class Programme extends StatelessComponent {
                 classes: 'empty-art',
                 attributes: {'data-motion': 'invitation', 'aria-hidden': 'true'},
                 [
-                  img(src: '/art/invitation.webp', alt: ''),
+                  img(src: 'art/invitation.webp', alt: ''),
                 ],
               ),
               div(classes: 'empty-copy', [
                 h3([.text('No upcoming events here')]),
                 p([.text('Know a gathering here? Share it with the community.')]),
                 button(id: 'reset', attributes: {'hidden': ''}, [.text('Clear filters')]),
-                a(classes: 'list-event', href: '/submit', [.text('List an event')]),
+                a(classes: 'list-event', href: 'submit', [.text('List an event')]),
               ]),
             ],
           ),
@@ -204,7 +204,7 @@ class Programme extends StatelessComponent {
           filters,
           if (!world && !past && visible.isNotEmpty)
             a(
-              href: '/events/${visible.first.slug}',
+              href: 'events/${visible.first.slug}',
               classes: 'mobile-feature',
               attributes: {'data-feature': visible.first.slug, 'aria-label': 'View ${visible.first.title}'},
               [
@@ -224,7 +224,7 @@ class Programme extends StatelessComponent {
                 'aria-pressed': 'false',
               },
               [
-                img(src: '/art/ticket-moths.webp', alt: 'Three moths with ticket-stub wings circling a violet moon.'),
+                img(src: 'art/ticket-moths.webp', alt: 'Three moths with ticket-stub wings circling a violet moon.'),
               ],
             ),
           ]),
@@ -251,7 +251,7 @@ Component facet(String id, String all, String symbol, List<String> values) => la
 Component eventRow(Event e, bool first, {bool hidden = false}) {
   final day = _hostDate(e);
   return a(
-    href: '/events/${e.slug}',
+    href: 'events/${e.slug}',
     classes: 'event-row',
     attributes: {
       if (hidden) 'hidden': '',
@@ -325,7 +325,7 @@ class EventTicket extends StatelessComponent {
             h1([.text(e.title)])
           else
             h3([
-              a(href: '/events/${e.slug}', [.text(e.title)]),
+              a(href: 'events/${e.slug}', [.text(e.title)]),
             ]),
           div(classes: 'ticket-actions', [
             a(
@@ -374,7 +374,7 @@ class EventTicket extends StatelessComponent {
               ]),
           ]),
           if (!standalone)
-            a(classes: 'permalink', href: '/events/${e.slug}', [.text('Full event details'), icon('chevron-right')])
+            a(classes: 'permalink', href: 'events/${e.slug}', [.text('Full event details'), icon('chevron-right')])
           else if (e.registrationUrl != null && e.registrationUrl != e.url)
             a(classes: 'permalink', href: e.url, [.text('Organizer’s event page'), icon('arrow-up-right')]),
         ]),
@@ -389,7 +389,7 @@ class EventPage extends StatelessComponent {
   @override
   Component build(BuildContext context) => div(classes: 'wrap detail', [
     Document.head(meta: {'description': event.description}),
-    a(href: '/', classes: 'back', [.text('←  The programme')]),
+    a(href: './', classes: 'back', [.text('←  The programme')]),
     EventTicket(event, standalone: true),
   ]);
 }

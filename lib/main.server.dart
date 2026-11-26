@@ -10,17 +10,18 @@ void main() {
   runApp(
     Document(
       lang: 'en',
+      base: const String.fromEnvironment('SITE_BASE_PATH', defaultValue: '/'),
       title: 'The programme · happening.tech',
       meta: const {
         'description': 'An independent guide to developer meetups, workshops and conferences around the world.',
       },
       head: [
-        script(src: '/theme.js'),
-        link(href: '/programme.css', rel: 'stylesheet'),
-        link(href: '/favicon.ico?v=globe', rel: 'icon', type: 'image/x-icon'),
-        script(src: '/motion.js', attributes: {'type': 'module'}),
-        script(src: '/nav-playground.js', attributes: {'type': 'module'}),
-        script(src: '/programme.js', defer: true),
+        script(src: 'theme.js'),
+        link(href: 'programme.css', rel: 'stylesheet'),
+        link(href: 'favicon.ico?v=globe', rel: 'icon', type: 'image/x-icon'),
+        script(src: 'motion.js', attributes: {'type': 'module'}),
+        script(src: 'nav-playground.js', attributes: {'type': 'module'}),
+        script(src: 'programme.js', defer: true),
       ],
       body: App(loadEvents()),
     ),

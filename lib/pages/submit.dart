@@ -41,7 +41,7 @@ class SubmitPage extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     return Component.fragment([
-      const link(href: '/submit.css', rel: 'stylesheet'),
+      const link(href: 'submit.css', rel: 'stylesheet'),
       section(
         id: 'entry-studio',
         attributes: {'data-repository': repository},
@@ -52,7 +52,7 @@ class SubmitPage extends StatelessComponent {
           ]),
           aside(classes: 'entry-review', attributes: {'aria-label': 'How listings are published'}, [
             svg(classes: 'icon', viewBox: '0 0 24 24', attributes: {'aria-hidden': 'true'}, [
-              Component.element(tag: 'use', attributes: {'href': '/art/icons.svg#pull-request'}),
+              Component.element(tag: 'use', attributes: {'href': 'art/icons.svg#pull-request'}),
             ]),
             div([
               strong([.text('Listings go through GitHub review')]),
@@ -65,7 +65,7 @@ class SubmitPage extends StatelessComponent {
               ]),
             ]),
           ]),
-          a(classes: 'entry-jump', href: '/submit/#entry-preview', [.text('See your listing preview')]),
+          a(classes: 'entry-jump', href: 'submit/#entry-preview', [.text('See your listing preview')]),
           div(classes: 'entry-layout', [
             form(id: 'entry-form', [
               _group('The gathering', [
@@ -179,13 +179,13 @@ class SubmitPage extends StatelessComponent {
                 ]),
                 p(id: 'entry-preview-host', [.text('Your community')]),
                 p(id: 'entry-preview-description', [.text('Your description will appear here.')]),
-                a(classes: 'entry-jump', href: '/submit/#entry-form', [.text('Back to event details')]),
+                a(classes: 'entry-jump', href: 'submit/#entry-form', [.text('Back to event details')]),
               ],
             ),
           ]),
         ],
       ),
-      const script(src: '/submit.js', defer: true),
+      const script(src: 'submit.js', defer: true),
     ]);
   }
 }

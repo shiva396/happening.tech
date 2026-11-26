@@ -23,7 +23,7 @@ import { loadComponent } from "./lottie-player.js";
         finish();
         return;
       }
-      player.setAttribute("src", "/motion/" + slot.dataset.motion + ".json");
+      player.setAttribute("src", "motion/" + slot.dataset.motion + ".json");
       player.setAttribute("autoplay", "");
       if (loop) player.setAttribute("loop", "");
       slot.append(player);

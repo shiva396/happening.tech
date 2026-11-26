@@ -18,7 +18,7 @@ class PlayfulNavigation extends StatelessComponent {
         ('/world', 'World view', 'globe', 'koala'),
       ])
         a(
-          href: href,
+          href: '.$href',
           classes: 'nav-item',
           attributes: {
             if (href == '/'

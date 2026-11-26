@@ -45,7 +45,7 @@ class EventActivity extends StatelessComponent {
         [
           for (final event in events)
             a(
-              href: '/events/${event.slug}',
+              href: 'events/${event.slug}',
               attributes: {
                 'data-first-day': _day(event.startsAt, event.timezone),
                 'data-last-day': _day(event.endsAtExclusive.subtract(const Duration(microseconds: 1)), event.timezone),
@@ -57,7 +57,7 @@ class EventActivity extends StatelessComponent {
             ),
         ],
       ),
-      script(src: '/activity.js', defer: true),
+      script(src: 'activity.js', defer: true),
     ],
   );
 }
