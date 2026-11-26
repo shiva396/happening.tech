@@ -1,12 +1,14 @@
-# Navigation animals
+# Navigation performances
 
-Jaspr discovers the clips in `web/motion/animals/` during its normal build. Each clip contains two named Lottie segments. Programme uses `hop` and World view uses `orbit`. Their matching `-front` markers tell the player when the animal crosses in front of the label.
+Programme has a ten-second monkey performance. World view has its own koala. The current page plays on arrival. Hovering or focusing another link starts that performance and leaving the link lets it finish. Each character rests for a minute after its exit. The deadline survives navigation in the same tab. Offscreen and reduced-motion states release the players.
 
-To change the cast, edit the clay models in `studio.js` and the motion parameters in `cast.json`. The baker renders the articulated poses, then samples the trajectories from `physics.py`. With Node.js, Python 3 and Chrome installed, run these commands from this directory:
+The Jaspr component supplies two decorative planes around the original link text. Each local dotLottie archive contains a body animation and a depth-tested pass of its paws and legs. The body is the playback clock for both. The contact points exported from the 3D rig place the feet on the header border, the hands on the measured lettering and the hips on the perch. The browser measures these anchors again when the header changes size.
+
+The Three.js studio and the trajectory baker run offline. To rebuild the committed assets with Node.js, Python 3 and Chrome installed, run the following from this directory.
 
 ```sh
 npm ci
 npm run bake
 ```
 
-Set `CHROME_BIN` if Chrome is installed somewhere other than `/usr/bin/google-chrome`. With the local preview running, use `npm run check` to verify the shuffle and both depth passes in Chrome. Set `PREVIEW_URL` to check a different preview address. Commit the resulting clips with the source changes. The browser uses the local dotLottie player. Three.js runs only during asset creation.
+Use `CHROME_BIN` to select a different Chrome executable. Run `npm run check` against the local preview to test the performances and cooldowns. Set `PREVIEW_URL` to check another preview address.

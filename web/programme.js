@@ -34,14 +34,9 @@
   const rows = [...directory.querySelectorAll("[data-slug]")];
   const panels = [...directory.querySelectorAll("[data-panel]")];
   const groups = [...directory.querySelectorAll(".month-group")];
-  const pins = [...directory.querySelectorAll("[data-pick]")];
-  const caption = directory.querySelector(".map-caption");
-  const clocks = [...directory.querySelectorAll(".city-clock")].map(element => ({
-    element,
-    formatter: new Intl.DateTimeFormat(undefined, {
-      timeZone: element.dataset.zone, hour: "numeric", minute: "2-digit",
-    }),
-  }));
+  const country = document.getElementById("country");
+  const prev = document.getElementById("country-prev");
+  const next = document.getElementById("country-next");
   const clear = document.getElementById("reset");
   const count = document.getElementById("count");
   let selected;
@@ -52,8 +47,13 @@
     const available = rows.filter(row => (Date.parse(row.dataset.expires) <= Date.now()) === isPast);
     const params = new URLSearchParams(location.search);
     query.value = params.get("q") || "";
+    if (country) {
+      const linked = available.find(row => row.dataset.slug === params.get("event") || row.dataset.city === params.get("city"));
+      const name = params.get("country") ?? linked?.dataset.country ?? "India";
+      country.value = [...country.options].some(option => option.value === name) ? name : "India";
+    }
     for (const field of [city, topic]) {
-      const values = new Set(available.map(row => row.dataset[field.id]));
+      const values = new Set(available.filter(row => !country?.value || row.dataset.country === country.value).map(row => row.dataset[field.id]));
       for (const option of field.options) {
         option.hidden = Boolean(option.value) && !values.has(option.value);
       }
@@ -79,6 +79,7 @@
       if (value) url.searchParams.set(key, value);
       else url.searchParams.delete(key);
     }
+    if (country) url.searchParams.set("country", country.value);
     history.replaceState(null, "", url);
   }
 
@@ -87,6 +88,7 @@
     const shown = rows.filter((row) => {
       const match =
         (Date.parse(row.dataset.expires) <= Date.now()) === (directory.dataset.directory === "past") &&
+        (!country?.value || country.value === row.dataset.country) &&
         (!city.value || city.value === row.dataset.city) &&
         (!topic.value || topic.value === row.dataset.topic) &&
         (row.textContent + " " + row.dataset.host)
@@ -118,21 +120,16 @@
       directory.querySelector('[data-motion="ticket"]').dispatchEvent(new Event("play-motion", { bubbles: true }));
     }
     previousSelection = selected;
-    if (caption) {
-      const current = shown.find(row => row.dataset.slug === selected);
-      for (const pin of pins) {
-        const place = pin.dataset.pick;
-        pin.setAttribute("aria-pressed", String(city.value === place));
-        pin.toggleAttribute("data-highlight", place === current?.dataset.city);
-      }
-      caption.hidden = !current;
-      if (current) {
-        const link = document.getElementById("map-event");
-        link.href = current.href;
-        link.textContent = current.querySelector("h4").textContent;
-        document.getElementById("map-host").textContent =
-          current.dataset.host + " · " + current.dataset.date;
-      }
+    if (country) {
+      document.getElementById("country-title").textContent = country.value === "Online" ? "Online events" :
+        country.value ? "Events in " + (["United States", "United Kingdom", "United Arab Emirates", "Netherlands", "Philippines", "Bahamas", "Maldives", "Seychelles"].includes(country.value) ? "the " : "") + country.value : "Events worldwide";
+      document.getElementById("country-empty").hidden = shown.length > 0;
+      const index = shown.findIndex(row => row.dataset.slug === selected);
+      document.getElementById("country-paging").textContent = shown.length > 1 ? (index + 1) + " of " + shown.length : "";
+      prev.hidden = next.hidden = shown.length < 2;
+      const cities = new Set(rows.filter(row => (!country.value || row.dataset.country === country.value) &&
+        Date.parse(row.dataset.expires) > Date.now()).map(row => row.dataset.city));
+      for (const option of city.options) option.hidden = !!option.value && !cities.has(option.value);
     }
     const feature = directory.querySelector("[data-feature]");
     if (feature)
@@ -143,8 +140,8 @@
     if (count.textContent !== nextCount) {
       count.replaceChildren(Object.assign(document.createElement("span"), { textContent: nextCount }));
     }
-    document.getElementById("empty").hidden = shown.length > 0;
-    directory.querySelector(".spotlight").hidden = shown.length === 0;
+    document.getElementById("empty").hidden = shown.length > 0 || (country && !query.value && !city.value && !topic.value);
+    directory.querySelector(".spotlight").hidden = !country && shown.length === 0;
     clear.hidden = !query.value && !city.value && !topic.value;
   }
 
@@ -154,11 +151,22 @@
   }
   query.addEventListener("input", filter);
   for (const field of [city, topic]) field.addEventListener("change", filter);
-  for (const pin of pins)
-    pin.addEventListener("click", () => {
-      city.value = city.value === pin.dataset.pick ? "" : pin.dataset.pick;
+  if (country) {
+    country.addEventListener("change", () => {
+      query.value = city.value = topic.value = "";
+      selected = "";
       filter();
     });
+    function step(direction) {
+      const shown = rows.filter(row => !row.hidden);
+      if (!shown.length) return;
+      const index = shown.findIndex(row => row.dataset.slug === selected);
+      selected = shown[(index + direction + shown.length) % shown.length].dataset.slug;
+      filter();
+    }
+    prev.addEventListener("click", () => step(-1));
+    next.addEventListener("click", () => step(1));
+  }
   clear.addEventListener("click", () => {
     query.value = city.value = topic.value = "";
     filter();
@@ -167,6 +175,7 @@
   for (const row of rows)
     row.addEventListener("click", (event) => {
       if (
+        (country && matchMedia("(max-width: 740px)").matches) ||
         !directory.querySelector(".spotlight").getClientRects().length ||
         event.ctrlKey ||
         event.metaKey ||
@@ -179,20 +188,6 @@
       render();
       saveLocation();
     });
-  if (clocks.length) {
-    let timer;
-    function updateLocalTimes() {
-      clearTimeout(timer);
-      if (document.hidden) return;
-      const now = new Date();
-      for (const { element, formatter } of clocks) {
-        element.textContent = formatter.format(now);
-      }
-      timer = setTimeout(updateLocalTimes, 60000 - now.getTime() % 60000);
-    }
-    document.addEventListener("visibilitychange", updateLocalTimes);
-    updateLocalTimes();
-  }
   window.addEventListener("pageshow", readLocation);
   readLocation();
 })();

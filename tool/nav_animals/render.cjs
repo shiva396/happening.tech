@@ -23,23 +23,33 @@ async function bake() {
     await page.evaluate(() => {
       window.studio = createStudio(window.exports);
     });
-    const names = JSON.parse(await fs.readFile(path.join(__dirname, "cast.json"), "utf8"));
-    for (const name of Object.keys(names)) {
+    for (const name of ["monkey", "koala"]) {
       await page.evaluate((name) => studio.sculpt(name), name);
-      for (const mode of ["hop", "orbit"]) {
-        // Sprite poses repeat. Position and depth are interpolated independently at display rate.
-        const poses = await page.evaluate(
-          (mode) => Array.from({ length: 24 }, (_, i) => studio.render(i / 24, mode)),
-          mode,
-        );
-        await Promise.all(
-          poses.map((data, i) =>
-            sharp(Buffer.from(data, "base64"))
-              .png({ palette: true, colours: 128, dither: 0 })
-              .toFile(path.join(frames, name + "-" + mode + "-" + i + ".png")),
-          ),
-        );
+      const poses = [];
+      for (let i = 0; i < 150; i++) {
+        const { back, front, ...contacts } = await page.evaluate((t) => studio.render(t), i / 15);
+        for (const [plane, image] of [
+          ["body", back],
+          ["paws", front],
+        ]) {
+          if (!image) continue;
+          const file = name + "-" + plane + "-" + i + ".png";
+          const { data, info } = await sharp(Buffer.from(image, "base64"))
+            .trim({ background: "#00000000", threshold: 3 })
+            .png({ palette: true, colours: 128, dither: 0 })
+            .toBuffer({ resolveWithObject: true });
+          await fs.writeFile(path.join(frames, file), data);
+          contacts[plane] = {
+            file,
+            width: info.width,
+            height: info.height,
+            left: -info.trimOffsetLeft,
+            top: -info.trimOffsetTop,
+          };
+        }
+        poses.push(contacts);
       }
+      await fs.writeFile(path.join(frames, name + ".json"), JSON.stringify(poses));
       console.log("Rendered", name);
     }
     execFileSync("python3", [path.join(__dirname, "physics.py"), frames], { stdio: "inherit" });

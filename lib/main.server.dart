@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/server.dart';
 
@@ -9,15 +7,6 @@ import 'main.server.options.dart';
 
 void main() {
   Jaspr.initializeApp(options: defaultServerOptions);
-  final animals =
-      Directory('web/motion/animals')
-          .listSync()
-          .whereType<File>()
-          .map((file) => file.uri.pathSegments.last)
-          .where((name) => name.endsWith('.lottie'))
-          .map((name) => name.substring(0, name.length - '.lottie'.length))
-          .toList()
-        ..sort();
   runApp(
     Document(
       lang: 'en',
@@ -33,7 +22,7 @@ void main() {
         script(src: '/nav-playground.js', attributes: {'type': 'module'}),
         script(src: '/programme.js', defer: true),
       ],
-      body: App(loadEvents(), animals: animals),
+      body: App(loadEvents()),
     ),
   );
 }

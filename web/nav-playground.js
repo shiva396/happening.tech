@@ -1,159 +1,215 @@
 import { loadComponent } from "./lottie-player.js";
 
-// Keep only requested compressed clips. Switching links can reuse an in-flight fetch.
-const clips = new Map();
-function loadAnimal(name) {
-  if (!clips.has(name)) {
-    const request = fetch("/motion/animals/" + name + ".lottie")
-      .then((response) => {
-        if (!response.ok) throw new Error("Couldn't load " + name);
-        return response.arrayBuffer();
-      })
-      .catch((error) => {
-        clips.delete(name);
-        throw error;
-      });
-    clips.set(name, request);
+const cooldown = 60_000;
+const cache = new Map();
+function asset(url, json = false) {
+  if (!cache.has(url)) {
+    cache.set(
+      url,
+      fetch(url)
+        .then((response) => {
+          if (!response.ok) throw new Error("Missing navigation asset: " + url);
+          return json ? response.json() : response.arrayBuffer();
+        })
+        .catch((error) => {
+          cache.delete(url);
+          throw error;
+        }),
+    );
   }
-  return clips.get(name);
+  return cache.get(url);
 }
 
-function shuffled(names) {
-  const bag = [...names];
-  for (let i = bag.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [bag[i], bag[j]] = [bag[j], bag[i]];
+// Restore the quiet period across full-page Jaspr links in the same browser tab.
+const deadlines = new Map();
+function nextAllowed(animal) {
+  try {
+    return Number(sessionStorage.getItem("nav-rest-" + animal)) || deadlines.get(animal) || 0;
+  } catch {
+    return deadlines.get(animal) || 0;
   }
-  return bag;
+}
+function rest(animal, until) {
+  deadlines.set(animal, until);
+  try {
+    sessionStorage.setItem("nav-rest-" + animal, String(until));
+  } catch {
+    /* In-memory fallback. */
+  }
 }
 
-class NavPlayground extends HTMLElement {
+function loadPlane(host, data, id, signal) {
+  return new Promise((resolve, reject) => {
+    const player = document.createElement("dotlottie-wc");
+    host.append(player);
+    const clip = player.dotLottie;
+    signal.addEventListener(
+      "abort",
+      () => {
+        player.remove();
+        reject(signal.reason);
+      },
+      { once: true },
+    );
+    clip.addEventListener("loadError", reject);
+    clip.addEventListener("load", () => {
+      // The entrance starts below the clipped underline. The link observer owns visibility.
+      clip.setRenderConfig({ freezeOnOffscreen: false });
+      resolve(clip);
+    });
+    const load = () => clip.load({ data, animationId: id, autoplay: false, loop: false });
+    if (clip.isReady) load();
+    else clip.addEventListener("ready", load);
+  });
+}
+
+class NavPerformance extends HTMLElement {
   connectedCallback() {
-    const cast = this.dataset.cast.trim().split(/\s+/).filter(Boolean);
-    if (!cast.length) return;
-    const controls = new AbortController();
-    const options = { signal: controls.signal };
-    const reduce = matchMedia("(prefers-reduced-motion: reduce)");
-    const home = this.querySelector('[aria-current="page"]') || this.querySelector("a");
+    const animal = this.dataset.animal;
+    const link = this.closest("a");
+    const label = link.querySelector(".nav-label");
+    const back = this.querySelector(".nav-back"),
+      front = this.querySelector(".nav-front");
+    const current = link.hasAttribute("aria-current");
+    const reduced = matchMedia("(prefers-reduced-motion: reduce)");
+    const listeners = new AbortController();
+    const options = { signal: listeners.signal };
     let visible = false,
+      hovered = false,
+      focused = false,
       away = false;
-    let hovered, focused, stage, player;
-    let animal = cast.includes("monkey") ? "monkey" : cast[0];
-    let bag = shuffled(cast.filter((name) => name !== animal));
-    let revision = 0;
+    let run,
+      timer,
+      failed = false;
 
     function stop() {
-      revision++;
-      player?.remove();
-      player = null;
-      stage?.removeAttribute("data-front");
+      clearTimeout(timer);
+      run?.abort();
+      run = null;
+      link.style.removeProperty("--actor-x");
+      link.style.removeProperty("--actor-y");
     }
 
-    async function appear() {
-      const request = ++revision;
-      const move = stage.dataset.move;
+    async function perform() {
+      const session = new AbortController();
+      const { signal } = session;
+      run = session;
       try {
-        const [data] = await Promise.all([loadAnimal(animal), loadComponent()]);
-        if (request !== revision) return;
-        player?.remove();
-        stage.removeAttribute("data-front");
-        player = document.createElement("dotlottie-wc");
-        player.dataset.animal = animal;
-        stage.append(player);
-        const clip = player.dotLottie;
-        let front;
-        clip.addEventListener("load", () => {
-          if (request !== revision) return;
-          const markers = clip.markers();
-          const take = markers.find((mark) => mark.name === move);
-          front = markers.find((mark) => mark.name === move + "-front");
-          clip.setSegment(take.start, take.end - 1);
-          clip.setFrame(take.start);
-          clip.play();
+        const [data, paths] = await Promise.all([
+          asset("/motion/animals/" + animal + ".lottie"),
+          asset("/motion/animals/paths.json", true),
+          loadComponent(),
+        ]);
+        if (signal.aborted) return;
+        const [body, paws] = await Promise.all([
+          loadPlane(back, data, "body", signal),
+          loadPlane(front, data, "paws", signal),
+        ]);
+        if (signal.aborted) return;
+
+        const poses = paths[animal];
+        const measure = document.createElement("canvas").getContext("2d");
+        let geometry;
+        function resize() {
+          const stage = back.getBoundingClientRect(),
+            text = label.getBoundingClientRect();
+          const style = getComputedStyle(label);
+          measure.font = style.fontWeight + " " + style.fontSize + " " + style.fontFamily;
+          const metrics = measure.measureText("m");
+          const baseline =
+            text.top -
+            stage.top +
+            (text.height + metrics.fontBoundingBoxAscent - metrics.fontBoundingBoxDescent) / 2;
+          geometry = {
+            left: text.left - stage.left,
+            width: text.width,
+            floor: stage.height,
+            ledge: baseline - metrics.actualBoundingBoxAscent,
+            size: back.firstElementChild.offsetWidth,
+          };
+        }
+        resize();
+        const observer = new ResizeObserver(resize);
+        observer.observe(link);
+        observer.observe(label);
+        signal.addEventListener("abort", () => observer.disconnect(), { once: true });
+
+        function place(frame) {
+          const index = Math.min(poses.length - 1, Math.max(0, frame / 2));
+          const a = poses[Math.floor(index)],
+            b = poses[Math.ceil(index)],
+            t = index % 1;
+          const blend = (i) => a[i] + (b[i] - a[i]) * t;
+          const { left, width, floor, ledge, size } = geometry;
+          link.style.setProperty("--actor-x", left + width * blend(0) - size / 2 + "px");
+          link.style.setProperty("--actor-y", ledge + (floor - ledge) * blend(1) + size * blend(2) + "px");
+          // One master clock preserves the overlap between feet and live lettering.
+          if (Math.floor(paws.currentFrame / 2) !== Math.floor(frame / 2)) paws.setFrame(Math.floor(frame));
+        }
+        place(0);
+        body.addEventListener("frame", ({ currentFrame }) => {
+          if (!signal.aborted) place(currentFrame);
         });
-        clip.addEventListener("frame", ({ currentFrame }) => {
-          if (request === revision && front) {
-            stage.toggleAttribute("data-front", currentFrame >= front.start && currentFrame < front.end);
-          }
+        body.addEventListener("complete", () => {
+          if (signal.aborted) return;
+          rest(animal, Date.now() + cooldown);
+          stop();
+          sync();
         });
-        clip.addEventListener("loop", () => {
-          if (request !== revision) return;
-          if (!bag.length) {
-            bag = shuffled(cast);
-            if (bag.at(-1) === animal) [bag[0], bag[bag.length - 1]] = [bag.at(-1), bag[0]];
-          }
-          animal = bag.pop();
-          appear();
-        });
-        clip.addEventListener("loadError", () => {
-          if (request === revision) stop();
-        });
-        const load = () => {
-          if (request === revision) clip.load({ data, loop: true });
-        };
-        if (clip.isReady) load();
-        else clip.addEventListener("ready", load);
+        rest(animal, Date.now() + 10_000 + cooldown);
+        body.play();
       } catch {
-        if (request === revision) stop();
+        if (!signal.aborted) {
+          failed = true;
+          stop();
+        }
       }
     }
 
     function sync() {
-      const link = hovered || focused || home;
-      const next =
-        visible && !away && !document.hidden && !reduce.matches ? link.querySelector(".nav-animal") : null;
-      if (next === stage) return;
-      stop();
-      stage = next;
-      if (stage) appear();
+      clearTimeout(timer);
+      if (!visible || away || document.hidden || reduced.matches) {
+        stop();
+        return;
+      }
+      if (run || failed || !(current || hovered || focused)) return;
+      const wait = nextAllowed(animal) - Date.now();
+      if (wait > 0) timer = setTimeout(sync, wait);
+      else perform();
     }
-
-    for (const link of this.querySelectorAll("a")) {
-      link.addEventListener(
-        "pointerenter",
-        (event) => {
-          if (event.pointerType !== "touch") {
-            hovered = link;
-            sync();
-          }
-        },
-        options,
-      );
-      link.addEventListener(
-        "pointerleave",
-        () => {
-          hovered = null;
-          sync();
-        },
-        options,
-      );
-      link.addEventListener(
-        "focus",
-        () => {
-          if (link.matches(":focus-visible")) {
-            focused = link;
-            hovered = null;
-            sync();
-          }
-        },
-        options,
-      );
-      link.addEventListener(
-        "blur",
-        () => {
-          focused = null;
-          sync();
-        },
-        options,
-      );
-    }
-
-    const observer = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting;
-      sync();
-    });
-    observer.observe(this.closest("nav"));
-    reduce.addEventListener("change", sync, options);
+    link.addEventListener(
+      "pointerenter",
+      (e) => {
+        hovered = e.pointerType !== "touch";
+        sync();
+      },
+      options,
+    );
+    link.addEventListener(
+      "pointerleave",
+      () => {
+        hovered = false;
+        sync();
+      },
+      options,
+    );
+    link.addEventListener(
+      "focus",
+      () => {
+        focused = link.matches(":focus-visible");
+        sync();
+      },
+      options,
+    );
+    link.addEventListener(
+      "blur",
+      () => {
+        focused = false;
+        sync();
+      },
+      options,
+    );
+    reduced.addEventListener("change", sync, options);
     document.addEventListener("visibilitychange", sync, options);
     window.addEventListener(
       "pagehide",
@@ -171,10 +227,15 @@ class NavPlayground extends HTMLElement {
       },
       options,
     );
+    const observer = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      sync();
+    });
+    observer.observe(link);
     this.release = () => {
-      controls.abort();
-      observer.disconnect();
       stop();
+      listeners.abort();
+      observer.disconnect();
     };
   }
 
@@ -182,5 +243,4 @@ class NavPlayground extends HTMLElement {
     this.release?.();
   }
 }
-
-customElements.define("nav-playground", NavPlayground);
+customElements.define("nav-performance", NavPerformance);

@@ -9,8 +9,7 @@ import 'pages/submit.dart';
 
 class App extends StatelessComponent {
   final List<Event> events;
-  final List<String> animals;
-  const App(this.events, {required this.animals, super.key});
+  const App(this.events, {super.key});
 
   @override
   Component build(BuildContext context) {
@@ -23,7 +22,7 @@ class App extends StatelessComponent {
             .text('happening'),
             span([.text('.tech')]),
           ]),
-          PlayfulNavigation(path, animals: animals),
+          PlayfulNavigation(path),
           a(href: '/submit', classes: 'list-event', [icon('plus'), .text('List an event')]),
         ]),
       ]),

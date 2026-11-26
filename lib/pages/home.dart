@@ -5,6 +5,7 @@ import 'package:jaspr/server.dart';
 import 'package:timezone/timezone.dart' as tz;
 import '../event.dart';
 import '../components/activity.dart';
+import '../components/country_globe.dart';
 import '../components/icon.dart';
 import '../components/poster_art.dart';
 import '../components/motion.dart';
@@ -54,11 +55,108 @@ class Programme extends StatelessComponent {
     final now = DateTime.now();
     final ordered = past ? events.reversed.toList() : events;
     final visible = ordered.where((e) => e.endsAtExclusive.isAfter(now) != past).toList();
+    final initial = world ? visible.where((e) => e.country == 'India').toList() : visible;
     // Include future entries in the static archive so the browser can reveal them as they end.
     final entries = past ? ordered : visible;
     final cities = entries.map((e) => e.city).toSet().toList()..sort();
     final topics = entries.map((e) => e.topic).toSet().toList()..sort();
     final listTitle = past ? 'Past events' : 'Upcoming events';
+    final filters = div(
+      classes: 'filters',
+      attributes: {'data-interactive': ''},
+      [
+        label(classes: 'search', [
+          icon('search'),
+          Component.element(
+            tag: 'input',
+            attributes: {
+              'type': 'search',
+              'placeholder': 'Search events',
+              'aria-label': 'Search events or communities',
+              'id': 'query',
+            },
+          ),
+        ]),
+        facet('city', 'All locations', 'map-pin', cities),
+        facet('topic', 'All topics', 'layers', topics),
+        span(classes: 'zone', [
+          icon('clock-3'),
+          span([.text('Dates in the host’s time zone')]),
+        ]),
+      ],
+    );
+    final listing = section(
+      classes: 'event-list',
+      attributes: {'aria-label': listTitle},
+      [
+        div(classes: 'section-head', [
+          h2([.text(listTitle)]),
+          span(
+            id: 'count',
+            attributes: {'aria-live': 'polite'},
+            [.text('${initial.length} ${initial.length == 1 ? 'event' : 'events'}')],
+          ),
+          a(classes: 'archive-link', href: past ? '/' : '/past', [
+            .text(past ? 'See upcoming events' : 'See past events'),
+          ]),
+        ]),
+        for (final group in entries.map(_month).toSet())
+          div(
+            classes: 'month-group',
+            attributes: {if (!initial.any((e) => _month(e) == group)) 'hidden': ''},
+            [
+              h3(classes: 'month', [.text(group)]),
+              for (final e in entries.where((e) => _month(e) == group))
+                eventRow(e, e == initial.firstOrNull, hidden: !initial.contains(e)),
+            ],
+          ),
+        div(
+          id: 'empty',
+          attributes: {if (initial.isNotEmpty || world) 'hidden': ''},
+          [
+            h3([.text('No events to show')]),
+            p([.text('Try another city or topic, or add a gathering from your community.')]),
+            button(id: 'reset', attributes: {'hidden': ''}, [.text('Clear filters')]),
+            a(href: '/submit', [.text('List an event')]),
+          ],
+        ),
+      ],
+    );
+    final spotlight = section(
+      classes: 'spotlight',
+      attributes: {'aria-label': 'Selected event'},
+      [
+        div(classes: 'section-head', [
+          h2(id: world ? 'country-title' : null, [.text(world ? 'Events in India' : 'Event spotlight')]),
+          if (world) span(id: 'country-paging', attributes: {'aria-live': 'polite'}, []),
+          if (world)
+            button(
+              id: 'country-prev',
+              attributes: {'aria-label': 'Previous event', 'hidden': ''},
+              [icon('chevron-down')],
+            ),
+          if (world)
+            button(id: 'country-next', attributes: {'aria-label': 'Next event', 'hidden': ''}, [icon('chevron-right')]),
+          motionSlot('ticket', icon('ticket')),
+        ]),
+        if (world)
+          div(
+            id: 'country-empty',
+            attributes: {if (initial.isNotEmpty) 'hidden': ''},
+            [
+              h3([.text('No upcoming events here')]),
+              p([.text('Choose another country or add a local event.')]),
+              a(href: '/submit', [.text('List an event')]),
+            ],
+          ),
+        for (final e in entries)
+          div(
+            classes: 'selected-panel',
+            attributes: {'data-panel': e.slug, if (e != initial.firstOrNull) 'hidden': ''},
+            [EventTicket(e)],
+          ),
+      ],
+    );
     return div(
       classes: 'wrap programme',
       attributes: {'data-directory': past ? 'past' : 'upcoming'},
@@ -75,108 +173,42 @@ class Programme extends StatelessComponent {
             span([.text('.')]),
           ]),
         ]),
-        if (world && visible.isNotEmpty) worldMap(visible),
-        div(
-          classes: 'filters',
-          attributes: {'data-interactive': ''},
-          [
-            label(classes: 'search', [
-              icon('search'),
-              Component.element(
-                tag: 'input',
-                attributes: {
-                  'type': 'search',
-                  'placeholder': 'Search events',
-                  'aria-label': 'Search events or communities',
-                  'id': 'query',
-                },
-              ),
-            ]),
-            facet('city', 'All locations', 'map-pin', cities),
-            facet('topic', 'All topics', 'layers', topics),
-            span(classes: 'zone', [
-              icon('clock-3'),
-              span([.text('Dates in the host’s time zone')]),
-            ]),
-          ],
-        ),
-        if (!world && !past && visible.isNotEmpty)
-          a(
-            href: '/events/${visible.first.slug}',
-            classes: 'mobile-feature',
-            attributes: {'data-feature': visible.first.slug, 'aria-label': 'View ${visible.first.title}'},
-            [
-              eventPoster(visible.first),
-            ],
-          ),
-        div(classes: 'spread', [
-          section(
-            classes: 'event-list',
-            attributes: {'aria-label': listTitle},
-            [
-              div(classes: 'section-head', [
-                h2([.text(listTitle)]),
-                span(
-                  id: 'count',
-                  attributes: {'aria-live': 'polite'},
-                  [.text('${visible.length} ${visible.length == 1 ? 'event' : 'events'}')],
-                ),
-                a(classes: 'archive-link', href: past ? '/' : '/past', [
-                  .text(past ? 'See upcoming events' : 'See past events'),
-                ]),
-              ]),
-              for (final group in entries.map(_month).toSet())
-                div(
-                  classes: 'month-group',
-                  attributes: {if (!visible.any((e) => _month(e) == group)) 'hidden': ''},
-                  [
-                    h3(classes: 'month', [.text(group)]),
-                    for (final e in entries.where((e) => _month(e) == group))
-                      eventRow(e, e == visible.firstOrNull, hidden: past && e.endsAtExclusive.isAfter(now)),
-                  ],
-                ),
-              div(
-                id: 'empty',
-                attributes: {if (visible.isNotEmpty) 'hidden': ''},
-                [
-                  h3([.text('No events to show')]),
-                  p([.text('Try another city or topic, or add a gathering from your community.')]),
-                  button(id: 'reset', attributes: {'hidden': ''}, [.text('Clear filters')]),
-                  a(href: '/submit', [.text('List an event')]),
-                ],
-              ),
-            ],
-          ),
-          section(
-            classes: 'spotlight',
-            attributes: {'aria-label': 'Selected event'},
-            [
-              div(classes: 'section-head', [
-                h2([.text('Event spotlight')]),
-                motionSlot('ticket', icon('ticket')),
-              ]),
-              for (final e in entries)
-                div(
-                  classes: 'selected-panel',
-                  attributes: {'data-panel': e.slug, if (e != visible.firstOrNull) 'hidden': ''},
-                  [EventTicket(e)],
-                ),
-            ],
-          ),
-          button(
-            id: 'spotlight-art',
-            classes: 'ticket-moths',
-            attributes: {
-              'type': 'button',
-              'data-motion': 'ticket-moths',
-              'aria-label': 'Animate the ticket moths',
-              'aria-pressed': 'false',
-            },
-            [
-              img(src: '/art/ticket-moths.webp', alt: 'Three moths with ticket-stub wings circling a violet moon.'),
-            ],
-          ),
-        ]),
+        if (world)
+          div(classes: 'world-layout', [
+            CountryGlobe(visible.map((e) => e.city.toLowerCase() == 'online' ? 'Online' : e.country).toSet()),
+            spotlight,
+            filters,
+            listing,
+          ])
+        else ...[
+          filters,
+          if (!world && !past && visible.isNotEmpty)
+            a(
+              href: '/events/${visible.first.slug}',
+              classes: 'mobile-feature',
+              attributes: {'data-feature': visible.first.slug, 'aria-label': 'View ${visible.first.title}'},
+              [
+                eventPoster(visible.first),
+              ],
+            ),
+          div(classes: 'spread', [
+            listing,
+            spotlight,
+            button(
+              id: 'spotlight-art',
+              classes: 'ticket-moths',
+              attributes: {
+                'type': 'button',
+                'data-motion': 'ticket-moths',
+                'aria-label': 'Animate the ticket moths',
+                'aria-pressed': 'false',
+              },
+              [
+                img(src: '/art/ticket-moths.webp', alt: 'Three moths with ticket-stub wings circling a violet moon.'),
+              ],
+            ),
+          ]),
+        ],
         EventActivity(events, onArchive: past),
       ],
     );
@@ -205,6 +237,7 @@ Component eventRow(Event e, bool first, {bool hidden = false}) {
       if (hidden) 'hidden': '',
       'data-slug': e.slug,
       'data-city': e.city,
+      'data-country': e.city.toLowerCase() == 'online' ? 'Online' : e.country,
       'data-topic': e.topic,
       'data-host': e.community,
       'data-date': _date(_hostDate(e)),
@@ -339,73 +372,4 @@ class EventPage extends StatelessComponent {
     a(href: '/', classes: 'back', [.text('←  The programme')]),
     EventTicket(event, standalone: true),
   ]);
-}
-
-// Equirectangular map, using the same longitude and latitude extent as the land artwork.
-const _centres = <String, (double, double)>{
-  'Ahmedabad': (23.02, 72.57),
-  'Kochi': (9.93, 76.27),
-  'London': (51.51, -0.13),
-  'Brussels': (50.85, 4.35),
-  'Barcelona': (41.39, 2.17),
-  'Long Beach': (33.77, -118.19),
-};
-Component worldMap(List<Event> upcoming) {
-  final places = <String, Event>{};
-  for (final event in upcoming) {
-    places.putIfAbsent(event.city, () => event);
-  }
-  final cities = places.keys.toList()..sort();
-  return section(
-    classes: 'atlas',
-    attributes: {'aria-label': 'Explore events by city'},
-    [
-      div(classes: 'map-field', [
-        div(classes: 'map-surface', [
-          div(classes: 'map-land', attributes: {'aria-hidden': 'true'}, []),
-          for (final city in cities)
-            if (_centres[city] case final centre?)
-              button(
-                classes: 'pin',
-                attributes: {
-                  'data-pick': city,
-                  'aria-label': 'Browse events in $city',
-                  'style': 'left:${(centre.$2 + 180) / 360 * 100}%;top:${(85 - centre.$1) / 145 * 100}%',
-                },
-                [
-                  span(classes: 'pin-name', [.text(city)]),
-                ],
-              ),
-        ]),
-      ]),
-      div(classes: 'map-places', [
-        div(classes: 'place-head', [
-          h2([.text('Places')]),
-          span([.text('Local time')]),
-        ]),
-        div(classes: 'city-links', [
-          for (final city in cities)
-            button(
-              attributes: {'data-pick': city},
-              [
-                span([.text(city)]),
-                if (city.toLowerCase() == 'online')
-                  icon('globe')
-                else
-                  span(classes: 'city-clock', attributes: {'data-zone': places[city]!.timezone}, []),
-              ],
-            ),
-        ]),
-      ]),
-      div(
-        classes: 'map-caption',
-        attributes: {'aria-live': 'polite'},
-        [
-          icon('calendar-days'),
-          a(id: 'map-event', href: '/events/${upcoming.first.slug}', [.text(upcoming.first.title)]),
-          span(id: 'map-host', [.text('${upcoming.first.community} · ${_date(_hostDate(upcoming.first))}')]),
-        ],
-      ),
-    ],
-  );
 }

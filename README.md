@@ -20,6 +20,6 @@ Use **List an event** to preview a listing and download its TOML file. Add that 
 
 To enable the form’s GitHub contribution button after the repository opens, pass `--dart-define-server=HAPPENING_REPOSITORY=owner/repository` to the Jaspr build or serve command. The button prepares a new file on the repository’s `main` branch for the contributor to propose through GitHub.
 
-The directory and event pages are rendered at build time. Rebuild after changing a listing. The browser hides expired events from the programme. The place selector covers every listed city, and pins use the coordinates in `lib/pages/home.dart`.
+The directory and event pages are rendered at build time. Rebuild after changing a listing. The browser hides expired events from the programme. World view opens over India. Select a country on the globe or in the country list to browse its upcoming events. The locally hosted globe uses Natural Earth boundaries from World Atlas and an orthographic projection from D3 Geo.
 
 [Project plan](PLAN.md)
