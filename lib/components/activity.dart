@@ -39,11 +39,6 @@ class EventActivity extends StatelessComponent {
       ),
       div(classes: 'activity-foot', [
         div(id: 'activity-day', attributes: {'aria-live': 'polite'}, []),
-        button(
-          id: 'activity-motion',
-          attributes: {'hidden': '', 'type': 'button', 'aria-label': 'Pause calendar animation'},
-          [.text('Pause animation')],
-        ),
         div(
           classes: 'activity-key',
           attributes: {'aria-label': 'Number of events per day, from zero to four or more'},

@@ -184,20 +184,6 @@
     monthGrid.append(cell);
   }
 
-  const motionButton = document.getElementById("activity-motion");
-  const reduced = matchMedia("(prefers-reduced-motion: reduce)");
-  let paused = false;
-  function syncMotion() {
-    section.classList.toggle("activity-paused", paused || reduced.matches || document.hidden);
-    motionButton.hidden = reduced.matches || !latest;
-    const action = paused ? "Play animation" : "Pause animation";
-    motionButton.textContent = action;
-    motionButton.setAttribute("aria-label", action);
-  }
-  motionButton.addEventListener("click", () => { paused = !paused; syncMotion(); });
-  reduced.addEventListener("change", syncMotion);
-  document.addEventListener("visibilitychange", syncMotion);
-  syncMotion();
   if ("IntersectionObserver" in window) {
     const observer = new IntersectionObserver(([entry]) => section.classList.toggle("activity-offscreen", !entry.isIntersecting));
     observer.observe(section);
