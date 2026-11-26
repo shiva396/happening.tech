@@ -43,6 +43,25 @@ async function layout(page, url) {
   await page.setViewportSize({ width: 1280, height: 800 });
 }
 
+async function eventListLayout(page) {
+  await page.evaluate(() => document.fonts.ready);
+  const layouts = [];
+  for (const width of widths) {
+    await page.setViewportSize({ width, height: 900 });
+    layouts.push(await page.locator(".event-list").evaluate((list) => {
+      const origin = list.getBoundingClientRect();
+      // Compare positions within the list, independent of the globe or filters above it.
+      const parts = list.querySelectorAll(".section-head, .section-head > *, .month, .event-row, .event-row > *, .row-info > *");
+      return Array.from(parts).filter((part) => part.getClientRects().length).map((part) => {
+        const rect = part.getBoundingClientRect();
+        return { text: part.textContent.trim().replace(/\s+/g, " "), box: [rect.x - origin.x, rect.y - origin.y, rect.width, rect.height] };
+      });
+    }));
+  }
+  await page.setViewportSize({ width: 1280, height: 800 });
+  return layouts;
+}
+
 async function programme(page) {
   await page.goto(root.href);
   const theme = page.locator("#theme-switch");
@@ -300,6 +319,24 @@ eachBrowser(async (browser, name) => {
     new URL("submit/", root).href,
   ];
   for (const url of routes) await layout(page, url);
+  await page.goto(root.href);
+  const programmeList = await eventListLayout(page);
+  await page.goto(new URL("world/?country=", root).href);
+  const worldList = await eventListLayout(page);
+  // World view replaces the list with a country invitation when no upcoming events exist.
+  if (await page.locator(".event-list").isVisible()) {
+    for (const [index, width] of widths.entries()) {
+      const expected = worldList[index];
+      const actual = programmeList[index];
+      assert.equal(actual.length, expected.length, "Visible event list parts at " + width + "px");
+      for (const [i, part] of actual.entries()) {
+        assert.equal(part.text, expected[i].text);
+        // Document offsets can introduce fractional-pixel differences between the two grids.
+        assert(part.box.every((value, axis) => Math.abs(value - expected[i].box[axis]) < 0.1),
+          `Event list at ${width}px, "${part.text}": ${part.box} vs ${expected[i].box}`);
+      }
+    }
+  }
   const staticPage = await browser.newPage({ javaScriptEnabled: false });
   await staticPage.goto(eventUrl);
   assert(await staticPage.locator("h1").isVisible());

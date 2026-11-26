@@ -36,7 +36,7 @@
   --spread-padding-bottom: 60px;
   --section-head-count-padding: 3px 8px;
   --month-padding: 10px 0 8px;
-  --event-row-padding: 17px 12px 17px 8px;
+  --event-row-padding: var(--space-label) var(--space-12) var(--space-label) var(--space-8);
   --row-byline-gap: 4px 9px;
   --event-title-margin: 5px 0 6px;
   --topic-padding: 2px 7px;
@@ -55,7 +55,6 @@
   --empty-message-margin: 6px 0 12px;
   --world-layout-gap: 1.2rem clamp(1.25rem, 3vw, 3.5rem);
   --world-layout-margin-bottom: clamp(2rem, 4vw, 4rem);
-  --country-programme-gap: 1rem clamp(1.25rem, 3vw, 3.5rem);
   --country-empty-padding: clamp(1.4rem, 3.5vw, 3.2rem) clamp(1rem, 2.8vw, 3rem);
   --country-reset-margin: .25rem .5rem .25rem 0;
   --empty-art-margin: 0 auto 1rem;

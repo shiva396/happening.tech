@@ -21,7 +21,7 @@
   --filter-leading-icon-left: 10px;
   --filter-trailing-icon-right: 9px;
   --section-head-min-height: 34px;
-  --event-row-min-height: 102px;
+  --event-row-min-height: 76px;
   --poster-min-height: 240px;
   --poster-art-right: 2%;
   --poster-art-width: 42%;
@@ -32,7 +32,6 @@
   --detail-poster-min-height: 250px;
   --detail-poster-title-max-width: 65%;
   --detail-ticket-actions-max-width: 410px;
-  --world-layout-event-row-min-height: 76px;
   --empty-art-width: min(100%, 26rem);
   --empty-art-aspect-ratio: 360/162;
   --empty-copy-max-width: 32ch;
@@ -40,12 +39,10 @@
   --country-menu-max-height: min(24rem, 54vh);
   --globe-height: clamp(350px, 52vh, 610px);
   --globe-height-mobile: clamp(265px, 82vw, 390px);
-  --event-row-min-height-wide: 112px;
   --poster-min-height-wide: 260px;
   --poster-min-height-tablet: 200px;
   --header-min-height-mobile: 65px;
   --header-nav-height: 43px;
-  --event-row-min-height-mobile: 92px;
   --detail-poster-min-height-mobile: 210px;
   --detail-poster-title-max-width-mobile: 68%;
   --poster-title-max-width: 59%;
@@ -75,12 +72,10 @@
   /* Grid tracks */
   --spread-columns: minmax(0, 1.12fr) minmax(0, 1fr);
   --event-row-columns: 52px 1fr 16px;
-  --country-programme-columns: var(--spread-columns);
   --empty-country-wide-columns: minmax(0, 20rem) minmax(0, 20rem);
   --country-picker-columns: 1.1rem minmax(0, 1fr) .9rem;
   --detail-ticket-card-columns: minmax(0, .85fr) minmax(0, 1fr);
   --row-info-columns: minmax(0, 1fr) minmax(10rem, 35%);
-  --spread-columns-tablet: minmax(0, 1fr) minmax(0, 1fr);
   --event-row-columns-tablet: 40px 1fr 14px;
   --event-row-columns-mobile: 44px 1fr 16px;
   --activity-weekdays-columns: 1.75rem;
