@@ -1207,10 +1207,10 @@ button.activity-cell:focus-visible { outline: 3px solid var(--accent); }
   overflow: hidden;
   align-self: stretch;
   min-height: 8rem;
-  border: 1px solid #514760;
-  border-radius: 12px;
-  background: radial-gradient(ellipse at 50% 55%, #30273f, #201d2d 75%);
-  cursor: pointer;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  -webkit-tap-highlight-color: transparent;
 }
 .ticket-moths img, .ticket-moths dotlottie-wc {
   display: block;
@@ -1223,32 +1223,9 @@ button.activity-cell:focus-visible { outline: 3px solid var(--accent); }
 }
 .ticket-moths dotlottie-wc, .ticket-moths[data-playing] img { opacity: 0; }
 .ticket-moths[data-playing] dotlottie-wc { opacity: 1; }
-.art-control {
-  position: absolute;
-  right: .7rem;
-  bottom: .65rem;
-  width: 1.65rem;
-  height: 1.65rem;
-  display: grid;
-  place-items: center;
-  color: #ede2ff;
-  border: 1px solid #736781;
-  border-radius: 50%;
-  background: #282132;
-  z-index: 1;
-}
-.art-control::after {
-  content: "";
-  border-block: 4px solid transparent;
-  border-left: 6px solid currentColor;
-  margin-left: 2px;
-}
-.ticket-moths[data-playing] .art-control::after {
-  width: 6px;
-  height: 8px;
-  margin: 0;
-  border: 0;
-  border-inline: 2px solid currentColor;
+.ticket-moths:focus-visible { outline: none; }
+.ticket-moths:focus-visible :is(img, dotlottie-wc) {
+  filter: drop-shadow(0 0 3px var(--accent));
 }
 .spotlight[hidden] + .ticket-moths { display: none; }
 @media (min-width: 741px) {
@@ -1261,7 +1238,6 @@ button.activity-cell:focus-visible { outline: 3px solid var(--accent); }
 }
 @media (prefers-reduced-motion: reduce) {
   .ticket-moths { cursor: default; }
-  .art-control { display: none; }
 }
 @media (prefers-reduced-motion: no-preference) {
   button.activity-cell[aria-expanded=true] { z-index: 1; }

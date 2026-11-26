@@ -182,7 +182,6 @@ class Programme extends StatelessComponent {
             },
             [
               img(src: '/art/ticket-moths.webp', alt: 'Three moths with ticket-stub wings circling a violet moon.'),
-              span(classes: 'art-control', attributes: {'aria-hidden': 'true'}, []),
             ],
           ),
         ]),
