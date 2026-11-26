@@ -1,0 +1,11 @@
+{
+  "name": "happening-site-checks",
+  "private": true,
+  "scripts": {
+    "test": "node site.cjs",
+    "benchmark": "node benchmark.cjs"
+  },
+  "devDependencies": {
+    "playwright-core": "1.62.1"
+  }
+}
