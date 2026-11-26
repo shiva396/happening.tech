@@ -39,10 +39,7 @@
     field("end_date").min = value("start_date");
     field("start_time").required = Boolean(value("end_time"));
     field("end_time").required = Boolean(value("start_time"));
-    for (const input of form.elements) {
-      if (typeof input.setCustomValidity === "function")
-        input.setCustomValidity("");
-    }
+    if (errorField?.disabled) clearError();
     const topic = value("topic").toLowerCase();
     const tones = ["iris", "moss", "ember"];
     let sum = 0;
@@ -119,12 +116,51 @@
     return matches.length === 1 ? new Date(matches[0]).toISOString() : null;
   }
 
+  const missing = {
+    title: "Give your event a name.",
+    community: "Who’s organizing this event?",
+    topic: "Add the main topic people will explore.",
+    description: "Tell people what they’ll do at the event.",
+    start_date: "Choose the day your event starts.",
+    timezone: "Choose the time zone at the venue.",
+    start_time: "Add a start time to go with the end time.",
+    end_time: "Add an end time to go with the start time.",
+    city: "Which city is hosting the event?",
+    country: "Add the country where the event takes place.",
+    venue: "Add the venue, or enter “To be announced”.",
+    url: "Add the organizer’s official event link.",
+  };
+  let errorField;
+  const hint = document.createElement("span");
+  hint.className = "entry-error";
+  hint.id = "entry-field-error";
+
+  function clearError() {
+    if (!errorField) return;
+    errorField.removeAttribute("aria-invalid");
+    errorField.removeAttribute("aria-describedby");
+    errorField.setCustomValidity("");
+    hint.remove();
+    errorField = null;
+  }
+
   function invalid(name, message) {
+    clearError();
     const input = field(name);
-    input.setCustomValidity(message);
     const collapsed = input.closest("details");
     if (collapsed) collapsed.open = true;
-    input.reportValidity();
+    const caption = input.labels[0].querySelector("span");
+    caption.id = "entry-label-" + name;
+    input.setAttribute("aria-labelledby", caption.id);
+    input.setAttribute("aria-invalid", "true");
+    input.setAttribute("aria-describedby", hint.id);
+    input.setCustomValidity(message);
+    if (document.activeElement === input) hint.setAttribute("role", "alert");
+    else hint.removeAttribute("role");
+    hint.textContent = message;
+    input.after(hint);
+    errorField = input;
+    input.focus();
   }
 
   function slugFor(title, day) {
@@ -144,23 +180,28 @@
     return "event-" + signature.toString(36) + "-" + day;
   }
 
-  form.addEventListener("input", update);
-  form.addEventListener("change", update);
-  form.addEventListener(
-    "invalid",
-    (event) => {
-      const collapsed = event.target.closest("details");
-      if (collapsed) collapsed.open = true;
-    },
-    true,
-  );
+  function onEdit(event) {
+    if (errorField === event.target ||
+        (errorField && ["timezone", "start_date", "end_date", "start_time", "end_time"].includes(event.target.name) &&
+        ["end_date", "start_time", "end_time"].includes(errorField.name))) clearError();
+    update();
+  }
+
+  form.noValidate = true;
+  form.addEventListener("input", onEdit);
+  form.addEventListener("change", onEdit);
   form.addEventListener("submit", (event) => {
     event.preventDefault();
+    clearError();
     update();
-    if (!form.reportValidity()) return;
-    for (const input of form.querySelectorAll("[required]:enabled")) {
-      if (!input.value.trim())
-        return invalid(input.name, "Please enter a value.");
+    for (const input of form.querySelectorAll("input, select, textarea")) {
+      if (!input.willValidate) continue;
+      if (input.validity.badInput) return invalid(input.name, "Finish entering the date or time.");
+      if (input.required && !input.value.trim()) return invalid(input.name, missing[input.name]);
+      if (input.validity.typeMismatch) return invalid(input.name, "Enter a full link beginning with https:// or http://.");
+      if (input.name === "end_date" && input.validity.rangeUnderflow)
+        return invalid(input.name, "Choose a last day on or after the start date.");
+      if (!input.validity.valid) return invalid(input.name, input.validationMessage);
     }
     for (const name of ["url", "registration_url"]) {
       const raw = value(name);
@@ -261,10 +302,10 @@
       node("github").href = url.href;
     }
     node("outcome").textContent = hasRepository
-      ? "Open the file on GitHub and propose it for review, or keep a local copy."
+      ? "Continue on GitHub, commit the file to a new branch, then open a pull request for a maintainer to review."
       : "Download the TOML file to keep your listing. When the project repository opens, add it to the events folder in a pull request.";
     node("output").hidden = false;
-    node("download").focus();
+    node(hasRepository ? "github" : "download").focus();
     node("output").querySelector("[data-motion]").dispatchEvent(new Event("play-motion", { bubbles: true }));
   });
 

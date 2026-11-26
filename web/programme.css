@@ -139,8 +139,12 @@ p {
     animation: none;
     mix-blend-mode: normal;
   }
-  .theme-iris::view-transition-new(root) {
+  .theme-iris[data-theme=light]::view-transition-new(root) {
     animation: theme-iris-open 520ms cubic-bezier(.32, 0, .18, 1) both;
+  }
+  .theme-iris[data-theme=dark]::view-transition-old(root) {
+    z-index: 1;
+    animation: theme-iris-open 520ms cubic-bezier(.32, 0, .18, 1) reverse both;
   }
   @keyframes theme-iris-open {
     from { clip-path: circle(0 at var(--iris-x) var(--iris-y)); }

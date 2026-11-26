@@ -50,10 +50,20 @@ class SubmitPage extends StatelessComponent {
             .text('List an event'),
             span(classes: 'entry-period', [.text('.')]),
           ]),
-          p(classes: 'entry-intro', [
-            .text(
-              'Share the details you’d want before showing up. We’ll turn them into an event file you can contribute to the programme.',
-            ),
+          aside(classes: 'entry-review', attributes: {'aria-label': 'How listings are published'}, [
+            svg(classes: 'icon', viewBox: '0 0 24 24', attributes: {'aria-hidden': 'true'}, [
+              Component.element(tag: 'use', attributes: {'href': '/art/icons.svg#pull-request'}),
+            ]),
+            div([
+              strong([.text('Listings go through GitHub review')]),
+              p([
+                .text(
+                  repository.isEmpty
+                      ? 'For this MVP, download your event file here. When the repository opens, submit it in a GitHub pull request. A maintainer reviews and merges accepted listings for publication.'
+                      : 'Prepare your event file here, then open a pull request on GitHub. A maintainer reviews and merges accepted listings for publication.',
+                ),
+              ]),
+            ]),
           ]),
           a(classes: 'entry-jump', href: '/submit/#entry-preview', [.text('See your listing preview')]),
           div(classes: 'entry-layout', [
@@ -143,8 +153,8 @@ class SubmitPage extends StatelessComponent {
                   h2([motionSlot('check', .text('✓')), .text('Your listing is ready.')]),
                   p(id: 'entry-outcome', attributes: {'role': 'status'}, []),
                   div(classes: 'entry-actions', [
+                    a(id: 'entry-github', href: '#', attributes: {'hidden': ''}, [.text('Propose on GitHub')]),
                     a(id: 'entry-download', href: '#', [.text('Download event file')]),
-                    a(id: 'entry-github', href: '#', attributes: {'hidden': ''}, [.text('Continue on GitHub')]),
                   ]),
                 ],
               ),
