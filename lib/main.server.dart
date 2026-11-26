@@ -16,7 +16,11 @@ void main() {
       },
       head: [
         link(href: '/programme.css', rel: 'stylesheet'),
-        link(href: '/favicon.ico?v=blank', rel: 'icon', type: 'image/x-icon'),
+        link(
+          href: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAEklEQVR4nGNgGAWjYBSMAggAAAQQAAFVN1rQAAAAAElFTkSuQmCC',
+          rel: 'icon',
+          type: 'image/png',
+        ),
         script(src: '/motion.js', defer: true),
         script(src: '/programme.js', defer: true),
       ],

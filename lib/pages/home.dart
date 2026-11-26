@@ -171,6 +171,20 @@ class Programme extends StatelessComponent {
                 ),
             ],
           ),
+          button(
+            id: 'spotlight-art',
+            classes: 'ticket-moths',
+            attributes: {
+              'type': 'button',
+              'data-motion': 'ticket-moths',
+              'aria-label': 'Animate the ticket moths',
+              'aria-pressed': 'false',
+            },
+            [
+              img(src: '/art/ticket-moths.webp', alt: 'Three moths with ticket-stub wings circling a violet moon.'),
+              span(classes: 'art-control', attributes: {'aria-hidden': 'true'}, []),
+            ],
+          ),
         ]),
         EventActivity(events, onArchive: past),
       ],
