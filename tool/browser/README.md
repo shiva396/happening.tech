@@ -16,7 +16,7 @@ npm test
 NODE_PATH="$PWD/node_modules" BROWSER_ENGINE=webkit node ../nav_animals/check.cjs
 ```
 
-The site suite covers directory filters, calendar links, the archive, the activity tooltip, country selection, globe zoom, both map styles, theme persistence, listing validation and TOML generation. It checks six page states at ten widths between 320 and 2560 CSS pixels. The navigation suite also waits for the actual minute cue and checks the rendered pixels of each animal. The pull request workflow runs both suites on all three engines under the Pages project path.
+The site suite covers directory filters, calendar links, the archive, the activity tooltip, country selection, globe zoom, both map styles, theme persistence, listing validation and TOML generation. It checks six page states at ten widths between 320 and 2560 CSS pixels. The navigation suite also waits for the actual minute cue and checks the rendered pixels of each animal. The recovery checks inject a corrupt animal archive, delay a retry while reduced motion is enabled, and temporarily return HTTP 503 for satellite imagery. Trackpad scroll and pinch signals are tested separately. Chromium also receives emulated two-contact input to check parallel movement, spread, pinch and cancellation. Form checks cover unsupported links, invalid time zones, reversed dates and times, and both skipped and repeated daylight-saving hours. The pull request workflow runs these suites on all three engines under the Pages project path.
 
 Set `PREVIEW_URL` for a different preview and `BROWSER_ENGINE` to run a single engine. For a locally installed Chrome or Edge, set `BROWSER_ENGINE=chromium` and `CHROME_BIN` to its executable.
 

@@ -290,14 +290,16 @@ async function mountGlobe() {
       selectCountry(true);
     } else if (action) updateZoom(targetZoom + (action === "in" ? 0.4 : -0.4));
   });
+  let gestureZoom;
   svg.addEventListener(
     "wheel",
     (e) => {
-      // Keep trackpad scroll and pinch inside the whole map stage, even at a zoom limit.
+      // Trackpads mark pinch wheel events with Ctrl. Leave ordinary scrolling to the browser.
+      if (!e.ctrlKey || !e.deltaY) return;
       e.preventDefault();
-      if (!e.deltaY) return;
+      if (gestureZoom !== undefined || pointers.size) return;
       const units = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? svg.clientHeight : 1;
-      const factor = Math.exp(-clamp(e.deltaY * units, -240, 240) * (e.ctrlKey ? 0.012 : 0.0025));
+      const factor = Math.exp(-clamp(e.deltaY * units, -240, 240) * 0.012);
       const next = clamp(targetZoom * factor, minZoom, maxZoom);
       if (next === targetZoom) return;
       updateZoom(next);
@@ -307,6 +309,16 @@ async function mountGlobe() {
 
   const pointers = new Map();
   let pinch;
+  // Safari also reports trackpad magnification as a gesture scale.
+  svg.addEventListener("gesturestart", (e) => {
+    e.preventDefault();
+    if (!pointers.size) gestureZoom = zoom;
+  }, { passive: false });
+  svg.addEventListener("gesturechange", (e) => {
+    e.preventDefault();
+    if (gestureZoom !== undefined && !pointers.size && e.scale > 0) updateZoom(gestureZoom * e.scale, true);
+  }, { passive: false });
+  svg.addEventListener("gestureend", () => { gestureZoom = undefined; });
   function distance() {
     const [a, b] = pointers.values();
     return Math.hypot(a.x - b.x, a.y - b.y);
@@ -321,8 +333,7 @@ async function mountGlobe() {
     pointers.set(e.pointerId, pos);
     svg.setPointerCapture(e.pointerId);
     if (pointers.size === 2) {
-      const [a, b] = pointers.values();
-      pinch = { distance: Math.max(1, distance()), midpointY: (a.y + b.y) / 2, zoom };
+      pinch = { distance: Math.max(1, distance()), zoom };
       drag = null;
     } else startDrag(e.pointerId, pos, e.target.closest("[data-country]")?.dataset.country);
   });
@@ -330,12 +341,8 @@ async function mountGlobe() {
     if (!pointers.has(e.pointerId)) return;
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pinch) {
-      const [a, b] = pointers.values();
-      const spread = Math.log(Math.max(1, distance()) / pinch.distance);
-      const slide = (pinch.midpointY - (a.y + b.y) / 2) / 200;
-      // Pointer positions arrive separately. Re-evaluate their combined motion before each paint.
-      const change = Math.abs(spread) > Math.abs(slide) ? spread : slide;
-      updateZoom(pinch.zoom * Math.exp(change), true);
+      // The renderer paints the latest distance once per frame. Translation leaves it unchanged.
+      updateZoom(pinch.zoom * distance() / pinch.distance, true);
       return;
     }
     const dx = e.clientX - drag.x,

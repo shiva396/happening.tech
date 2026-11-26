@@ -2,7 +2,7 @@
   "name": "happening-site-checks",
   "private": true,
   "scripts": {
-    "test": "node site.cjs",
+    "test": "node site.cjs && node recovery.cjs",
     "benchmark": "node benchmark.cjs"
   },
   "devDependencies": {

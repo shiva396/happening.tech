@@ -86,11 +86,7 @@ class CountryGlobe extends StatelessComponent {
           classes: 'globe-controls',
           attributes: {'hidden': ''},
           [
-            span([
-              .text('Drag to rotate · '),
-              span(classes: 'wheel-zoom', [.text('Scroll to zoom')]),
-              span(classes: 'touch-zoom', [.text('Pinch to zoom')]),
-            ]),
+            span([.text('Drag to rotate · Pinch to zoom')]),
             control('reset', 'Centre selected country', icon('globe')),
             control('out', 'Zoom out', .text('−')),
             control('in', 'Zoom in', icon('plus')),

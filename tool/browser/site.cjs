@@ -138,6 +138,14 @@ async function world(page) {
   const initial = Number(await ring.getAttribute("r"));
   const globe = page.locator("#country-globe");
   await globe.scrollIntoViewIfNeeded();
+  // A plain wheel is also how desktop browsers deliver a two-finger trackpad scroll.
+  const stage = await globe.boundingBox();
+  await page.mouse.move(stage.x + stage.width / 2, stage.y + stage.height / 2);
+  const beforeScroll = await page.evaluate(() => scrollY);
+  await page.mouse.wheel(0, 100);
+  await page.waitForFunction((y) => scrollY > y, beforeScroll);
+  assert.equal(Number(await ring.getAttribute("r")), initial);
+  await globe.scrollIntoViewIfNeeded();
   const scroll = await page.evaluate(() => scrollY);
   for (const delta of [-75, 75]) {
     const before = Number(await ring.getAttribute("r"));
@@ -185,7 +193,43 @@ async function listing(page) {
   })) {
     await field(name).fill(value);
   }
+  const submit = page.locator("#entry-submit");
+  async function rejected(name, hint) {
+    await submit.click();
+    assert.equal(await field(name).getAttribute("aria-invalid"), "true");
+    assert(await field(name).evaluate((node) => node === document.activeElement));
+    assert.match(await page.locator("#entry-field-error").innerText(), hint);
+    assert(await page.locator("#entry-output").isHidden());
+  }
+  await rejected("city", /city/i);
   await field("online").check();
+  for (const [name, invalid, valid, hint] of [
+    ["end_date", "2030-11-19", "", /last day/i],
+    ["url", "ftp://example.org/event", "https://example.org/meet", /HTTP/i],
+    ["registration_url", "https://test@example.org/tickets", "https://example.org/tickets", /credentials/i],
+    ["timezone", "Chennai/Unknown", "America/New_York", /time zone/i],
+  ]) {
+    await field(name).fill(invalid);
+    await rejected(name, hint);
+    await field(name).fill(valid);
+  }
+  await page.getByText("Add start and end times", { exact: true }).click();
+  await field("start_time").fill("02:30");
+  await rejected("end_time", /end time/i);
+  await field("end_time").fill("03:30");
+  // New York skips 02:30 in March and repeats 01:30 in November.
+  for (const [day, clock] of [
+    ["2025-03-09", "02:30"],
+    ["2025-11-02", "01:30"],
+  ]) {
+    await field("start_date").fill(day);
+    await field("start_time").fill(clock);
+    await rejected("start_time", /clock changes/i);
+  }
+  await field("start_date").fill("2030-11-20");
+  await field("start_time").fill("20:00");
+  await rejected("end_time", /end after the start/i);
+  await field("end_date").fill("2030-11-21");
   assert(await field("venue").isDisabled());
   assert.equal(await page.locator("#entry-preview-title").innerText(), "Chennai Web Night");
   await page.locator("#entry-submit").click();
@@ -194,6 +238,8 @@ async function listing(page) {
     .locator("#entry-download")
     .evaluate(async (node) => (await fetch(node.href)).text());
   assert.match(contents, /title = "Chennai Web Night"/);
+  assert(contents.includes('start = "2030-11-21T01:00:00.000Z"'));
+  assert(contents.includes('end = "2030-11-21T08:30:00.000Z"'));
   assert.match(contents, /registration_url = "https:\/\/example.org\/tickets"/);
   const repo = await page.locator("#entry-studio").getAttribute("data-repository");
   if (repo) {

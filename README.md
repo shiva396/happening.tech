@@ -24,6 +24,6 @@ Use **List an event** to preview a listing and download its TOML file. Add that 
 
 The Pages workflow builds and publishes the static site on pushes to `main`. It sets the site’s base path and the GitHub repository for the contribution form. Contributors can use **Propose on GitHub** to open a pull request for maintainer review.
 
-The directory and event pages are rendered at build time. Rebuild after changing a listing. The browser hides expired events from the programme. World view opens over India. Select a country on the globe or in the country list to browse its upcoming events. The locally hosted globe uses Natural Earth boundaries from World Atlas and an orthographic projection from D3 Geo.
+The directory and event pages are rendered at build time. Rebuild after changing a listing. The browser hides expired events from the programme. World view opens over India. Drag to rotate the globe. Pinch to zoom, or use the plus and minus controls. A two-finger trackpad scroll moves the page. Select a country on the globe or in the country list to browse its upcoming events. The locally hosted globe uses Natural Earth boundaries from World Atlas and an orthographic projection from D3 Geo.
 
 [Project plan](PLAN.md)

@@ -777,11 +777,6 @@ nav-performance { display: contents; }
   stroke: var(--globe-label-halo); stroke-width: 1.8px; stroke-linejoin: round; paint-order: stroke;
 }
 .globe-name.is-selected { font-size: calc(var(--globe-name-size, var(--globe-label-base)) * 1.22); font-weight: var(--weight-bold); fill: var(--globe-label-selected); stroke-width: 2.6px; }
-.globe-controls .touch-zoom { display: none; }
-@media (pointer: coarse) {
-  .globe-controls .wheel-zoom { display: none; }
-  .globe-controls .touch-zoom { display: inline; }
-}
 .globe-controls { display: flex; align-items: center; gap: .45rem; padding: .3rem 1rem .8rem; }
 .globe-controls > span { margin-inline-end: auto; color: var(--muted); font-size: .8125rem; }
 .globe-controls button { font-size: 1.2rem; }

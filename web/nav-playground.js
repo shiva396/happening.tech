@@ -8,7 +8,7 @@ function asset(url, json = false) {
   if (!cache.has(url)) {
     cache.set(
       url,
-      fetch(url)
+      fetch(url, { cache: "no-cache" })
         .then((response) => {
           if (!response.ok) throw new Error("Missing navigation asset: " + url);
           return json ? response.json() : response.arrayBuffer();
@@ -80,6 +80,7 @@ function loadPlane(host, data, id, signal) {
 class NavPerformance extends HTMLElement {
   connectedCallback() {
     const animal = this.dataset.animal;
+    const archive = "motion/animals/" + animal + ".lottie";
     const link = this.closest("a");
     const label = link.querySelector(".nav-label");
     const back = this.querySelector(".nav-back"),
@@ -113,7 +114,7 @@ class NavPerformance extends HTMLElement {
       run = session;
       try {
         const [data, paths] = await Promise.all([
-          asset("motion/animals/" + animal + ".lottie"),
+          asset(archive),
           asset("motion/animals/paths.json", true),
           loadComponent(),
         ]);
@@ -174,6 +175,8 @@ class NavPerformance extends HTMLElement {
         body.play();
       } catch {
         if (!signal.aborted) {
+          // A successful HTTP response can still contain an unreadable archive.
+          cache.delete(archive);
           stop();
         }
       }
