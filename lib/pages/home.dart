@@ -5,17 +5,9 @@ import 'package:jaspr/server.dart';
 import 'package:timezone/timezone.dart' as tz;
 import '../event.dart';
 import '../components/activity.dart';
+import '../components/icon.dart';
 import '../components/poster_art.dart';
 import '../components/motion.dart';
-
-Component icon(String name) => svg(
-  classes: 'icon',
-  viewBox: '0 0 24 24',
-  attributes: {'aria-hidden': 'true'},
-  [
-    Component.element(tag: 'use', attributes: {'href': '/art/icons.svg#$name'}),
-  ],
-);
 
 const months = [
   'January',

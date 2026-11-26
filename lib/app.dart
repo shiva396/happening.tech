@@ -1,13 +1,16 @@
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_router/jaspr_router.dart';
+import 'components/icon.dart';
+import 'components/playful_navigation.dart';
 import 'event.dart';
 import 'pages/home.dart';
 import 'pages/submit.dart';
 
 class App extends StatelessComponent {
   final List<Event> events;
-  const App(this.events, {super.key});
+  final List<String> animals;
+  const App(this.events, {required this.animals, super.key});
 
   @override
   Component build(BuildContext context) {
@@ -20,35 +23,7 @@ class App extends StatelessComponent {
             .text('happening'),
             span([.text('.tech')]),
           ]),
-          nav(
-            attributes: {'aria-label': 'Main navigation'},
-            [
-              for (final entry in [
-                ('/', 'Programme', 'list', 'programme-volunteer'),
-                ('/world', 'World view', 'globe', 'world-traveller'),
-              ])
-                a(
-                  href: entry.$1,
-                  classes: 'nav-item',
-                  attributes: {
-                    if (entry.$1 == '/'
-                        ? path == '/' || path.startsWith('/past') || path.startsWith('/events/')
-                        : path.startsWith('/world'))
-                      'aria-current': 'page',
-                  },
-                  [
-                    icon(entry.$3),
-                    .text(entry.$2),
-                    span(classes: 'nav-character', attributes: {'aria-hidden': 'true', 'data-motion': entry.$4}, []),
-                  ],
-                ),
-              button(
-                id: 'theme-switch',
-                attributes: {'type': 'button', 'aria-label': 'Switch theme'},
-                [icon('moon'), icon('sun')],
-              ),
-            ],
-          ),
+          PlayfulNavigation(path, animals: animals),
           a(href: '/submit', classes: 'list-event', [icon('plus'), .text('List an event')]),
         ]),
       ]),

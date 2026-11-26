@@ -1,15 +1,10 @@
+import { loadComponent } from "./lottie-player.js";
+
 // dotlottie-wc 0.12.2 bundles the web component; its matching 0.83.2
 // Canvas/WASM runtime and the animations are served from this project.
 (() => {
   const reduced = matchMedia("(prefers-reduced-motion: reduce)");
   const active = new Map();
-  let component;
-  function loadComponent() {
-    component ??= import("/vendor/dotlottie-wc-0.12.2/dotlottie-wc.js")
-      .then(module => module.setWasmUrl("/vendor/dotlottie-wc-0.12.2/dotlottie-player.wasm"));
-    return component;
-  }
-
   async function play(slot, loop = false) {
     if (!slot || reduced.matches || !slot.getClientRects().length) return;
     active.get(slot)?.();
@@ -43,18 +38,6 @@
     } catch {
       if (active.get(slot) === finish) finish();
     }
-  }
-
-  for (const character of document.querySelectorAll(".nav-character")) {
-    const link = character.closest("a");
-    const enter = () => { if (!active.has(character)) play(character); };
-    const leave = () => active.get(character)?.();
-    link.addEventListener("pointerenter", event => {
-      if (event.pointerType !== "touch") enter();
-    });
-    link.addEventListener("pointerleave", leave);
-    link.addEventListener("focus", () => { if (link.matches(":focus-visible")) enter(); });
-    link.addEventListener("blur", leave);
   }
 
   const artwork = document.querySelector(".ticket-moths");
