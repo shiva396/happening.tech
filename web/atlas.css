@@ -169,7 +169,7 @@ figcaption { font-size: .81rem; margin-top: .5rem; color: var(--muted); }
   .world-intro .overline { margin-bottom: .65rem; }
   .world-intro h1 { font-size: clamp(3rem, 10vw, 4.8rem); }
   .world-intro h1 br { display: none; }
-  
+
   .world-intro p { margin: .65rem 0 .8rem; font-size: 1rem; max-width: 32ch; }
   .locator summary { min-width: 11rem; }
   .world-scene { position: relative; inset: auto; grid-area: 3 / 1; width: calc(100% + 2 * var(--gutter)); margin-inline: calc(-1 * var(--gutter)); height: clamp(16rem, min(91vw, 48svh), 30rem); }
