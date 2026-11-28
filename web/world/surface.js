@@ -1,6 +1,6 @@
-import { detailCache, TILES } from "./detail.js";
+import { detailCache, TILES, FINE_OFFSET, LOOKUP } from "./detail.js";
 
-// One full-screen triangle projects a cartographic texture onto an analytic sphere.
+// One full-screen triangle projects a satellite mosaic onto an analytic sphere.
 const vertex = `
 attribute vec2 point;
 void main() { gl_Position = vec4(point,0.,1.); }`;
@@ -13,7 +13,12 @@ uniform sampler2D globe;
 uniform sampler2D tiles;
 uniform sampler2D lookup;
 uniform float slotsPerRow;
-uniform bool useDetail;
+uniform int useDetail;
+float slotFor(vec2 tile, float columns, float offset) {
+  float id = offset + floor(tile.y) * columns + floor(tile.x);
+  vec2 cell = vec2(mod(id, ${LOOKUP.width}.), floor(id / ${LOOKUP.width}.));
+  return floor(texture2D(lookup, (cell+.5)/vec2(${LOOKUP.width}., ${LOOKUP.height}.)).r * 255. + .5) - 1.;
+}
 void main() {
   vec2 q = (gl_FragCoord.xy - viewport*.5)/radius;
   float d = 1.-dot(q,q);
@@ -24,10 +29,16 @@ void main() {
   float lat = asin(clamp(q.y*cs+z*sn,-1.,1.));
   vec2 uv = vec2(fract(lon/6.28318530718+.5),.5-lat/3.14159265359);
   vec3 color = texture2D(globe,uv).rgb;
-  if (useDetail) {
+  if (useDetail > 0) {
     vec2 grid = vec2(${TILES.columns}., ${TILES.rows}.);
     vec2 tile = min(uv, vec2(.9999999)) * grid;
-    float slot = floor(texture2D(lookup, (floor(tile)+.5)/grid).r * 255. + .5) - 1.;
+    float slot = -1.;
+    if (useDetail == 2) {
+      vec2 fine = tile * 2.;
+      slot = slotFor(fine, grid.x * 2., ${FINE_OFFSET}.);
+      if (slot >= 0.) tile = fine;
+    }
+    if (slot < 0.) slot = slotFor(tile, grid.x, 0.);
     if (slot >= 0.) {
       vec2 origin = vec2(mod(slot, slotsPerRow), floor(slot/slotsPerRow));
       vec2 local = clamp(fract(tile), .5/${TILES.size}., 1.-.5/${TILES.size}.);
@@ -35,9 +46,9 @@ void main() {
       color = mix(color, fine, smoothstep(.16, .55, z));
     }
   }
-  float light = .70 + .34*max(-.45,dot(vec3(q,z),vec3(-.41,.52,.75)))+.045*z;
-  float rim = .44*pow(1.-z,5.);
-  vec3 lit = mix(color*light,vec3(.565,.855,.976),rim);
+  float light = .89 + .16*max(-.5,dot(vec3(q,z),vec3(-.41,.52,.75)));
+  float rim = .33*pow(1.-z,6.);
+  vec3 lit = mix(color*light,vec3(.459,.706,.922),rim);
   gl_FragColor = vec4(lit, min(1.,d*radius*.67));
 }`;
 const surfaceURL = new URL("../art/world-surface.webp", import.meta.url);
@@ -115,7 +126,7 @@ export async function makeSurface(canvas, redraw) {
     sampler("tiles", 1, gl.LINEAR);
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGB, 1, 1, 0, gl.RGB, gl.UNSIGNED_BYTE, null);
     sampler("lookup", 2, gl.NEAREST);
-    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, TILES.columns, TILES.rows, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, null);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.LUMINANCE, LOOKUP.width, LOOKUP.height, 0, gl.LUMINANCE, gl.UNSIGNED_BYTE, null);
     gl.uniform1f(gl.getUniformLocation(program, "slotsPerRow"), Math.max(side, 1));
     let allocated = false;
     if (side) details = detailCache(side * side, (slot, image, lookup) => {
@@ -130,7 +141,7 @@ export async function makeSurface(canvas, redraw) {
       }
       gl.texSubImage2D(gl.TEXTURE_2D, 0, (slot % side) * TILES.size, Math.floor(slot / side) * TILES.size, gl.RGB, gl.UNSIGNED_BYTE, image);
       gl.activeTexture(gl.TEXTURE2);
-      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, TILES.columns, TILES.rows, gl.LUMINANCE, gl.UNSIGNED_BYTE, lookup);
+      gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, LOOKUP.width, LOOKUP.height, gl.LUMINANCE, gl.UNSIGNED_BYTE, lookup);
     }, redraw);
     const loc = (name) => gl.getUniformLocation(program, name);
     const viewport = loc("viewport"),
@@ -152,7 +163,7 @@ export async function makeSurface(canvas, redraw) {
           canvas.height = h;
           gl.viewport(0, 0, w, h);
         }
-        gl.uniform1i(useDetail, allocated && zoom >= TILES.zoom ? 1 : 0);
+        gl.uniform1i(useDetail, allocated && zoom >= TILES.zoom ? (zoom >= TILES.fineZoom ? 2 : 1) : 0);
         gl.clear(gl.COLOR_BUFFER_BIT);
         gl.uniform2f(viewport, w, h);
         gl.uniform1f(radius, r * density);

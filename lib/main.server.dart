@@ -14,7 +14,7 @@ void main() {
       lang: 'en',
       base: const String.fromEnvironment('SITE_BASE_PATH', defaultValue: '/'),
       title: projectName,
-      meta: const {'description': projectDescription, 'theme-color': '#f2f8fc'},
+      meta: const {'description': projectDescription, 'theme-color': '#101925'},
       head: [
         link(href: 'manifest.webmanifest', rel: 'manifest'),
         link(href: 'art/atlas-mark.svg', rel: 'icon', type: 'image/svg+xml'),

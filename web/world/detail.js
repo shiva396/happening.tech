@@ -1,10 +1,14 @@
-// A bounded set of local 1:10m map tiles supplements the overview in both renderers.
+// Both satellite detail levels share one bounded atlas and slot lookup.
 import { unproject } from "./camera.js";
 
-export const TILES = Object.freeze({ columns: 16, rows: 8, size: 768, zoom: 1.25 });
+export const TILES = Object.freeze({ columns: 16, rows: 8, size: 672, zoom: 1.25, fineZoom: 3 });
+export const FINE_OFFSET = TILES.columns * TILES.rows;
+export const LOOKUP = Object.freeze({ width: TILES.columns * 2, height: TILES.rows * 2.5 });
 
-function visibleTiles(width, height, radius, view, capacity) {
+function visibleTiles(width, height, radius, view, capacity, fine) {
   const nearest = new Map();
+  const columns = TILES.columns * (fine ? 2 : 1);
+  const rows = TILES.rows * (fine ? 2 : 1);
   // Sample the visible hemisphere in screen space so longitude wraps at the date line
   // and polar views select tiles on both sides of the pole.
   for (let row = -6; row <= 6; row++) {
@@ -12,9 +16,9 @@ function visibleTiles(width, height, radius, view, capacity) {
       const x = col * width / 18, y = row * height / 12;
       const geo = unproject(x / radius, y / radius, view);
       if (!geo) continue;
-      const tx = Math.floor(((geo[0] + 180) / 360) * TILES.columns) % TILES.columns;
-      const ty = Math.min(TILES.rows - 1, Math.floor(((90 - geo[1]) / 180) * TILES.rows));
-      const id = ty * TILES.columns + tx;
+      const tx = Math.floor(((geo[0] + 180) / 360) * columns) % columns;
+      const ty = Math.min(rows - 1, Math.floor(((90 - geo[1]) / 180) * rows));
+      const id = (fine ? FINE_OFFSET : 0) + ty * columns + tx;
       const distance = x * x + y * y;
       nearest.set(id, Math.min(nearest.get(id) ?? Infinity, distance));
     }
@@ -24,7 +28,7 @@ function visibleTiles(width, height, radius, view, capacity) {
 
 // The lookup stores slot + 1. A missing tile always samples the overview.
 export function detailCache(capacity, upload, redraw) {
-  const lookup = new Uint8Array(TILES.columns * TILES.rows);
+  const lookup = new Uint8Array(LOOKUP.width * LOOKUP.height);
   const slots = Array(capacity).fill(-1);
   const pending = new Map(), failedUntil = new Map();
   let wanted = [], lastView = "", lastCheck = -Infinity, disposed = false;
@@ -80,12 +84,13 @@ export function detailCache(capacity, upload, redraw) {
         lastView = "";
         return;
       }
-      const key = [width, height, radius.toFixed(1), view.longitude.toFixed(2), view.latitude.toFixed(2)].join("/");
+      const fine = zoom >= TILES.fineZoom;
+      const key = [fine, width, height, radius.toFixed(1), view.longitude.toFixed(2), view.latitude.toFixed(2)].join("/");
       const now = performance.now();
       if (key === lastView || (moving && now - lastCheck < 160)) return;
       lastView = key;
       lastCheck = now;
-      wanted = visibleTiles(width, height, radius, view, capacity);
+      wanted = visibleTiles(width, height, radius, view, capacity, fine);
       fill();
     },
     dispose() {

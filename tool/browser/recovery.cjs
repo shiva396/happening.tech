@@ -26,11 +26,24 @@ async function check() {
     await page.waitForFunction((s) => document.querySelector(".coordinates").textContent !== s, home);
     await globe.press("Home");
     await page.waitForFunction((s) => document.querySelector(".coordinates").textContent === s, home);
-    const r = await globe.boundingBox();
+    const diameter = () => globe.evaluate(el => parseFloat(getComputedStyle(el).getPropertyValue("--hit-size")));
+    const initialDiameter = await diameter();
+    const geography = (x, y) => page.evaluate(async ([x, y]) => {
+      // Input can arrive between paints. Read the camera label and diameter after the queued draw.
+      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const { unproject } = await import(new URL("world/camera.js", document.baseURI).href);
+      const earth = document.querySelector(".atlas-earth");
+      const r = parseFloat(getComputedStyle(earth).getPropertyValue("--hit-size")) / 2;
+      const rect = earth.getBoundingClientRect();
+      const [, lat, ns, lon, ew] = document.querySelector(".coordinates").textContent.match(/([\d.]+)° ([NS])\s*\/\s*([\d.]+)° ([EW])/);
+      return unproject((x - rect.x - rect.width/2) / r, (rect.y + rect.height/2 - y) / r, {
+        latitude: Number(lat) * (ns === "N" ? 1 : -1), longitude: Number(lon) * (ew === "E" ? 1 : -1),
+      });
+    }, [x, y]);
     // Choose an unobstructed point on the globe to start a native touch gesture.
     const point = await globe.evaluate((el) => {
       const r = el.getBoundingClientRect();
-      for (const dy of [0, 0.12, -0.12, 0.22, -0.22])
+      for (const dy of [0.12, -0.12, 0.22, -0.22])
         for (const dx of [0, 0.12, -0.12]) {
           const x = r.x + r.width * (0.5 + dx),
             y = r.y + r.height * (0.5 + dy);
@@ -39,6 +52,7 @@ async function check() {
       throw Error("No exposed globe surface");
     });
     const { x, y } = point;
+    const anchor = await geography(x, y);
     const cdp = await page.context().newCDPSession(page);
     const touch = (type, points) =>
       cdp.send("Input.dispatchTouchEvent", {
@@ -54,11 +68,16 @@ async function check() {
         [x - 24 - i * 3, y],
         [x + 24 + i * 3, y],
       ]);
+    // Move the midpoint while holding the spread, then pinch back to the original size.
+    const shift = 18;
+    await touch("touchMove", [[x - 48 + shift, y + shift], [x + 48 + shift, y + shift]]);
+    await page.waitForFunction(w => parseFloat(getComputedStyle(document.querySelector(".atlas-earth")).getPropertyValue("--hit-size")) > 3.6*w, initialDiameter);
+    const anchored = await geography(x + shift, y + shift);
+    assert(Math.abs(anchor[0] - anchored[0]) < .2 && Math.abs(anchor[1] - anchored[1]) < .2, `Geography follows the moving pinch midpoint: ${anchor} -> ${anchored}`);
+    for (let i = 1; i <= 8; i++)
+      await touch("touchMove", [[x - 48 + i * 3 + shift, y + shift], [x + 48 - i * 3 + shift, y + shift]]);
     await touch("touchEnd", []);
-    await page.waitForFunction(
-      (w) => parseFloat(document.querySelector(".world-touch").style.getPropertyValue("--hit-size")) > w * 1.5,
-      r.width,
-    );
+    await page.waitForFunction(w => Math.abs(parseFloat(getComputedStyle(document.querySelector(".atlas-earth")).getPropertyValue("--hit-size")) - w) <= 1, initialDiameter);
     await page.getByRole("button", { name: "Reset orientation" }).click();
     await touch("touchStart", [[x, y]]);
     for (let i = 1; i <= 10; i++) await touch("touchMove", [[x, y - i * 10]]);
@@ -75,6 +94,13 @@ async function check() {
     await touch("touchEnd", []);
     await page.waitForFunction(() => document.querySelector(".globe-pages").scrollTop > 20);
     assert.equal(await page.evaluate(() => scrollY), 0);
+    await page.setViewportSize({width: 320, height: 568});
+    await page.goto(new URL("?event=flutter-tech-summit-2027#world", preview).href);
+    await page.locator(".world-focused").waitFor();
+    const sheet = await page.locator("#world-preview").boundingBox();
+    const pin = await page.locator(".world-focused").boundingBox();
+    const dock = await page.locator(".world-dock").boundingBox();
+    assert(pin.y + pin.height < sheet.y && sheet.y + sheet.height < dock.y, "Mobile sheet clears the marker and dock");
     const desktop = await browser.newPage({ reducedMotion: "reduce", viewport: { width: 1440, height: 900 } });
     await desktop.goto(preview);
     await desktop.locator('.atlas-earth[data-rendered="true"]').waitFor();
@@ -88,6 +114,23 @@ async function check() {
         }
       throw Error("No exposed globe surface");
     });
+    // The curve uses the original pin and card-edge coordinates, including vertical leaders.
+    await desktop.locator(".world-cards").evaluate(layer => {
+      const buttons = [...layer.querySelectorAll(".world-postcard")];
+      for (const [i, group] of [...layer.querySelectorAll(".world-leader")].entries()) {
+        const line = group.querySelector("path");
+        const [ax, ay, qx, qy, cx, cy] = line.getAttribute("d").match(/-?[\d.]+/g).map(Number);
+        const pin = group.querySelector("circle");
+        const box = buttons[i].getBoundingClientRect(), frame = layer.getBoundingClientRect();
+        const clamp = (x, lo, hi) => Math.max(lo, Math.min(hi, x));
+        if (ax !== Number(pin.getAttribute("cx")) || ay !== Number(pin.getAttribute("cy")) ||
+            Math.abs(cx - clamp(ax, box.x-frame.x+8, box.right-frame.x-8)) > .11 ||
+            Math.abs(cy - clamp(ay, box.y-frame.y+5, box.bottom-frame.y-5)) > .11)
+          throw Error("Moved leader endpoint");
+        if (Math.hypot(cx-ax, cy-ay) > 2 && Math.abs((qx-ax)*(cy-ay)-(qy-ay)*(cx-ax)) < .1)
+          throw Error("Leader has no bend");
+      }
+    });
     const initial = await desktop.locator(".coordinates").textContent();
     await desktop.mouse.move(start.x, start.y);
     await desktop.mouse.down();
@@ -100,6 +143,10 @@ async function check() {
     const card = desktop.locator(".world-postcard:not(.world-stack)").first();
     await card.click();
     await desktop.locator("#world-preview h3").waitFor();
+    const sidePanel = await desktop.locator("#world-preview").boundingBox();
+    assert(sidePanel.x > 1440 * .66 && sidePanel.x + sidePanel.width < 1440);
+    await desktop.locator(".atlas-info summary").click();
+    assert.match(await desktop.locator(".atlas-credit").innerText(), /Made with 💙 by Justin and Shiva from NammaFlutter/);
     await desktop.goto(preview);
     await desktop.locator('.atlas-earth[data-rendered="true"]').waitFor();
     // The opening camera is centered over land in Saudi Arabia, which has no catalog records.
@@ -172,6 +219,7 @@ async function check() {
       const program = gl.getParameter(gl.CURRENT_PROGRAM);
       return gl.getUniform(program, gl.getUniformLocation(program, "useDetail"));
     });
+    assert(requests.some(url => Number(url.match(/world-detail\/(\d+)\.webp/)?.[1]) >= 128), "Deep zoom fetches full-resolution satellite tiles");
     assert(!coarse.equals(await detail.screenshot({ clip })), "Zoom detail changes rendered geography at the same camera position.");
     const fallbackTile = canvas.waitForResponse("**/art/world-detail/*.webp");
     await canvas.locator("[data-camera=in]").click();

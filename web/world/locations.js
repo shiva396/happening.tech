@@ -1,4 +1,4 @@
-// Country lookup is loaded only after a land tap. Boundaries use the same Natural Earth geometry as the texture.
+// Country lookup is loaded only after a land tap.
 import { feature } from "../vendor/globe/geo.js";
 
 let geography;

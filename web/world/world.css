@@ -1,12 +1,12 @@
 .atlas-earth {
   --world-paper: #fbfdff;
-  --world-ink: #123b61;
-  --world-anchor: #0876c3;
-  --world-leader: #0774b5;
+  --world-ink: #14212d;
+  --world-anchor: #187acd;
+  --world-leader: #dcf1ff;
   --world-card-width: 112px;
   --world-card-height: 78px;
   --world-focus: #0069b7;
-  --world-card-shadow: 0 2px 3px #123a602b, 0 7px 15px #173e6326;
+  --world-card-shadow: 0 1px 3px #06101f66, 0 5px 16px #050c1955;
   --world-fast: var(--motion-fast, 170ms);
   position: relative;
   isolation: isolate;
@@ -25,10 +25,9 @@
 .atlas-earth::before {
   content: "";
   pointer-events: none;
-  box-shadow:
-    0 0 0 1px #b1deed70,
-    0 0 24px 3px #8bd8f14a,
-    8px 19px 42px -21px #306e9c52;
+  width: var(--hit-size, var(--earth-diameter));
+  height: var(--hit-size, var(--earth-diameter));
+  box-shadow: 0 0 2px 1px #8dc9fb77, 0 0 14px 2px #5888c341;
 }
 .atlas-earth-poster {
   display: block;
@@ -48,8 +47,8 @@
   pointer-events: none;
 }
 .atlas-earth .world-touch {
-  width: min(var(--hit-size, var(--earth-diameter)), 100%);
-  height: min(var(--hit-size, var(--earth-diameter)), 100%);
+  width: var(--hit-size, var(--earth-diameter));
+  height: var(--hit-size, var(--earth-diameter));
   touch-action: pan-y;
   user-select: none;
   -webkit-user-select: none;
@@ -65,10 +64,12 @@
   outline: 2px dashed var(--world-focus);
   outline-offset: -5px;
 }
-.world-leader line {
+.world-leader path {
+  fill: none;
+  stroke-linecap: round;
   stroke: var(--world-leader);
   stroke-width: 1.4;
-  paint-order: stroke;
+  filter: drop-shadow(0 1px 1px #081626aa);
 }
 .world-leader circle {
   fill: var(--world-anchor);
@@ -102,11 +103,16 @@
   flex-direction: column;
   width: var(--world-card-width);
   height: var(--world-card-height);
-  padding: 4px;
+  padding: 0;
+  overflow: hidden;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
   gap: 0;
-  border: 1px solid #aac5d3;
-  border-radius: 7px;
-  background: var(--world-paper);
+  border: 1px solid #fff;
+  border-radius: 11px;
+  background: #fbfcfd;
   color: var(--world-ink);
   box-shadow: var(--world-card-shadow);
   font: inherit;
@@ -117,34 +123,18 @@
     border-color var(--world-fast);
   animation: world-appear var(--world-fast) ease-out both;
 }
-.world-postcard:focus-visible,
-.world-postcard:hover,
-.world-postcard.world-focused {
+.world-postcard:hover { box-shadow: 0 2px 6px #08101b66, 0 7px 21px #050c1970; }
+.world-postcard:focus-visible, .world-postcard.world-focused {
   z-index: 1;
-  outline: 2px solid var(--world-focus);
+  outline: 2px solid #8bcaff;
   outline-offset: 2px;
-}
-.world-stack::before {
-  content: "";
-  position: absolute;
-  z-index: -1;
-  inset: -4px 4px 5px -3px;
-  transform: rotate(-6deg);
-  border: 1px solid #a0c3d6;
-  background: #e5f3fa;
-  border-radius: 6px;
 }
 .world-photo {
   width: 100%;
   flex: 1;
   min-height: 0;
-  background-color: #72beed;
-  background-image:
-    linear-gradient(132deg, transparent 32%, #c9edff 32% 49%, transparent 49%),
-    linear-gradient(48deg, #369be4 30%, transparent 30% 62%, #3988c0 62%);
+  background: #90a7b4;
   overflow: hidden;
-  border-radius: 3px;
-  position: relative;
 }
 .world-photo img {
   width: 100%;
@@ -159,28 +149,27 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding: 3px 2px 0;
+  padding: 4px 8px 5px;
   text-align: left;
   font-size: .875rem;
   line-height: 1.15;
-  font-weight: 650;
+  font-weight: 620;
   letter-spacing: 0.005em;
 }
 .world-card-count {
-  background: var(--world-ink);
-  color: var(--world-paper);
-  border: 2px solid white;
-  border-radius: 100px;
-  padding-inline: 4px;
-  min-width: 20px;
-  height: 20px;
-  font-size: 0.68rem;
-  line-height: 16px;
   position: absolute;
-  top: -7px;
-  right: -7px;
+  top: 4px;
+  right: 4px;
+  min-width: 18px;
+  padding: 0 4px;
+  border-radius: 6px;
+  background: #192532eb;
+  color: white;
+  box-shadow: 0 1px 3px #0003;
+  font-size: .72rem;
+  font-weight: 650;
+  line-height: 18px;
   text-align: center;
-  box-sizing: border-box;
   font-variant-numeric: tabular-nums;
 }
 @keyframes world-appear {
@@ -195,9 +184,10 @@
   .world-postcard {
     --world-card-width: 79px;
     --world-card-height: 60px;
-    padding: 3px;
+    border-radius: 9px;
   }
   .world-caption {
+    padding: 3px 5px 4px;
     font-size: .8125rem;
   }
 }

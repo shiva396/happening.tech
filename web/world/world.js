@@ -1,4 +1,4 @@
-import { CAMERA, HOME, clamp, radiusAt, unproject, wrap } from "./camera.js";
+import { CAMERA, HOME, clamp, holdAnchor, radiusAt, unproject, wrap } from "./camera.js";
 import { makeOverlays } from "./overlays.js";
 import { makeSurface } from "./surface.js";
 
@@ -62,7 +62,9 @@ export async function mountWorld(stage, options = {}) {
     slowFrames = 0;
   let lastCamera = "",
     tapSequence = 0,
-    gestureZoom;
+    safariGesture,
+    wheelTimer = 0,
+    suppressClick = false;
   const pointers = new Map();
   let drag = null,
     pinch = null;
@@ -177,9 +179,10 @@ export async function mountWorld(stage, options = {}) {
     // During renderer initialization the poster and cards retain their shared first frame.
     const view = renderer ? camera : HOME,
       r = radiusAt(width, height, view.zoom);
-    renderer?.draw(width, height, r, view, Boolean(moving || pointers.size || gestureZoom != null), quality, reading ? readingScale : 1);
+    renderer?.draw(width, height, r, view, Boolean(moving || pointers.size || safariGesture || wheelTimer), quality, reading ? readingScale : 1);
     stage.dataset.rendered = String(Boolean(renderer));
-    hit.style.setProperty("--hit-size", Math.ceil(r * 2) + "px");
+    const diameter = Math.ceil(r * 2) + "px";
+    if (stage.style.getPropertyValue("--hit-size") !== diameter) stage.style.setProperty("--hit-size", diameter);
     overlay.draw(view, width, height, r);
     const key = [view.longitude.toFixed(1), view.latitude.toFixed(1), view.zoom.toFixed(2)].join("/");
     if (key !== lastCamera) {
@@ -200,6 +203,8 @@ export async function mountWorld(stage, options = {}) {
     frame = previous = 0;
     clearTimeout(idleTimer);
     clearTimeout(settleTimer);
+    clearTimeout(wheelTimer);
+    wheelTimer = 0;
     idle = false;
   }
   function resume() {
@@ -245,79 +250,107 @@ export async function mountWorld(stage, options = {}) {
     else return;
     e.preventDefault();
   });
-  listen(
-    hit,
-    "wheel",
-    (e) => {
-      // The world owns the viewport. Scrollable readers sit above this surface.
-      e.preventDefault();
-      if (gestureZoom !== undefined || pointers.size) return;
-      const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? height : 1;
-      zoomBy(Math.exp(-clamp(e.deltaY * unit, -240, 240) * (e.ctrlKey ? 0.009 : 0.0025)));
-    },
-    { passive: false },
-  );
-  listen(
-    hit,
-    "gesturestart",
-    (e) => {
-      e.preventDefault();
-      if (!pointers.size) {
-        interrupt();
-        gestureZoom = camera.zoom;
-      }
-    },
-    { passive: false },
-  );
-  listen(
-    hit,
-    "gesturechange",
-    (e) => {
-      e.preventDefault();
-      if (gestureZoom !== undefined && e.scale > 0) {
-        camera.zoom = clamp(gestureZoom * e.scale, CAMERA.minZoom, CAMERA.maxZoom);
-        queue();
-      }
-    },
-    { passive: false },
-  );
-  listen(hit, "gestureend", () => {
-    gestureZoom = undefined;
-    settle();
-  });
-  function distance() {
-    const [a, b] = pointers.values();
-    return Math.max(1, Math.hypot(a.x - b.x, a.y - b.y));
+  function offset(clientX, clientY) {
+    const rect = stage.getBoundingClientRect();
+    return { x: clientX - rect.left - rect.width / 2, y: rect.top + rect.height / 2 - clientY };
   }
+  function anchorAt(point) {
+    const r = radiusAt(width, height, camera.zoom);
+    return unproject(point.x / r, point.y / r, camera);
+  }
+  function directZoom(factor, point, anchor) {
+    camera.zoom = clamp(camera.zoom * factor, CAMERA.minZoom, CAMERA.maxZoom);
+    const r = radiusAt(width, height, camera.zoom);
+    holdAnchor(camera, anchor, point.x / r, point.y / r);
+    queue();
+  }
+  function touchPair() {
+    const [a, b] = pointers.values();
+    return {
+      point: offset((a.x + b.x) / 2, (a.y + b.y) / 2),
+      distance: Math.max(1, Math.hypot(a.x - b.x, a.y - b.y)),
+    };
+  }
+  listen(stage, "wheel", (e) => {
+    if (reading || !renderer) return;
+    e.preventDefault();
+    if (safariGesture || pointers.size) return;
+    const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? height : 1;
+    const point = offset(e.clientX, e.clientY);
+    interrupt();
+    directZoom(Math.exp(-clamp(e.deltaY * unit * (e.ctrlKey ? .014 : .0035), -.8, .8)), point, anchorAt(point));
+    clearTimeout(wheelTimer);
+    wheelTimer = setTimeout(() => { wheelTimer = 0; queue(); }, 95);
+  }, { passive: false });
+  function safariPoint(e) {
+    return Number.isFinite(e.clientX) && Number.isFinite(e.clientY)
+      ? offset(e.clientX, e.clientY) : { x: 0, y: 0 };
+  }
+  listen(stage, "gesturestart", (e) => {
+    if (reading || !renderer) return;
+    e.preventDefault();
+    if (!pointers.size) {
+      interrupt();
+      safariGesture = { scale: 1, anchor: anchorAt(safariPoint(e)) };
+    }
+  }, { passive: false });
+  listen(stage, "gesturechange", (e) => {
+    if (reading) return;
+    e.preventDefault();
+    if (safariGesture && !pointers.size && e.scale > 0) {
+      directZoom((e.scale / safariGesture.scale) ** CAMERA.pinchGain, safariPoint(e), safariGesture.anchor);
+      safariGesture.scale = e.scale;
+    }
+  }, { passive: false });
+  listen(stage, "gestureend", () => {
+    safariGesture = null;
+    queue();
+  });
+  listen(stage, "click", (e) => {
+    if (suppressClick && e.detail) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+  }, { capture: true });
   function startDrag(pos, moved = false) {
     drag = { ...pos, lastX: pos.x, lastY: pos.y, time: performance.now(), moved, dx: 0, dy: 0 };
   }
-  listen(hit, "pointerdown", (e) => {
-    if (e.button !== 0 || pointers.size >= 2 || !renderer) return;
+  listen(stage, "pointerdown", (e) => {
+    const button = e.target.closest(".world-postcard");
+    if (reading || e.button !== 0 || pointers.size >= 2 || !renderer || (!button && e.target !== hit && !pointers.size)) return;
+    if (!pointers.size) suppressClick = false;
+    safariGesture = null;
     interrupt();
-    hit.focus({ preventScroll: true });
-    hit.setPointerCapture(e.pointerId);
-    const pos = { x: e.clientX, y: e.clientY };
+    if (!button) hit.focus({ preventScroll: true });
+    (button || stage).setPointerCapture(e.pointerId);
+    const pos = { x: e.clientX, y: e.clientY, button };
     pointers.set(e.pointerId, pos);
     if (pointers.size === 2) {
-      pinch = { initial: distance(), zoom: camera.zoom };
+      for (const id of pointers.keys()) stage.setPointerCapture(id);
+      const pair = touchPair();
+      pinch = { distance: pair.distance, anchor: anchorAt(pair.point) };
+      suppressClick = true;
       drag = null;
     } else startDrag(pos);
   });
-  listen(hit, "pointermove", (e) => {
+  listen(stage, "pointermove", (e) => {
     if (!pointers.has(e.pointerId)) return;
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    const pos = pointers.get(e.pointerId);
+    pos.x = e.clientX;
+    pos.y = e.clientY;
     if (pinch) {
-      camera.zoom = clamp((pinch.zoom * distance()) / pinch.initial, CAMERA.minZoom, CAMERA.maxZoom);
-      queue();
+      const pair = touchPair();
+      directZoom((pair.distance / pinch.distance) ** CAMERA.pinchGain, pair.point, pinch.anchor);
+      pinch.distance = pair.distance;
       return;
     }
-    if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 4) return;
-    drag.moved = true;
+    if (!drag.moved && Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 3) return;
+    if (!drag.moved) stage.setPointerCapture(e.pointerId);
+    drag.moved = suppressClick = true;
     hit.classList.add("world-turning");
     const now = performance.now(),
       elapsed = Math.max(8, now - drag.time);
-    const factor = 70 / radiusAt(width, height, camera.zoom);
+    const factor = CAMERA.dragDegrees / radiusAt(width, height, camera.zoom);
     const dx = (drag.lastX - e.clientX) * factor,
       dy = (e.clientY - drag.lastY) * factor;
     camera.longitude = wrap(camera.longitude + dx);
@@ -352,7 +385,7 @@ export async function mountWorld(stage, options = {}) {
   function end(e) {
     if (!pointers.delete(e.pointerId)) return;
     if (e.type === "pointerup" && drag && !pinch) {
-      if (!drag.moved) tap(e);
+      if (!drag.moved && !drag.button) tap(e);
       else if (animated() && performance.now() - drag.time < 90) {
         velocityX = drag.dx;
         velocityY = drag.dy;
@@ -364,7 +397,10 @@ export async function mountWorld(stage, options = {}) {
     queue();
     settle();
   }
-  for (const event of ["pointerup", "lostpointercapture", "pointercancel"]) listen(hit, event, end);
+  for (const event of ["pointerup", "pointercancel"]) listen(stage, event, end);
+  listen(stage, "lostpointercapture", (e) => {
+    if (!stage.hasPointerCapture(e.pointerId)) end(e);
+  });
   function setMotion(value) {
     motionPreference = Boolean(value);
     stage.dataset.motion = motionPreference ? "on" : "off";

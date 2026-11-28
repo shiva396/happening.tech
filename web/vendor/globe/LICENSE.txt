@@ -98,17 +98,11 @@ THIS SOFTWARE.
 
 Country hit-testing geometry: Natural Earth 1:50m, via world-atlas 2.0.2, simplified for small-screen display. https://www.naturalearthdata.com/
 
-The overview, poster and close-up map tiles use Natural Earth 1:10m Natural Earth I
-with land cover, shaded relief and water, plus the 5.1.2 country polygons, land
-boundaries and lakes. Natural Earth datasets are in the public domain.
-https://www.naturalearthdata.com/about/terms-of-use/
+Satellite surface, poster and regional tiles: NASA Earth Observatory, Blue Marble:
+Next Generation, August 2004, topography and bathymetry. Imagery by Reto Stöckli,
+NASA Goddard Space Flight Center.
+https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/base-topography-bathymetry/
 
-To rebuild with Python and Pillow, place the TIFF from the following archive in
-a source directory as relief.tif. Save the three GeoJSON sources beside it as
-countries.geojson, admin_0_boundary_lines_land.geojson and lakes.geojson.
-Run python3 tool/world/bake.py followed by that directory path.
-
-https://naturalearth.s3.amazonaws.com/10m_raster/NE1_HR_LC_SR_W.zip
-https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_10m_admin_0_countries.geojson
-https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_10m_admin_0_boundary_lines_land.geojson
-https://raw.githubusercontent.com/nvkelso/natural-earth-vector/v5.1.2/geojson/ne_10m_lakes.geojson
+Download the 21600 × 10800 global JPEG and pass its path to the Pillow bake:
+python3 tool/world/bake.py world.topo.bathy.200408.3x21600x10800.jpg
+https://assets.science.nasa.gov/content/dam/science/esd/eo/images/bmng/bmng-topography-bathymetry/august/world.topo.bathy.200408.3x21600x10800.jpg

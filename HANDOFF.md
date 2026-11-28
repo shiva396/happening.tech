@@ -8,10 +8,10 @@ The production build generated 40 static pages from 12 Flutter events, 11 commun
 
 | Surface | Inside a city | Other views |
 | --- | --- | --- |
-| [Desktop globe](docs/atlas/screenshots/world.webp) | [Chennai](docs/atlas/screenshots/place.webp) | [Program](docs/atlas/screenshots/program.webp) · [Directory](docs/atlas/screenshots/directory.webp) |
+| [Desktop globe](docs/atlas/screenshots/world.webp) · [Utah event](docs/atlas/screenshots/selected-event.webp) | [Chennai](docs/atlas/screenshots/place.webp) | [Program](docs/atlas/screenshots/program.webp) · [Directory](docs/atlas/screenshots/directory.webp) |
 | [Mobile globe](docs/atlas/screenshots/mobile-world.webp) | [Mobile Chennai](docs/atlas/screenshots/mobile-place.webp) | [Selected event](docs/atlas/screenshots/mobile-event.webp) |
 
-The close-up uses a 12,288 × 6,144 Natural Earth map with 1:10 million coastlines, lakes, land boundaries and shaded terrain. It loads local tiles on demand. The initial overview is 2,048 × 1,024. The same view over Warsaw is shown at maximum zoom before and after the change. [Zoom comparison](docs/atlas/screenshots/zoom-comparison.webp)
+The 2,048 × 1,024 overview and two regional detail levels use NASA’s August 2004 Blue Marble satellite mosaic. The finest level is 21,504 × 10,752 pixels. The globe loads visible tiles on demand, with three requests in flight and up to 16 resident WebGL tiles. Spreading two fingers by 50% increases the camera zoom by about 2.16× and keeps the place under their midpoint. Curved leaders connect the existing pin and card endpoints. Selecting a listing opens details at the right edge on desktop and above the dock on phones. The comparison shows Warsaw from the same camera position. [Zoom comparison](docs/atlas/screenshots/zoom-comparison.webp)
 
 The atlas uses a self-hosted Source Sans 3 variable font for map labels, reading views and forms.
 
@@ -28,8 +28,8 @@ Medians of three cold visits to the production build on a loopback HTTP server. 
 
 | Cold profile | LCP | Lab INP candidate | CLS | Zoom frame p95 | Initial transfer | JS heap at end |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Desktop, 1440 × 900, DPR 1, unthrottled | 108 ms | 48 ms | 0.000 | 16.8 ms | 658 KiB, 30 requests | 4.4 MiB |
-| Mobile emulation, 390 × 844, DPR 2 | 576 ms | 88 ms | 0.000 | 16.7 ms | 611 KiB, 26 requests | 3.1 MiB |
+| Desktop, 1440 × 900, DPR 1, unthrottled | 136 ms | 48 ms | 0.000 | 16.7 ms | 629 KiB, 30 requests | 4.4 MiB |
+| Mobile emulation, 390 × 844, DPR 2 | 568 ms | 104 ms | 0.000 | 16.7 ms | 582 KiB, 26 requests | 3.2 MiB |
 
 The mobile profile used 4× CPU slowdown, 80 ms latency, 4 Mbit/s downstream and 1 Mbit/s upstream. The Earth poster was the LCP element. The whole-device GPU counter varied across the short zoom samples and does not isolate browser work. Transfer totals cover requests through initial network idle. A physical iOS or Android handset and real-user performance data were unavailable. [Repeat the tests](tool/browser/README.md)
 

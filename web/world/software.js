@@ -1,4 +1,4 @@
-import { detailCache, TILES } from "./detail.js";
+import { detailCache, TILES, FINE_OFFSET } from "./detail.js";
 
 // A small software hemisphere keeps selection and camera controls available on GPU-limited devices.
 export async function makeSoftwareSurface(canvas, redraw) {
@@ -32,7 +32,7 @@ export async function makeSoftwareSurface(canvas, redraw) {
       const scale = moving
         ? Math.min(1, 430 / Math.max(width, height))
         : Math.min((window.devicePixelRatio || 1) * sceneScale, 2, Math.sqrt(1600000 / (width * height)));
-      const detailed = zoom >= TILES.zoom;
+      const detailed = zoom >= TILES.zoom, fine = zoom >= TILES.fineZoom;
       const w = Math.max(1, Math.round(width * scale)),
         h = Math.max(1, Math.round(height * scale));
       if (!destination || canvas.width !== w || canvas.height !== h) {
@@ -58,22 +58,27 @@ export async function makeSoftwareSurface(canvas, redraw) {
           const v = 0.5 - Math.asin(Math.max(-1, Math.min(1, y * cos + z * sin))) / Math.PI;
           let pixels = texture, sw = baseWidth, sh = baseHeight, sx = u, sy = v;
           if (detailed) {
-            const tx = u * TILES.columns, ty = Math.min(v * TILES.rows, TILES.rows - 1e-7);
-            const col = Math.floor(tx), row = Math.floor(ty);
-            const slot = details.lookup[row * TILES.columns + col];
+            let tx = u * TILES.columns, ty = Math.min(v * TILES.rows, TILES.rows - 1e-7);
+            let slot = fine && details.lookup[FINE_OFFSET + Math.floor(ty * 2) * TILES.columns * 2 + Math.floor(tx * 2)];
+            if (slot) {
+              tx *= 2;
+              ty *= 2;
+            } else {
+              slot = details.lookup[Math.floor(ty) * TILES.columns + Math.floor(tx)];
+            }
             if (slot) {
               pixels = tiles[slot - 1];
               sw = sh = TILES.size;
-              sx = tx - col;
-              sy = ty - row;
+              sx = tx - Math.floor(tx);
+              sy = ty - Math.floor(ty);
             }
           }
           const j = 4 * (Math.min(sh - 1, Math.floor(sy * sh)) * sw + Math.min(sw - 1, Math.floor(sx * sw)));
-          const light = 0.7 + 0.34 * Math.max(-0.45, -0.41 * x + 0.52 * y + 0.75 * z) + 0.045 * z;
-          const rim = 0.44 * (1 - z) ** 5;
-          out[i] = pixels[j] * light * (1 - rim) + 144 * rim;
-          out[i + 1] = pixels[j + 1] * light * (1 - rim) + 218 * rim;
-          out[i + 2] = pixels[j + 2] * light * (1 - rim) + 249 * rim;
+          const light = 0.89 + 0.16 * Math.max(-0.5, -0.41 * x + 0.52 * y + 0.75 * z);
+          const rim = 0.33 * (1 - z) ** 6;
+          out[i] = pixels[j] * light * (1 - rim) + 117 * rim;
+          out[i + 1] = pixels[j + 1] * light * (1 - rim) + 180 * rim;
+          out[i + 2] = pixels[j + 2] * light * (1 - rim) + 235 * rim;
           out[i + 3] = Math.min(1, d * r * 0.67) * 255;
         }
       }

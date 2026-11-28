@@ -22,6 +22,26 @@ async function atlas(page) {
       .map((e) => e.id);
   const visibleOrder = () => cards.evaluateAll((elements) => elements.map((el) => el.dataset.event));
   await page.locator('.world-frame[data-view="world"]').waitFor();
+  const gesture = await page.locator('.atlas-earth[data-rendered="true"]').evaluate(async earth => {
+    const frame = () => new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    const diameter = () => parseFloat(getComputedStyle(earth).getPropertyValue("--hit-size"));
+    const box = earth.getBoundingClientRect();
+    function send(type, scale) {
+      const e = new Event(type, { bubbles: true, cancelable: true });
+      Object.assign(e, { scale, clientX: box.x + box.width / 2, clientY: box.y + box.height / 2 });
+      earth.dispatchEvent(e);
+    }
+    const initial = diameter();
+    send("gesturestart", 1);
+    send("gesturechange", 1.5);
+    await frame();
+    const spread = diameter() / initial;
+    send("gesturechange", 1);
+    send("gestureend", 1);
+    await frame();
+    return { spread, restored: Math.abs(initial - diameter()) <= 1 };
+  });
+  assert(gesture.spread > 2.1 && gesture.spread < 2.2 && gesture.restored);
   assert.equal(await cards.count(), 0);
   assert(await page.locator(".globe-pages").isHidden());
   assert(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1));

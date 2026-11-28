@@ -87,7 +87,7 @@ export function makeOverlays(stage, activate) {
     button.type = "button";
     button.className = "world-postcard";
     button.dataset.kind = place.kind;
-    const count = events.length || items.length;
+    const count = items.length;
     const international = items.some((item) => item.country !== place.country);
     const multiCity = items.some((item) => item.city !== place.city);
     let label = place.city || place.country;
@@ -109,6 +109,7 @@ export function makeOverlays(stage, activate) {
     if (place.artwork) {
       const img = new Image();
       img.alt = "";
+      img.draggable = false;
       img.decoding = "async";
       img.src = place.thumbnail || place.artwork;
       img.addEventListener("error", () => img.remove(), { once: true });
@@ -126,16 +127,16 @@ export function makeOverlays(stage, activate) {
     }
     button.addEventListener("click", () => activate(group, level));
     const leader = document.createElementNS(ns, "g");
-    const line = document.createElementNS(ns, "line");
+    const path = document.createElementNS(ns, "path");
     const pin = document.createElementNS(ns, "circle");
     pin.setAttribute("r", "3.5");
     leader.classList.add("world-leader");
     if (place.ongoing) leader.classList.add("world-ongoing");
     if (place.recent && !place.ongoing) leader.classList.add("world-recent");
-    leader.append(line, pin);
+    leader.append(path, pin);
     lines.append(leader);
     layer.append(button);
-    return { button, leader, line, pin };
+    return { button, leader, path, pin };
   }
 
   function remove(key, node) {
@@ -219,8 +220,12 @@ export function makeOverlays(stage, activate) {
         if (card.position !== coords) {
           card.position = coords;
           card.button.style.transform = "translate(" + bx + "px," + by + "px)";
-          for (const [k, v] of Object.entries({ x1: ax, y1: ay, x2: cx, y2: cy }))
-            card.line.setAttribute(k, v.toFixed(1));
+          // Bend only the middle of the leader. Both endpoints still come from the pin and card layout.
+          const dx = cx - ax, dy = cy - ay;
+          const bend = Math.min(.4, 16 / (Math.hypot(dx, dy) || 1));
+          const controlX = (ax + cx) / 2 - dy * bend;
+          const controlY = (ay + cy) / 2 + dx * bend;
+          card.path.setAttribute("d", `M${ax.toFixed(1)} ${ay.toFixed(1)} Q${controlX.toFixed(1)} ${controlY.toFixed(1)} ${cx.toFixed(1)} ${cy.toFixed(1)}`);
           card.pin.setAttribute("cx", ax.toFixed(1));
           card.pin.setAttribute("cy", ay.toFixed(1));
         }

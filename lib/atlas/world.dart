@@ -40,7 +40,6 @@ class WorldView extends StatelessComponent {
           classes: standalone ? 'world-frame inside permalink' : 'world-frame',
           attributes: {if (standalone) 'data-view': permanentView!},
           [
-            div(classes: 'world-sky', attributes: {'aria-hidden': 'true'}, []),
             div(
               classes: 'world-scene',
               attributes: {if (standalone) 'inert': ''},
@@ -102,15 +101,29 @@ class WorldView extends StatelessComponent {
                     nav(
                       attributes: {'aria-label': 'Atlas resources'},
                       [
-                        a(href: 'submit/', [.text('List an event')]),
-                        a(href: 'notifications/', [.text('Notifications')]),
-                        a(href: contributionGuide, [.text('Contribute on GitHub')]),
+                        for (final (label, url, glyph) in [
+                          ('List an event', 'submit/', 'calendar-plus'),
+                          ('Notifications', 'notifications/', 'bell'),
+                          ('Contribute on GitHub', contributionGuide, 'pull-request'),
+                        ])
+                          a(href: url, [
+                            icon(glyph),
+                            span([.text(label)]),
+                            icon('chevron-right'),
+                          ]),
                       ],
                     ),
                     footer(classes: 'credit-line', [
-                      a(classes: 'atlas-credit', href: nammaWebsite, [
-                        .text('Made with love by Shiva and Justin from NammaFlutter'),
+                      span(classes: 'atlas-credit', [
+                        .text('Made with 💙 by Justin and Shiva from '),
+                        a(href: nammaWebsite, [.text('NammaFlutter')]),
                       ]),
+                      a(
+                        classes: 'imagery-credit',
+                        href:
+                            'https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/base-topography-bathymetry/',
+                        [.text('Satellite imagery by NASA Blue Marble')],
+                      ),
                     ]),
                   ]),
                 ]),

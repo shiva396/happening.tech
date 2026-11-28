@@ -22,4 +22,4 @@ Notifications are available through the listing feed. Maintainers can configure 
 
 ## Design and implementation
 
-Jaspr generates the pages from the catalog. A shared URL state connects the program and globe. The globe opens with a compact map. Zooming loads local high-resolution terrain, coastlines and lakes for the visible region. Palette, typography, focus and control sizes live in the [design tokens](web/constants/atlas.css). [Design brief](docs/atlas/BRIEF.md) · [Project guide](PLAN.md) · [City photo credits](web/art/events/CREDITS.txt) · [Map data and library credits](web/vendor/globe/LICENSE.txt)
+Jaspr generates the pages from the catalog. A shared URL state connects the program and globe. The globe opens with a satellite overview. Pinch or scroll to zoom towards a place. Two levels of local NASA Blue Marble tiles add regional detail as you move closer. Palette, typography, focus and control sizes live in the [design tokens](web/constants/atlas.css). [Design brief](docs/atlas/BRIEF.md) · [Project guide](PLAN.md) · [City photo credits](web/art/events/CREDITS.txt) · [Map data and library credits](web/vendor/globe/LICENSE.txt)

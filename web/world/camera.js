@@ -5,7 +5,9 @@ export const CAMERA = Object.freeze({
   portraitWidth: 600,
   portraitFraction: 1.23,
   minZoom: 0.8,
-  maxZoom: 4.1,
+  maxZoom: 7,
+  pinchGain: 1.9,
+  dragDegrees: 90,
   maxLatitude: 89.5,
   overviewZoom: 1.25,
   countryZoom: 1.55,
@@ -51,4 +53,25 @@ export function unproject(x, y, camera) {
     wrap(camera.longitude + Math.atan2(x, z * Math.cos(lat) - y * Math.sin(lat)) / radians),
     Math.asin(clamp(y * Math.cos(lat) + z * Math.sin(lat), -1, 1)) / radians,
   ];
+}
+
+// Solve the inverse orthographic projection for a north-up camera whose anchor
+// lies at (x, y). Near a pole, use the solution nearest the current latitude.
+export function holdAnchor(camera, anchor, x, y) {
+  if (!anchor) return;
+  const length = Math.hypot(x, y);
+  if (length > 0.999) {
+    x *= 0.999 / length;
+    y *= 0.999 / length;
+  }
+  const z = Math.sqrt(Math.max(0, 1 - x * x - y * y));
+  const latitude = Math.asin(clamp(Math.sin(anchor[1] * radians) / Math.hypot(y, z), -1, 1));
+  const tilt = Math.atan2(y, z);
+  const first = wrap((latitude - tilt) / radians);
+  const second = wrap((Math.PI - latitude - tilt) / radians);
+  const closest = Math.abs(second) <= 90 && Math.abs(second - camera.latitude) < Math.abs(first - camera.latitude)
+    ? second : first;
+  camera.latitude = clamp(closest, -CAMERA.maxLatitude, CAMERA.maxLatitude);
+  const north = camera.latitude * radians;
+  camera.longitude = wrap(anchor[0] - Math.atan2(x, z * Math.cos(north) - y * Math.sin(north)) / radians);
 }
