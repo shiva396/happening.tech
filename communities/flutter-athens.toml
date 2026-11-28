@@ -1,0 +1,7 @@
+name = "Flutter Athens"
+city = "Athens"
+country = "Greece"
+latitude = 37.98
+longitude = 23.73
+url = "https://www.meetup.com/flutter-athens/"
+description = "A Greek community for developers and designers learning Flutter and sharing what they build."

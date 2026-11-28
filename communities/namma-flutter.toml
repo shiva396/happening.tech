@@ -1,0 +1,8 @@
+name = "Namma Flutter"
+city = "Chennai"
+country = "India"
+latitude = 13.0827
+longitude = 80.2707
+url = "https://nammaflutter.com/"
+description = "A Chennai community for Flutter developers, with local meetups, college workshops and hackathons."
+links = ["https://t.me/nammaflutter", "https://github.com/Namma-Flutter"]

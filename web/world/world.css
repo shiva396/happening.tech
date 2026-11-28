@@ -1,0 +1,214 @@
+.atlas-earth {
+  --world-paper: #fbfdff;
+  --world-ink: #123b61;
+  --world-anchor: #0876c3;
+  --world-leader: #0774b5;
+  --world-card-width: 112px;
+  --world-card-height: 78px;
+  --world-focus: #0069b7;
+  --world-card-shadow: 0 2px 3px #123a602b, 0 7px 15px #173e6326;
+  --world-fast: var(--motion-fast, 170ms);
+  position: relative;
+  isolation: isolate;
+  container-type: size;
+}
+.atlas-earth-poster,
+.atlas-earth::before,
+.world-touch {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%);
+  width: var(--earth-diameter, min(88cqw, 88cqh));
+  height: var(--earth-diameter, min(88cqw, 88cqh));
+  border-radius: 50%;
+}
+.atlas-earth::before {
+  content: "";
+  pointer-events: none;
+  box-shadow:
+    0 0 0 1px #b1deed70,
+    0 0 24px 3px #8bd8f14a,
+    8px 19px 42px -21px #306e9c52;
+}
+.atlas-earth-poster {
+  display: block;
+  pointer-events: none;
+  user-select: none;
+}
+.atlas-earth[data-rendered="true"] .atlas-earth-poster {
+  visibility: hidden;
+}
+.atlas-earth .world-surface,
+.world-cards,
+.world-lines {
+  position: absolute;
+  inset: 0;
+  height: 100%;
+  width: 100%;
+  pointer-events: none;
+}
+.atlas-earth .world-touch {
+  width: min(var(--hit-size, var(--earth-diameter)), 100%);
+  height: min(var(--hit-size, var(--earth-diameter)), 100%);
+  touch-action: pan-y;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.atlas-earth[data-rendered="true"] .world-touch {
+  cursor: grab;
+}
+.atlas-earth[data-rendered="true"] .world-touch.world-turning {
+  cursor: grabbing;
+}
+.world-touch:focus-visible {
+  outline: 2px dashed var(--world-focus);
+  outline-offset: -5px;
+}
+.world-leader line {
+  stroke: var(--world-leader);
+  stroke-width: 1.4;
+  paint-order: stroke;
+}
+.world-leader circle {
+  fill: var(--world-anchor);
+  stroke: white;
+  stroke-width: 1.8;
+}
+.world-ongoing circle {
+  animation: world-breathe 3s ease-in-out infinite;
+}
+.world-recent circle {
+  animation: world-ripple 1.7s ease-out 2;
+}
+@keyframes world-breathe {
+  50% {
+    stroke-width: 3.5;
+  }
+}
+@keyframes world-ripple {
+  70% {
+    stroke-width: 5;
+    stroke-opacity: 0;
+  }
+}
+.world-postcard {
+  appearance: none;
+  position: absolute;
+  left: 0;
+  top: 0;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  width: var(--world-card-width);
+  height: var(--world-card-height);
+  padding: 4px;
+  gap: 0;
+  border: 1px solid #aac5d3;
+  border-radius: 7px;
+  background: var(--world-paper);
+  color: var(--world-ink);
+  box-shadow: var(--world-card-shadow);
+  font: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+  transition:
+    box-shadow var(--world-fast),
+    border-color var(--world-fast);
+  animation: world-appear var(--world-fast) ease-out both;
+}
+.world-postcard:focus-visible,
+.world-postcard:hover,
+.world-postcard.world-focused {
+  z-index: 1;
+  outline: 2px solid var(--world-focus);
+  outline-offset: 2px;
+}
+.world-stack::before {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: -4px 4px 5px -3px;
+  transform: rotate(-6deg);
+  border: 1px solid #a0c3d6;
+  background: #e5f3fa;
+  border-radius: 6px;
+}
+.world-photo {
+  width: 100%;
+  flex: 1;
+  min-height: 0;
+  background-color: #72beed;
+  background-image:
+    linear-gradient(132deg, transparent 32%, #c9edff 32% 49%, transparent 49%),
+    linear-gradient(48deg, #369be4 30%, transparent 30% 62%, #3988c0 62%);
+  overflow: hidden;
+  border-radius: 3px;
+  position: relative;
+}
+.world-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.world-caption {
+  flex: none;
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 3px 2px 0;
+  text-align: left;
+  font-size: 0.74rem;
+  line-height: 1.15;
+  font-weight: 650;
+  letter-spacing: 0.005em;
+}
+.world-card-count {
+  background: var(--world-ink);
+  color: var(--world-paper);
+  border: 2px solid white;
+  border-radius: 100px;
+  padding-inline: 4px;
+  min-width: 20px;
+  height: 20px;
+  font-size: 0.68rem;
+  line-height: 16px;
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  text-align: center;
+  box-sizing: border-box;
+  font-variant-numeric: tabular-nums;
+}
+@keyframes world-appear {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@container (max-width: 479px) {
+  .world-postcard {
+    --world-card-width: 79px;
+    --world-card-height: 60px;
+    padding: 3px;
+  }
+  .world-caption {
+    font-size: 0.68rem;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .world-postcard,
+  .world-leader circle {
+    animation: none;
+    transition: none;
+  }
+}
+.atlas-earth[data-motion="off"] :is(.world-postcard, .world-leader circle) {
+  animation: none;
+  transition: none;
+}

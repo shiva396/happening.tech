@@ -1,0 +1,64 @@
+City photography for flutter.spot
+
+These photographs show each host city. The Athens photograph depicts the host community of an online event.
+Files have been resized and converted to WebP. Thumbnails use the same licenses as the originals.
+
+athens.webp and thumb/athens.webp
+Athens Acropolis at Daybreak.jpg
+Andrew Parlette
+CC BY 4.0 https://creativecommons.org/licenses/by/4.0/
+https://commons.wikimedia.org/wiki/File:Athens_Acropolis_at_Daybreak.jpg
+
+berlin.webp and thumb/berlin.webp
+Brandenburger Tor morgens.jpg
+Thomas Wolf, www.foto-tw.de
+CC BY-SA 3.0 https://creativecommons.org/licenses/by-sa/3.0/
+https://commons.wikimedia.org/wiki/File:Brandenburger_Tor_morgens.jpg
+
+cancun.webp and thumb/cancun.webp
+Cancun Strand Luftbild (22143397586).jpg
+dronepicr
+CC BY 2.0 https://creativecommons.org/licenses/by/2.0/
+https://commons.wikimedia.org/wiki/File:Cancun_Strand_Luftbild_(22143397586).jpg
+
+chennai.webp and thumb/chennai.webp
+Kapaleeswarar Temple, Mylapore, Chennai.jpg
+Srinivasan G
+CC BY-SA 2.0 https://creativecommons.org/licenses/by-sa/2.0/
+https://commons.wikimedia.org/wiki/File:Kapaleeswarar_Temple,_Mylapore,_Chennai.jpg
+
+lagos.webp and thumb/lagos.webp
+Lagos-centre-from-executive-lounge-Continental-hotel-2026-IMG 7970.jpg
+FrankvEck
+CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/
+https://commons.wikimedia.org/wiki/File:Lagos-centre-from-executive-lounge-Continental-hotel-2026-IMG_7970.jpg
+
+singapore.webp and thumb/singapore.webp
+Marina Bay Sands, Singapore, at night - 201208.jpg
+Jakub Michankow
+CC BY 2.0 https://creativecommons.org/licenses/by/2.0/
+https://commons.wikimedia.org/wiki/File:Marina_Bay_Sands,_Singapore,_at_night_-_201208.jpg
+
+stockholm.webp and thumb/stockholm.webp
+Munkbroleden with Kornhamstorg at Gamla Stan, Stockholm, Sweden 01.jpg
+OleNeitzel
+CC BY 4.0 https://creativecommons.org/licenses/by/4.0/
+https://commons.wikimedia.org/wiki/File:Munkbroleden_with_Kornhamstorg_at_Gamla_Stan,_Stockholm,_Sweden_01.jpg
+
+tokyo.webp and thumb/tokyo.webp
+2019-09-05 Rainbow bridge, view from Daibo park, Tokyo.jpg
+Sergey Galyonkin
+CC BY-SA 2.0 https://creativecommons.org/licenses/by-sa/2.0/
+https://commons.wikimedia.org/wiki/File:2019-09-05_Rainbow_bridge,_view_from_Daibo_park,_Tokyo.jpg
+
+utah.webp and thumb/utah.webp
+American Fork Canyon from Timpanogos Cave entrance.jpg
+Ken Lund, edited by Daniel Case
+CC BY-SA 2.0 https://creativecommons.org/licenses/by-sa/2.0/
+https://commons.wikimedia.org/wiki/File:American_Fork_Canyon_from_Timpanogos_Cave_entrance.jpg
+
+warsaw.webp and thumb/warsaw.webp
+Aleja Niepdleglosci Warsaw 2022 aerial (cropped).jpg
+Emptywords
+CC BY-SA 4.0 https://creativecommons.org/licenses/by-sa/4.0/
+https://commons.wikimedia.org/wiki/File:Aleja_Niepdleglosci_Warsaw_2022_aerial_(cropped).jpg

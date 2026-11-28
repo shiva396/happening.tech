@@ -1,0 +1,8 @@
+name = "Flutter Singapore"
+city = "Singapore"
+country = "Singapore"
+latitude = 1.29
+longitude = 103.85
+url = "https://www.meetup.com/flutter-singapore/"
+description = "Developers in Singapore share Dart and Flutter projects, trade implementation tips and host technical talks."
+links = ["https://t.me/flutter_sg"]

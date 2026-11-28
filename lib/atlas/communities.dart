@@ -1,0 +1,57 @@
+import 'package:jaspr/dom.dart';
+import 'package:jaspr/jaspr.dart';
+
+import '../components/icon.dart';
+import '../event.dart';
+import '../project.dart';
+import 'presentation.dart';
+
+Component communityCard(Community c, Iterable<Event> events) {
+  final location=locationName(c.city,c.country);
+  final count=events.where((e)=>e.communityId==c.id && e.status!='cancelled' && !pastEvent(e,DateTime.now())).length;
+  return article(classes:'community-card',attributes:{'data-directory-id':c.id,'data-place':location,'data-country':c.country,'data-name':c.name},[
+    communityIdentity(c),
+    div([h3([a(href:'communities/${c.id}/',[.text(c.name)])]),p([.text(location.isEmpty?'Online community':location)]),
+      if(count>0) small([.text('$count upcoming ${count==1?'event':'events'}')])]),
+  ]);
+}
+
+class Communities extends StatelessComponent {
+  const Communities(this.communities,this.events,{this.directory=false,super.key});
+  final List<Community> communities;
+  final List<Event> events;
+  final bool directory;
+  @override
+  Component build(BuildContext context) {
+    final countries=communities.map((c)=>c.country).where((s)=>s.isNotEmpty).toSet().toList()..sort();
+    final curated = [...communities]..sort((a,b) {
+      if(a.id=='namma-flutter') return -1;
+      if(b.id=='namma-flutter') return 1;
+      return a.name.compareTo(b.name);
+    });
+    return section(id:'communities',classes:'section communities',[
+      if(directory) pageHead('Global Flutter communities','communities/'),
+      div(classes:'section-inner',[
+        div(classes:'split-heading',[
+          div([overline('users','Community directory'),
+            if(directory) h1([.text('Global Flutter '),em([.text('communities.')])])
+            else h2([.text('People behind the '),em([.text('places.')])]),
+          ]),
+          if(!directory) a(classes:'pill',href:'communities/',[icon('users'),.text('All communities')]),
+        ]),
+        if(directory) ...[
+          p(classes:'section-lede',[.text('An open directory of local Flutter groups. Find your community or suggest one to add.')]),
+          div(classes:'filter-bar enhanced',[
+            label(classes:'search-field',[icon('search'),input(type:InputType.search,id:'community-query',attributes:{'placeholder':'Search by name or location','aria-label':'Search communities'})]),
+            label(classes:'select-field',[select(id:'community-country',attributes:{'aria-label':'Filter communities by country'},[
+              option(value:'',[.text('All countries')]),for(final c in countries) option(value:c,[.text(c)]),
+            ]),icon('chevron-down')]),
+          ]),
+        ],
+        div(classes:'community-grid',[for(final c in directory?curated:curated.take(4)) communityCard(c,events)]),
+        p(id:'community-empty',classes:'empty-state',attributes:{if(communities.isNotEmpty)'hidden':''},[.text('No communities match this location yet. Know a Flutter group here?')]),
+        a(classes:'text-link directory-contribute',href:contributionGuide+'#communities',[icon('plus'),.text('Suggest a community')]),
+      ]),
+    ]);
+  }
+}
