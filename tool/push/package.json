@@ -1,5 +1,5 @@
 {
-  "name": "happening-event-push",
+  "name": "flutter-spot-event-push",
   "private": true,
   "type": "module",
   "dependencies": { "web-push": "3.6.7" }

@@ -22,8 +22,8 @@ class App extends StatelessComponent {
       header(classes: 'masthead', [
         div(classes: 'wrap mast-inner', [
           a(href: './', classes: 'brand', [
-            .text('happening'),
-            span([.text('.tech')]),
+            .text(projectWordmark),
+            span([.text(projectSuffix)]),
           ]),
           PlayfulNavigation(path),
           div(classes: 'mast-actions', [
@@ -39,39 +39,39 @@ class App extends StatelessComponent {
       main_(id: 'content', [
         Router(
           routes: [
-            Route(path: '/', title: 'The programme · happening.tech', builder: (_, _) => Programme(events)),
+            Route(path: '/', title: 'The programme · $projectName', builder: (_, _) => Programme(events)),
             Route(
               path: '/world',
-              title: 'World view · happening.tech',
+              title: 'World view · $projectName',
               builder: (_, _) => Programme(events, world: true),
             ),
             Route(
               path: '/archive',
-              title: 'Event archive · happening.tech',
+              title: 'Event archive · $projectName',
               builder: (_, _) => Programme(events, archive: true),
             ),
             Route(
               path: '/past',
-              title: 'Event archive · happening.tech',
+              title: 'Event archive · $projectName',
               builder: (_, _) => a(id: 'legacy-archive', href: 'archive/', [.text('Open the event archive')]),
             ),
             Route(
               path: '/notifications',
-              title: 'Notifications · happening.tech',
+              title: 'Notifications · $projectName',
               builder: (_, _) => const NotificationsPage(),
             ),
-            Route(path: '/submit', title: 'List an event · happening.tech', builder: (_, _) => const SubmitPage()),
+            Route(path: '/submit', title: 'List an event · $projectName', builder: (_, _) => const SubmitPage()),
             for (final event in events)
               Route(
                 path: '/events/${event.slug}',
-                title: '${event.title} · happening.tech',
+                title: '${event.title} · $projectName',
                 builder: (_, _) => EventPage(event),
               ),
           ],
         ),
       ]),
       footer(classes: 'site-foot wrap', [
-        a(href: './', classes: 'footer-brand', [.text('happening.tech')]),
+        a(href: './', classes: 'footer-brand', [.text(projectName)]),
         nav(
           attributes: {'aria-label': 'Community'},
           [

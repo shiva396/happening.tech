@@ -5,6 +5,8 @@ import 'package:timezone/data/latest_all.dart' as zone_data;
 import 'package:timezone/timezone.dart' as tz;
 import 'package:toml/toml.dart';
 
+import 'project.dart';
+
 const _requiredKeys = {
   'title',
   'city',
@@ -61,9 +63,10 @@ class Event {
     final lines = [
       'BEGIN:VCALENDAR',
       'VERSION:2.0',
-      'PRODID:-//happening.tech//Community events//EN',
+      'PRODID:-//$projectName//Community events//EN',
       'CALSCALE:GREGORIAN',
       'BEGIN:VEVENT',
+      // The calendar UID namespace predates the rename. Calendar clients use it to identify repeat imports.
       'UID:$slug@happening.tech',
       'DTSTAMP:${_utcStamp(DateTime.now())}',
       startField,

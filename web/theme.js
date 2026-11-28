@@ -1,7 +1,7 @@
 // Apply the saved palette before the first paint on each static page.
 (() => {
   const root = document.documentElement;
-  const storageKey = "happening.theme";
+  const storageKey = "flutter.spot.theme";
   const systemDark = matchMedia("(prefers-color-scheme: dark)");
   const reducedMotion = matchMedia("(prefers-reduced-motion: reduce)");
   let preference;
@@ -9,7 +9,17 @@
   let transition;
 
   function readPreference() {
-    try { return localStorage.getItem(storageKey); } catch { return null; }
+    try {
+      const saved = localStorage.getItem(storageKey);
+      if (saved !== null) return saved;
+      const legacy = localStorage.getItem("happening.theme");
+      if (legacy === "light" || legacy === "dark") {
+        localStorage.setItem(storageKey, legacy);
+        localStorage.removeItem("happening.theme");
+        return legacy;
+      }
+    } catch { /* Storage can be unavailable in private contexts. */ }
+    return null;
   }
 
   function applyTheme() {

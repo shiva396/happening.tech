@@ -3,6 +3,7 @@ import 'package:jaspr/server.dart';
 
 import 'app.dart';
 import 'event.dart';
+import 'project.dart';
 import 'main.server.options.dart';
 
 void main() {
@@ -11,7 +12,7 @@ void main() {
     Document(
       lang: 'en',
       base: const String.fromEnvironment('SITE_BASE_PATH', defaultValue: '/'),
-      title: 'The programme · happening.tech',
+      title: 'The programme · $projectName',
       meta: const {
         'description': 'An independent guide to developer meetups, workshops and conferences around the world.',
       },

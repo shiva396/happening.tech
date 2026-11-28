@@ -1,5 +1,5 @@
 {
-  "name": "happening-navigation-art",
+  "name": "flutter-spot-navigation-art",
   "private": true,
   "scripts": { "bake": "node render.cjs", "check": "node check.cjs" },
   "devDependencies": {

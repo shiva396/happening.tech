@@ -1,4 +1,4 @@
-# happening.tech
+# flutter.spot
 
 A community programme of developer events, built with Jaspr and published on GitHub Pages. Browse upcoming events in Programme or World view. Open **Event archive** in the footer for completed listings.
 

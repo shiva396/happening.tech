@@ -3,7 +3,7 @@
 These checks exercise the static HTML, CSS, assets and browser code that Jaspr publishes to Pages. Start a production preview from the repository root.
 
 ```sh
-dart pub global run jaspr_cli:jaspr build --dart-define-server=HAPPENING_REPOSITORY=shiva396/happening.tech
+dart pub global run jaspr_cli:jaspr build --dart-define-server=PROJECT_REPOSITORY=shiva396/flutter.spot
 python3 -m http.server 4173 --directory build/jaspr
 ```
 

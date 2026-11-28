@@ -1,5 +1,5 @@
 {
-  "name": "happening-site-checks",
+  "name": "flutter-spot-site-checks",
   "private": true,
   "scripts": {
     "test": "node site.cjs && node recovery.cjs",
