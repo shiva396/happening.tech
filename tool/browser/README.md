@@ -9,6 +9,8 @@ dart analyze --fatal-infos
 dart run tool/validate.dart
 dart run tool/check_import.dart
 dart pub global run jaspr_cli:jaspr build --dart-define-server=SITE_BASE_PATH=/flutter.spot --dart-define-server=SITE_URL=https://shiva396.github.io/flutter.spot/
+npm ci --prefix tool/assets
+npm run build --prefix tool/assets
 dart run tool/sitemap.dart https://shiva396.github.io/flutter.spot/
 python3 tool/browser/static.py
 npm ci --prefix tool/browser

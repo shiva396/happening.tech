@@ -11,6 +11,7 @@ const url = (path) => new URL(path, root).href;
 async function atlas(page) {
   await page.goto(root.href);
   const data = await page.locator("#atlas-data").evaluate((node) => JSON.parse(node.textContent));
+  assert.equal(await page.locator("[data-directory-id]").count(), 0, "The unopened directory stays out of the globe DOM");
   const cards = page.locator(".event-card:visible");
   const expectedOrder = (past) =>
     data.events
@@ -114,7 +115,10 @@ async function atlas(page) {
   await page.locator("#notifications #push-status").waitFor();
   assert.equal(new URL(page.url()).pathname, root.pathname);
   await page.goto(url("archive/"));
-  await page.locator(".split-heading [data-view=world]").click();
+  const archiveGlobe = page.locator(".split-heading [data-view=world]");
+  assert.equal(new URL(await archiveGlobe.getAttribute("href"), root).searchParams.get("period"), "past");
+  await archiveGlobe.click();
+  await page.waitForURL(target => target.pathname === root.pathname && target.hash === "#world");
   assert.equal(new URL(page.url()).searchParams.get("period"), "past");
   await page.goto(url("communities/"));
   const directorySearch = page.getByRole("searchbox", { name: "Search communities" });
@@ -288,6 +292,9 @@ eachBrowser(async (browser, name) => {
   const staticPage = await browser.newPage({ javaScriptEnabled: false });
   await staticPage.goto(root.href);
   assert(await staticPage.locator(".atlas-earth-poster").isVisible());
+  await staticPage.getByRole("link", { name: "Communities", exact: true }).click();
+  assert(await staticPage.getByRole("link", { name: "Flutter Nairobi", exact: true }).isVisible());
+  await staticPage.goBack();
   assert(await staticPage.locator("#program .filter-bar").isHidden());
   await staticPage.locator("[data-period=past]").click();
   assert.equal(

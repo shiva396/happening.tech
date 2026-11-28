@@ -1,10 +1,9 @@
+import { loadOverview } from "./surface.js";
 import { detailCache, TILES, FINE_OFFSET } from "./detail.js";
 
 // A small software hemisphere keeps selection and camera controls available on GPU-limited devices.
 export async function makeSoftwareSurface(canvas, redraw) {
-  const image = new Image();
-  image.src = new URL("../art/world-surface.webp", import.meta.url);
-  await image.decode();
+  const image = await loadOverview();
   const map = document.createElement("canvas");
   map.width = Math.min(2048, image.naturalWidth);
   map.height = map.width / 2;
@@ -26,9 +25,9 @@ export async function makeSoftwareSurface(canvas, redraw) {
   });
   return {
     software: true,
-    draw(width, height, radius, camera, moving, quality, sceneScale) {
+    draw(width, height, radius, camera, moving, quality, sceneScale, readerRadius) {
       const zoom = camera.zoom * sceneScale;
-      details.update(width / sceneScale, height / sceneScale, radius, camera, moving, zoom);
+      details.update(width / sceneScale, height / sceneScale, radius, camera, moving, zoom, readerRadius / sceneScale);
       const scale = moving
         ? Math.min(1, 430 / Math.max(width, height))
         : Math.min((window.devicePixelRatio || 1) * sceneScale, 2, Math.sqrt(1600000 / (width * height)));

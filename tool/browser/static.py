@@ -40,7 +40,11 @@ assert not (root / "dash").exists()
 assert not any((root / "art").glob("dash.*"))
 assert all(not ({"data-dash", "data-perch"} & attrs.keys())
            for page in pages.values() for _, attrs in page.items)
-assert {p.name for p in (root / "art/world-detail").glob("*.webp")} == {f"{i}.webp" for i in range(16 * 8 + 32 * 16)}
+tile_names = {p.name for p in (root / "art/world-detail").iterdir()}
+assert tile_names == {f"{i}.webp" for i in range(128)} | {f"{i}.avif" for i in range(128, 640)}
+assert not (root / "packages").exists()
+assert (root / "art/world-poster.avif").stat().st_size > 0
+assert (root / "art/world-surface.avif").stat().st_size > 0
 site = pages[""].find("link", rel="canonical")[0]["href"]
 base = urlsplit(site).path
 ids = {path: {a["id"] for _, a in page.items if "id" in a} for path, page in pages.items()}

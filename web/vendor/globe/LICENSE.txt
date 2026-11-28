@@ -103,6 +103,6 @@ Next Generation, August 2004, topography and bathymetry. Imagery by Reto Stöckl
 NASA Goddard Space Flight Center.
 https://science.nasa.gov/earth/earth-observatory/blue-marble-next-generation/base-topography-bathymetry/
 
-Download the 21600 × 10800 global JPEG and pass its path to the Pillow bake:
+Download the 21600 × 10800 global JPEG and pass its path to the bake with an AVIF-enabled Pillow 11.3 or newer:
 python3 tool/world/bake.py world.topo.bathy.200408.3x21600x10800.jpg
 https://assets.science.nasa.gov/content/dam/science/esd/eo/images/bmng/bmng-topography-bathymetry/august/world.topo.bathy.200408.3x21600x10800.jpg

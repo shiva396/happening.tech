@@ -66,7 +66,16 @@ class ProgramView extends StatelessComponent {
               h1(id: 'program-title', [.text('Past events')])
             else
               h2(id: 'program-title', [.text('Event program')]),
-            if (archive) homeLink('world', 'World view', 'globe'),
+            if (archive)
+              a(
+                classes: 'pill',
+                href: './?period=past#world',
+                attributes: {'data-view': 'world'},
+                [
+                  icon('globe'),
+                  .text('World view'),
+                ],
+              ),
           ]),
           div(classes: 'filter-bar enhanced', [
             label(classes: 'search-field', [

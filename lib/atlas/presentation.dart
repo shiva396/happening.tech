@@ -46,9 +46,6 @@ Component brand() => a(
 );
 
 Component overline(String glyph, String text) => div(classes: 'overline', [icon(glyph), .text(text)]);
-Component homeLink(String target, String label, String glyph) =>
-    a(href: './#$target', classes: 'pill', attributes: {'data-view': target}, [icon(glyph), .text(label)]);
-
 Component pageHead(
   String title,
   String path, {
@@ -84,8 +81,7 @@ Map<String, Object?> communityRecord(Community c) => {
   'country': c.country,
   'latitude': c.latitude,
   'longitude': c.longitude,
-  'description': c.description,
-  'url': c.url,
+  if (c.description.isNotEmpty) 'description': c.description,
   'artwork': c.logo,
 };
 
@@ -98,6 +94,7 @@ Map<String, Object?> eventRecord(Event e) => {
   'latitude': e.latitude,
   'longitude': e.longitude,
   'artwork': eventImage(e),
+  if (e.artworkCard != null) 'cardArtwork': e.artworkCard,
   'thumbnail': e.artworkThumbnail,
   'artworkCredit': e.artworkCredit,
   'artworkSource': e.artworkSource,

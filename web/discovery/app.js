@@ -1,6 +1,6 @@
 import { mountTheme } from "./theme.js";
 import { placeUrl } from "./place.js";
-import { mountGlobePages, refreshRegistration } from "./pages.js";
+import { initDirectory, mountGlobePages, refreshRegistration } from "./pages.js";
 import { createDiscovery, filterKeys, isPast } from "./state.js";
 
 const $ = (selector) => document.querySelector(selector);
@@ -21,47 +21,6 @@ function node(tag, text, cls) {
   if (text) el.textContent = text;
   if (cls) el.className = cls;
   return el;
-}
-
-function initDirectory() {
-  const query = $("#community-query"),
-    country = $("#community-country");
-  if (!query) return;
-  const embedded = Boolean(query.closest(".world-frame:not(.permalink)"));
-  const countryKey = embedded ? "groupCountry" : "country";
-  const queryKey = embedded ? "groupQ" : "q";
-  const rows = $$("[data-directory-id]").map(row => ({
-    row, country: row.dataset.country, text: [row.dataset.name, row.dataset.place].join(" ").toLowerCase(),
-  }));
-  function apply() {
-    const term = query.value.trim().toLowerCase();
-    let visible = 0;
-    for (const entry of rows) {
-      const hidden = Boolean(country.value && entry.country !== country.value) || !entry.text.includes(term);
-      if (entry.row.hidden !== hidden) entry.row.hidden = hidden;
-      if (!hidden) visible++;
-    }
-    $("#community-empty").hidden = visible > 0;
-    const url = new URL(location.href);
-    for (const [k, val] of [
-      [countryKey, country.value],
-      [queryKey, query.value],
-    ]) {
-      if (val) url.searchParams.set(k, val);
-      else url.searchParams.delete(k);
-    }
-    history.replaceState(null, "", url);
-  }
-  function restore() {
-    const params = new URLSearchParams(location.search);
-    country.value = params.get(countryKey) || "";
-    query.value = params.get(queryKey) || "";
-    apply();
-  }
-  window.addEventListener("popstate", restore);
-  restore();
-  query.addEventListener("input", apply);
-  country.addEventListener("change", apply);
 }
 
 function initAtlas({ events, communities }) {
@@ -219,9 +178,18 @@ function initAtlas({ events, communities }) {
     if (selected?.artwork) {
       const image = node("img");
       if (!isEvent) image.className = "community-logo";
-      image.src = base(selected.artwork);
       image.alt = "";
-      preview.append(image);
+      image.decoding = "async";
+      const picture = node("picture");
+      if (selected.thumbnail) {
+        const compact = node("source");
+        compact.media = "(max-width: 600px), (max-width: 800px) and (orientation: portrait)";
+        compact.srcset = base(selected.thumbnail);
+        picture.append(compact);
+      }
+      picture.append(image);
+      image.src = base(selected.cardArtwork || selected.artwork);
+      preview.append(picture);
     }
     preview.append(copy, close);
   }
@@ -500,7 +468,7 @@ if (registration) {
   document.addEventListener("visibilitychange", refresh);
   setInterval(refresh, 60000);
 }
-initDirectory();
+initDirectory(document);
 const data = $("#atlas-data");
 if (data) initAtlas(JSON.parse(data.textContent));
 const localEarth = $(".permalink .atlas-earth[data-lat]");

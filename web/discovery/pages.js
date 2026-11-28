@@ -6,11 +6,12 @@ export function mountGlobePages(frame, state, catalog) {
   const deck = frame.querySelector(".globe-pages");
   const story = deck.querySelector("#globe-story");
   const links = [...frame.querySelectorAll(".world-dock [data-view]")];
-  const utilities = {
+  const chapters = {
+    communities: { title: "Flutter communities", selector: "#communities .section-inner" },
     submit: { title: "List an event", selector: "#entry-studio" },
     notifications: { title: "Notifications", selector: ".wrap" },
   };
-  const views = ["program", "communities", "activity", "place", ...Object.keys(utilities)];
+  const views = ["program", "activity", "place", ...Object.keys(chapters)];
   const records = new Map(
     catalog.map((record) => [(record.kind === "event" ? "events/" : "communities/") + record.id, record]),
   );
@@ -26,17 +27,17 @@ export function mountGlobePages(frame, state, catalog) {
   }
 
   async function readPage(path, focus) {
-    const utility = utilities[path];
-    const target = utility ? deck.querySelector("#" + path) : story;
-    if (utility && target.dataset.loaded) {
+    const chapter = chapters[path];
+    const target = chapter ? deck.querySelector("#" + path) : story;
+    if (chapter && target.dataset.loaded) {
       if (focus) headingFocus(target);
       return;
     }
     const heading = document.createElement("h2");
-    heading.textContent = utility?.title || records.get(path).title;
+    heading.textContent = chapter?.title || records.get(path).title;
     const status = document.createElement("p");
     status.setAttribute("role", "status");
-    status.textContent = "Opening " + (utility ? "page" : "details") + "…";
+    status.textContent = "Opening " + (chapter ? "page" : "details") + "…";
     target.replaceChildren(heading, status);
     if (focus) headingFocus(target);
     const controller = new AbortController();
@@ -46,12 +47,18 @@ export function mountGlobePages(frame, state, catalog) {
       const response = await fetch(url, { signal: controller.signal });
       if (!response.ok) throw Error("Unavailable page");
       const doc = new DOMParser().parseFromString(await response.text(), "text/html");
-      const content = doc.querySelector(utility?.selector || "article.detail-page");
+      const content = doc.querySelector(chapter?.selector || "article.detail-page");
       if (!content) throw Error("Missing page content");
       if (controller.signal.aborted) return;
       content.querySelectorAll("script").forEach((script) => script.remove());
       let initialize;
-      if (path === "submit") {
+      if (path === "communities") {
+        const title = content.querySelector("h1");
+        const embeddedTitle = document.createElement("h2");
+        embeddedTitle.textContent = title.textContent;
+        title.replaceWith(embeddedTitle);
+        initialize = () => initDirectory(target);
+      } else if (path === "submit") {
         if (!document.querySelector('link[href="submit.css"]')) {
           const style = document.createElement("link");
           style.rel = "stylesheet";
@@ -68,7 +75,7 @@ export function mountGlobePages(frame, state, catalog) {
       const retainedFocus = target.contains(document.activeElement);
       target.replaceChildren(document.importNode(content, true));
       initialize?.();
-      if (utility) target.dataset.loaded = "true";
+      if (chapter) target.dataset.loaded = "true";
       refreshRegistration(target);
       deck.scrollTop = scrollPositions.get(path) || 0;
       if (retainedFocus) headingFocus(target);
@@ -105,7 +112,7 @@ export function mountGlobePages(frame, state, catalog) {
     deck.hidden = !reading;
     const title = links.find((a) => a.dataset.view === chapter)?.textContent.trim();
     document.title = reading
-      ? (record?.title || utilities[mode]?.title || (mode === "place" ? city || country : title)) +
+      ? (record?.title || chapters[mode]?.title || (mode === "place" ? city || country : title)) +
         " · flutter.spot"
       : homeTitle;
     for (const link of links) {
@@ -117,7 +124,7 @@ export function mountGlobePages(frame, state, catalog) {
       renderPlace(deck.querySelector("#place"), country, city, catalog);
       deck.scrollTop = 0;
       if (previous) headingFocus(deck.querySelector("#place"));
-    } else if (record || utilities[mode]) void readPage(mode, Boolean(previous));
+    } else if (record || chapters[mode]) void readPage(mode, Boolean(previous));
     else if (previous && reading) headingFocus(deck.querySelector("#" + mode));
     else if (previous) links[0].focus({ preventScroll: true });
   }
@@ -148,8 +155,7 @@ export function mountGlobePages(frame, state, catalog) {
       });
       return;
     }
-    if (records.has(path) || Object.hasOwn(utilities, path)) mode = path;
-    else if (path === "communities" && !url.search) mode = "communities";
+    if (records.has(path) || (Object.hasOwn(chapters, path) && !url.search)) mode = path;
     else if ((path === "archive" || path === "") && url.hash === "#program") {
       event.preventDefault();
       state.update({ mode: "program", ...(path === "archive" ? { period: "past" } : {}) }, true);
@@ -182,4 +188,45 @@ export function refreshRegistration(root) {
     ticket.textContent = "Organizer’s event page";
     ticket.removeAttribute("data-registration-until");
   }
+}
+
+export function initDirectory(root) {
+  const query = root.querySelector("#community-query"),
+    country = root.querySelector("#community-country");
+  if (!query) return;
+  const embedded = Boolean(query.closest(".world-frame:not(.permalink)"));
+  const countryKey = embedded ? "groupCountry" : "country";
+  const queryKey = embedded ? "groupQ" : "q";
+  const rows = [...root.querySelectorAll("[data-directory-id]")].map(row => ({
+    row, country: row.dataset.country, text: [row.dataset.name, row.dataset.place].join(" ").toLowerCase(),
+  }));
+  function apply() {
+    const term = query.value.trim().toLowerCase();
+    let visible = 0;
+    for (const entry of rows) {
+      const hidden = Boolean(country.value && entry.country !== country.value) || !entry.text.includes(term);
+      if (entry.row.hidden !== hidden) entry.row.hidden = hidden;
+      if (!hidden) visible++;
+    }
+    root.querySelector("#community-empty").hidden = visible > 0;
+    const url = new URL(location.href);
+    for (const [k, val] of [
+      [countryKey, country.value],
+      [queryKey, query.value],
+    ]) {
+      if (val) url.searchParams.set(k, val);
+      else url.searchParams.delete(k);
+    }
+    history.replaceState(null, "", url);
+  }
+  function restore() {
+    const params = new URLSearchParams(location.search);
+    country.value = params.get(countryKey) || "";
+    query.value = params.get(queryKey) || "";
+    apply();
+  }
+  window.addEventListener("popstate", restore);
+  restore();
+  query.addEventListener("input", apply);
+  country.addEventListener("change", apply);
 }

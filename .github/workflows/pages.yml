@@ -43,6 +43,11 @@ jobs:
           --dart-define-server="VAPID_PUBLIC_KEY=$VAPID_PUBLIC_KEY"
           --dart-define-server="PUSH_SUBSCRIPTION_URL=$PUSH_SUBSCRIPTION_URL"
           --dart-define-server="PROJECT_REPOSITORY=$GITHUB_REPOSITORY"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+      - run: npm ci --prefix tool/assets
+      - run: npm run build --prefix tool/assets
       - run: dart run tool/sitemap.dart "${{ steps.pages.outputs.base_url }}"
       - uses: actions/upload-pages-artifact@v5
         with:

@@ -5,7 +5,13 @@ export const TILES = Object.freeze({ columns: 16, rows: 8, size: 672, zoom: 1.25
 export const FINE_OFFSET = TILES.columns * TILES.rows;
 export const LOOKUP = Object.freeze({ width: TILES.columns * 2, height: TILES.rows * 2.5 });
 
-function visibleTiles(width, height, radius, view, capacity, fine) {
+function parentTile(id) {
+  const index = id - FINE_OFFSET;
+  const columns = TILES.columns * 2;
+  return Math.floor(index / (columns * 2)) * TILES.columns + Math.floor((index % columns) / 2);
+}
+
+function visibleTiles(width, height, radius, view, capacity, fine, coveredRadius) {
   const nearest = new Map();
   const columns = TILES.columns * (fine ? 2 : 1);
   const rows = TILES.rows * (fine ? 2 : 1);
@@ -14,12 +20,13 @@ function visibleTiles(width, height, radius, view, capacity, fine) {
   for (let row = -6; row <= 6; row++) {
     for (let col = -9; col <= 9; col++) {
       const x = col * width / 18, y = row * height / 12;
+      const distance = x * x + y * y;
+      if (distance < coveredRadius * coveredRadius) continue;
       const geo = unproject(x / radius, y / radius, view);
       if (!geo) continue;
       const tx = Math.floor(((geo[0] + 180) / 360) * columns) % columns;
       const ty = Math.min(rows - 1, Math.floor(((90 - geo[1]) / 180) * rows));
       const id = (fine ? FINE_OFFSET : 0) + ty * columns + tx;
-      const distance = x * x + y * y;
       nearest.set(id, Math.min(nearest.get(id) ?? Infinity, distance));
     }
   }
@@ -40,7 +47,8 @@ export function detailCache(capacity, upload, redraw) {
       if (lookup[id] || pending.has(id) || (failedUntil.get(id) || 0) > performance.now()) continue;
       const image = new Image();
       pending.set(id, image);
-      image.src = new URL("../art/world-detail/" + id + ".webp", import.meta.url).href;
+      const extension = id >= FINE_OFFSET ? ".avif" : ".webp";
+      image.src = new URL("../art/world-detail/" + id + extension, import.meta.url).href;
       image.decode().then(async () => {
         // Decode ahead of the camera, but keep GPU uploads out of gesture and flight frames.
         if (settled) await settled;
@@ -63,6 +71,7 @@ export function detailCache(capacity, upload, redraw) {
         redraw();
       }).catch(() => {
         failedUntil.set(id, performance.now() + 30000);
+        if (id >= FINE_OFFSET) wanted = wanted.map(tile => tile === id ? parentTile(id) : tile);
       }).finally(() => {
         pending.delete(id);
         fill();
@@ -71,7 +80,7 @@ export function detailCache(capacity, upload, redraw) {
   }
   return {
     lookup,
-    update(width, height, radius, view, moving, zoom) {
+    update(width, height, radius, view, moving, zoom, coveredRadius) {
       if (disposed) return;
       if (moving && zoom >= TILES.zoom) {
         settled ??= new Promise(resolve => { release = resolve; });
@@ -85,12 +94,13 @@ export function detailCache(capacity, upload, redraw) {
         return;
       }
       const fine = zoom >= TILES.fineZoom;
-      const key = [fine, width, height, radius.toFixed(1), view.longitude.toFixed(2), view.latitude.toFixed(2)].join("/");
+      const key = [fine, width, height, coveredRadius, radius.toFixed(1), view.longitude.toFixed(2), view.latitude.toFixed(2)].join("/");
       const now = performance.now();
       if (key === lastView || (moving && now - lastCheck < 160)) return;
       lastView = key;
       lastCheck = now;
-      wanted = visibleTiles(width, height, radius, view, capacity, fine);
+      wanted = visibleTiles(width, height, radius, view, capacity, fine, coveredRadius)
+        .map(id => fine && failedUntil.get(id) > now ? parentTile(id) : id);
       fill();
     },
     dispose() {

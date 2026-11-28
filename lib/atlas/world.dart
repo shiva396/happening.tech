@@ -50,13 +50,19 @@ class WorldView extends StatelessComponent {
                     if (latitude != null && longitude != null) ...{'data-lat': '$latitude', 'data-lon': '$longitude'},
                   },
                   [
-                    img(
-                      classes: 'atlas-earth-poster',
-                      src: 'art/world-poster.webp',
-                      width: 896,
-                      height: 896,
-                      attributes: {'fetchpriority': 'high'},
-                      alt: 'Earth looking towards Europe, Africa and Asia',
+                    Component.element(
+                      tag: 'picture',
+                      children: [
+                        source(type: 'image/avif', attributes: {'srcset': 'art/world-poster.avif'}),
+                        img(
+                          classes: 'atlas-earth-poster',
+                          src: 'art/world-poster.webp',
+                          width: 896,
+                          height: 896,
+                          attributes: {'fetchpriority': 'high'},
+                          alt: 'Earth looking towards Europe, Africa and Asia',
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -186,7 +192,7 @@ class WorldView extends StatelessComponent {
                   ('activity', 'Activity', 'radio'),
                 ])
                   a(
-                    href: './#$mode',
+                    href: mode == 'communities' ? 'communities/' : './#$mode',
                     attributes: {
                       if (!standalone) 'data-view': mode,
                       if (permanentView == mode) 'aria-current': 'page',

@@ -28,18 +28,21 @@ async function check() {
     await page.waitForFunction((s) => document.querySelector(".coordinates").textContent === s, home);
     const diameter = () => globe.evaluate(el => parseFloat(getComputedStyle(el).getPropertyValue("--hit-size")));
     const initialDiameter = await diameter();
-    const geography = (x, y) => page.evaluate(async ([x, y]) => {
-      // Input can arrive between paints. Read the camera label and diameter after the queued draw.
-      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      const { unproject } = await import(new URL("world/camera.js", document.baseURI).href);
-      const earth = document.querySelector(".atlas-earth");
-      const r = parseFloat(getComputedStyle(earth).getPropertyValue("--hit-size")) / 2;
-      const rect = earth.getBoundingClientRect();
-      const [, lat, ns, lon, ew] = document.querySelector(".coordinates").textContent.match(/([\d.]+)° ([NS])\s*\/\s*([\d.]+)° ([EW])/);
-      return unproject((x - rect.x - rect.width/2) / r, (rect.y + rect.height/2 - y) / r, {
-        latitude: Number(lat) * (ns === "N" ? 1 : -1), longitude: Number(lon) * (ew === "E" ? 1 : -1),
-      });
-    }, [x, y]);
+    const { unproject } = await import("../../web/world/camera.js");
+    async function geography(x, y) {
+      const projection = await page.evaluate(async ([x, y]) => {
+        // Input can arrive between paints. Read the camera label and diameter after the queued draw.
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const earth = document.querySelector(".atlas-earth");
+        const r = parseFloat(getComputedStyle(earth).getPropertyValue("--hit-size")) / 2;
+        const rect = earth.getBoundingClientRect();
+        const [, lat, ns, lon, ew] = document.querySelector(".coordinates").textContent.match(/([\d.]+)° ([NS])\s*\/\s*([\d.]+)° ([EW])/);
+        return [(x - rect.x - rect.width/2) / r, (rect.y + rect.height/2 - y) / r, {
+          latitude: Number(lat) * (ns === "N" ? 1 : -1), longitude: Number(lon) * (ew === "E" ? 1 : -1),
+        }];
+      }, [x, y]);
+      return unproject(...projection);
+    }
     // Choose an unobstructed point on the globe to start a native touch gesture.
     const point = await globe.evaluate((el) => {
       const r = el.getBoundingClientRect();
@@ -207,7 +210,7 @@ async function check() {
     await canvas.locator(".world-touch").press("ArrowLeft");
     await canvas.waitForFunction(() => document.querySelector(".coordinates").textContent.includes("32.0° E"));
     const fallback = await browser.newPage({ reducedMotion: "reduce" });
-    await fallback.route("**/art/world-surface.webp", (r) => r.abort());
+    await fallback.route("**/art/world-surface.*", (r) => r.abort());
     await fallback.goto(preview);
     await fallback.locator(".world-postcard").first().waitFor();
     assert(await fallback.locator(".atlas-earth-poster").isVisible());
@@ -221,7 +224,7 @@ async function check() {
     detail.on("request", (request) => requests.push(request.url()));
     let release;
     const gate = new Promise(resolve => { release = resolve; });
-    await detail.route("**/art/world-detail/*.webp", async route => {
+    await detail.route("**/art/world-detail/*", async route => {
       await gate;
       await route.continue();
     });
@@ -243,16 +246,18 @@ async function check() {
       const program = gl.getParameter(gl.CURRENT_PROGRAM);
       return gl.getUniform(program, gl.getUniformLocation(program, "useDetail"));
     });
-    assert(requests.some(url => Number(url.match(/world-detail\/(\d+)\.webp/)?.[1]) >= 128), "Deep zoom fetches full-resolution satellite tiles");
+    assert(requests.some(url => Number(url.match(/world-detail\/(\d+)\.avif/)?.[1]) >= 128), "Deep zoom fetches full-resolution satellite tiles");
     assert(!coarse.equals(await detail.screenshot({ clip })), "Zoom detail changes rendered geography at the same camera position.");
     const fallbackTile = canvas.waitForResponse("**/art/world-detail/*.webp");
     await canvas.locator("[data-camera=in]").click();
     await fallbackTile;
     await canvas.waitForLoadState("networkidle");
     assert(await canvas.locator(".world-surface").evaluate(c => c.width >= c.clientWidth));
-    await detail.unroute("**/art/world-detail/*.webp");
-    await detail.route("**/art/world-detail/*.webp", route => route.abort());
+    await detail.unroute("**/art/world-detail/*");
+    await detail.route("**/art/world-detail/*.avif", route => route.abort());
+    const parentTile = detail.waitForResponse(response => /world-detail\/\d+\.webp$/.test(response.url()) && response.ok());
     await detail.goto(new URL("?event=flutter-tech-summit-2027#world", preview).href);
+    await parentTile;
     await detail.waitForLoadState("networkidle");
     assert(await detail.locator('[data-engine="webgl"][data-rendered="true"]').isVisible());
     assert(await detail.locator("#world-preview h3").isVisible());
