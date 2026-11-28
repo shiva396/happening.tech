@@ -5,8 +5,8 @@ const http = require('node:http');
 const path = require('node:path');
 const { chromium } = require('../browser/node_modules/playwright-core');
 
-const web = path.resolve(__dirname, '../../web');
-const assets = new Set(['/dash/renderer.js', '/dash/behaviour.js', '/art/dash.glb']);
+const web = __dirname;
+const assets = new Set(['/runtime/renderer.js', '/runtime/behaviour.js', '/art/dash.glb']);
 
 async function main() {
   const server = http.createServer(async (request, response) => {
@@ -34,7 +34,7 @@ async function main() {
     const page = await browser.newPage();
     await page.goto('http://127.0.0.1:' + server.address().port);
     const encoded = await page.evaluate(async () => {
-      const { createRenderer } = await import('/dash/renderer.js');
+      const { createRenderer } = await import('/runtime/renderer.js');
       const source = document.querySelector('canvas');
       const model = await createRenderer(source);
       if (!model) throw Error('WebGL is required to render the model poster');

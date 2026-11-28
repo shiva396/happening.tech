@@ -111,31 +111,11 @@ class WorldView extends StatelessComponent {
                       a(classes: 'atlas-credit', href: nammaWebsite, [
                         .text('Made with love by Shiva and Justin from NammaFlutter'),
                       ]),
-                      if (!standalone) div(classes: 'dash-slot', attributes: {'data-perch': 'footer'}, []),
                     ]),
                   ]),
                 ]),
               ]),
             ]),
-            if (!standalone)
-              div(
-                classes: 'dash-perch',
-                attributes: {'data-perch': 'world'},
-                [
-                  button(
-                    classes: 'dash-host',
-                    attributes: {
-                      'type': 'button',
-                      'data-dash': '',
-                      'aria-label': 'Say hello to Dash',
-                      'title': 'Say hello to Dash',
-                    },
-                    [
-                      img(src: 'art/dash.webp', width: 256, height: 256, alt: ''),
-                    ],
-                  ),
-                ],
-              ),
             if (!standalone)
               div(
                 id: 'world-preview',

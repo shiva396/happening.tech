@@ -4,7 +4,7 @@ import math
 import struct
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = Path(__file__).resolve().parent
 BUFFER = bytearray()
 SCENE = {
     "asset": {"version": "2.0", "generator": "flutter.spot / Namma Flutter"},
@@ -238,7 +238,7 @@ def export():
     tree += b" "*(-len(tree)%4)
     BUFFER.extend(b"\x00"*(-len(BUFFER)%4))
     chunks = struct.pack("<I4s",len(tree),b"JSON")+tree+struct.pack("<I4s",len(BUFFER),b"BIN\x00")+BUFFER
-    target = ROOT / "web/art/dash.glb"
+    target = ROOT / "art/dash.glb"
     target.write_bytes(struct.pack("<4sII",b"glTF",2,len(chunks)+12)+chunks)
     print(f"{target.name} • {target.stat().st_size:,} bytes")
 

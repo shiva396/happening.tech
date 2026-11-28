@@ -59,10 +59,6 @@ class Communities extends StatelessComponent {
                 em([.text('communities.')]),
               ]),
           ]),
-          if (!directory)
-            div(classes: 'heading-actions', [
-              div(classes: 'dash-slot', attributes: {'data-perch': 'community'}, []),
-            ]),
         ]),
         ...[
           if (directory)

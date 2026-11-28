@@ -75,10 +75,7 @@ class ProgramView extends StatelessComponent {
                   em([.text('program.')]),
                 ]),
             ]),
-            div(classes: 'heading-actions', [
-              if (!archive) div(classes: 'dash-slot', attributes: {'data-perch': 'program'}, []),
-              if (archive) homeLink('world', 'World view', 'globe'),
-            ]),
+            if (archive) homeLink('world', 'World view', 'globe'),
           ]),
           div(classes: 'filter-bar enhanced', [
             label(classes: 'search-field', [
@@ -125,7 +122,6 @@ class ProgramView extends StatelessComponent {
             attributes: {if (active.isNotEmpty) 'hidden': ''},
             [
               icon('search'),
-              if (!archive) div(classes: 'dash-slot', attributes: {'data-perch': 'empty'}, []),
               h3([.text('No gatherings here yet')]),
               p([.text('Explore another place or share a Flutter event with the atlas.')]),
               div(classes: 'inline-actions', [

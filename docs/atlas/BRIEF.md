@@ -1,6 +1,6 @@
 # Rethink the Entire Global Flutter Community Platform
 
-The later design direction places the entire site inside the globe. The sections named below open within the sphere, and the credits and resource links live in the atlas information menu.
+The later design direction places the entire site inside the globe. The sections named below open within the sphere, and the credits and resource links live in the atlas information menu. The mascot has since been removed from the published atlas.
 
 ## 1. Product Vision
 

@@ -53,8 +53,7 @@ export async function mountWorld(stage, options = {}) {
     idleTimer = 0,
     settleTimer = 0,
     flight = null;
-  let userRotated = 0,
-    velocityX = 0,
+  let velocityX = 0,
     velocityY = 0;
   let motionPreference = true,
     allowIdle = true,
@@ -69,6 +68,7 @@ export async function mountWorld(stage, options = {}) {
     pinch = null;
   const animated = () => motionPreference && !reduced.matches;
   let reading = false;
+  const readingScale = Number(getComputedStyle(stage).getPropertyValue("--reading-scale")) || 1;
   const canDraw = () => !disposed && visible && !document.hidden && width > 0 && height > 0;
 
   function queue() {
@@ -177,7 +177,7 @@ export async function mountWorld(stage, options = {}) {
     // During renderer initialization the poster and cards retain their shared first frame.
     const view = renderer ? camera : HOME,
       r = radiusAt(width, height, view.zoom);
-    renderer?.draw(width, height, r, view, renderer.software ? (moving || pointers.size ? 1 : 1.6) : quality);
+    renderer?.draw(width, height, r, view, Boolean(moving || pointers.size || gestureZoom != null), quality, reading ? readingScale : 1);
     stage.dataset.rendered = String(Boolean(renderer));
     hit.style.setProperty("--hit-size", Math.ceil(r * 2) + "px");
     overlay.draw(view, width, height, r);
@@ -322,11 +322,6 @@ export async function mountWorld(stage, options = {}) {
       dy = (e.clientY - drag.lastY) * factor;
     camera.longitude = wrap(camera.longitude + dx);
     camera.latitude = clamp(camera.latitude + dy, -CAMERA.maxLatitude, CAMERA.maxLatitude);
-    userRotated += dx;
-    if (Math.abs(userRotated) >= 360) {
-      userRotated %= 360;
-      options.onRevolution?.();
-    }
     drag.dx = clamp(dx / elapsed, -0.22, 0.22);
     drag.dy = clamp(dy / elapsed, -0.22, 0.22);
     drag.lastX = e.clientX;
@@ -385,7 +380,7 @@ export async function mountWorld(stage, options = {}) {
     const current = ++version;
     let surface;
     try {
-      if (!software) surface = await makeSurface(canvas);
+      if (!software) surface = await makeSurface(canvas, queue);
     } catch {
       /* Fall through to the raster renderer. */
     }
@@ -400,7 +395,7 @@ export async function mountWorld(stage, options = {}) {
       canvas = fresh;
       try {
         const { makeSoftwareSurface } = await import("./software.js");
-        surface = await makeSoftwareSurface(canvas);
+        surface = await makeSoftwareSurface(canvas, queue);
       } catch {
         /* The static map stays visible on texture/network failure. */
       }

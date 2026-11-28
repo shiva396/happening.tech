@@ -1,74 +1,109 @@
-"""Bake the atlas surface and matching first-frame poster. Run with Python + Pillow."""
+"""Build the overview, poster and regional zoom tiles from Natural Earth 1:10m sources.
+
+Pass the source directory described in web/vendor/globe/LICENSE.txt. Requires Pillow.
+"""
+import argparse
 import json
 import math
 from pathlib import Path
 from PIL import Image, ImageDraw, ImageChops, ImageFilter, ImageOps
 
-ROOT = Path(__file__).resolve().parents[2] / 'web'
-ART = ROOT / 'art'
-W, H = 4096, 2048
-topology = json.loads((ART / 'countries.json').read_text())
-transform = topology['transform']
-arcs = []
-for arc in topology['arcs']:
-    x = y = 0
-    points = []
-    for dx, dy in arc:
-        x, y = x + dx, y + dy
-        lon = x * transform['scale'][0] + transform['translate'][0]
-        lat = y * transform['scale'][1] + transform['translate'][1]
-        points.append(((lon + 180) * W / 360, (90 - lat) * H / 180))
-    arcs.append(points)
+parser = argparse.ArgumentParser(description=__doc__)
+parser.add_argument('sources', type=Path)
+src = parser.parse_args().sources
+ART = Path(__file__).resolve().parents[2] / 'web/art'
+TILE = 768
+COLS, ROWS = 16, 8
+W, H = COLS * TILE, ROWS * TILE
+Image.MAX_IMAGE_PIXELS = 300_000_000  # The original Natural Earth raster is 21,600 x 10,800.
+
+
+def shapes(name):
+    for feature in json.loads((src / (name + '.geojson')).read_text())['features']:
+        geom = feature['geometry']
+        if geom['type'].startswith('Multi'):
+            yield from geom['coordinates']
+        else:
+            yield geom['coordinates']
+
+
+def project(ring):
+    return [((lon + 180) * W / 360, (90 - lat) * H / 180) for lon, lat in ring]
+
 
 mask = Image.new('L', (W, H))
-borders = mask.copy()
-landpen, borderpen = ImageDraw.Draw(mask), ImageDraw.Draw(borders)
-for country in topology['objects']['countries']['geometries']:
-    polygons = country['arcs'] if country['type'] == 'MultiPolygon' else [country['arcs']]
-    for polygon in polygons:
-        for ring_no, ring in enumerate(polygon):
-            points = []
-            for arc in ring:
-                section = arcs[arc] if arc >= 0 else arcs[~arc][::-1]
-                points.extend(section if not points else section[1:])
-            # Unwrap rings that cross the date line before drawing periodic copies.
-            unwrapped = [points[0]]
-            for x, y in points[1:]:
-                previous = unwrapped[-1][0]
-                unwrapped.append((x + W * round((previous-x)/W), y))
-            for shift in (-W,0,W):
-                line = [(x+shift,y) for x,y in unwrapped]
-                fill = line
-                if abs(line[-1][0]-line[0][0]) > W/2:
-                    # The Antarctic coastline encloses the south pole.
-                    fill = [*line, (line[-1][0],H), (line[0][0],H)]
-                landpen.polygon(fill, fill=255 if ring_no == 0 else 0)
-                borderpen.line(line, fill=255, width=2, joint='curve')
+pen = ImageDraw.Draw(mask)
+# Natural Earth's GeoJSON polygons are already split at the antimeridian.
+for polygon in shapes('countries'):
+    for index, ring in enumerate(polygon):
+        pen.polygon(project(ring), fill=0 if index else 255)
+for polygon in shapes('lakes'):
+    for index, ring in enumerate(polygon):
+        pen.polygon(project(ring), fill=255 if index else 0)
+borders = Image.new('L', (W, H))
+pen = ImageDraw.Draw(borders)
+for line in shapes('admin_0_boundary_lines_land'):
+    pen.line(project(line), fill=180, width=2, joint='curve')
 
-# Keep real mountain relief and ocean-floor detail, recoloured to the atlas palette.
-relief = Image.open(ART / 'earth-relief.webp').convert('L').resize((W,H), Image.Resampling.BICUBIC)
-relief = ImageChops.add(ImageChops.subtract(relief, relief.filter(ImageFilter.GaussianBlur(4)), offset=128),
-                         ImageChops.subtract(relief, relief.filter(ImageFilter.GaussianBlur(17)), offset=0))
-ocean = ImageOps.colorize(relief, (18,114,183), (106,196,235), (52,161,222))
-land = ImageOps.colorize(relief, (115,169,187), (247,253,251), (211,233,236))
-coast_shadow = ImageChops.offset(mask, 2, 4).filter(ImageFilter.GaussianBlur(3))
-ocean.paste((32,131,188), mask=coast_shadow.point(lambda x: int(x*.84)))
-ground = Image.composite(land, ocean, mask)
-# Define the elevated edge of each shore and delicate political boundaries.
-edge = ImageChops.subtract(mask, ImageChops.offset(mask, 1, 2))
-ground.paste((245,255,255), mask=edge.point(lambda x: round(x*.72)))
-ground.paste((113,169,190), mask=borders.point(lambda x: round(x*.63)))
-grid = Image.new('L', (W,H))
-pen = ImageDraw.Draw(grid)
-for lon in range(-180,180,15):
-    x = (lon+180)*W/360
-    pen.line([(x,0),(x,H)], fill=40, width=1)
-for lat in range(-75,90,15):
-    y = (90-lat)*H/180
-    pen.line([(0,y),(W,y)], fill=40, width=1)
-ground.paste((226,252,255), mask=grid)
-ground = ground.resize((3072,1536), Image.Resampling.LANCZOS)
-ground.save(ART / 'world-surface.webp', quality=86, method=6)
+with Image.open(src / 'relief.tif') as source:
+    relief = source.convert('L').resize((W, H), Image.Resampling.LANCZOS)
+
+# Apply relief and coastline shading with neighboring pixels across tile boundaries.
+# Padding wraps across longitude and repeats the polar rows.
+def padded(layer, x, y, margin):
+    xx, yy = x*TILE-margin, y*TILE-margin
+    size = TILE + 2*margin
+    available = (xx, max(0, yy), xx+size, min(H, yy+size))
+    tile = layer.crop(available)
+    if xx < 0:
+        tile.paste(layer.crop((W+xx, available[1], W, available[3])), (0, 0))
+    if xx+size > W:
+        tile.paste(layer.crop((0, available[1], xx+size-W, available[3])), (W-xx, 0))
+    if tile.height == size:
+        return tile
+    result = Image.new('L', (size, size))
+    offset = max(0, -yy)
+    result.paste(tile, (0, offset))
+    if offset:
+        result.paste(tile.crop((0, 0, size, 1)).resize((size, offset)), (0, 0))
+    else:
+        result.paste(tile.crop((0, tile.height-1, size, tile.height)).resize((size, size-tile.height)), (0, tile.height))
+    return result
+
+
+out = ART / 'world-detail'
+out.mkdir(exist_ok=True)
+overview_tile = 128
+overview = Image.new('RGB', (COLS*overview_tile, ROWS*overview_tile))
+margin = 48
+for y in range(ROWS):
+    for x in range(COLS):
+        heights = padded(relief, x, y, margin)
+        land = padded(mask, x, y, margin)
+        high = ImageChops.subtract(heights, heights.filter(ImageFilter.GaussianBlur(12)), offset=128)
+        high = high.point(lambda v: max(0, min(255, 128 + (v-128)*2.5)))
+        sea = ImageOps.colorize(high, (17,103,168), (113,203,236), (52,161,222))
+        soil = ImageOps.colorize(high, (82,140,158), (250,253,247), (211,233,236))
+        shadow = ImageChops.offset(land, 2, 4).filter(ImageFilter.GaussianBlur(3))
+        sea.paste((30,132,188), mask=shadow.point(lambda v: int(v*.75)))
+        tile = Image.composite(soil, sea, land)
+        coast = ImageChops.subtract(land, ImageChops.offset(land, 1, 2))
+        tile.paste((245,255,255), mask=coast)
+        tile.paste((106,160,177), mask=padded(borders, x, y, margin))
+        tile = tile.crop((margin, margin, TILE+margin, TILE+margin))
+        grid = Image.new('L', tile.size)
+        gridpen = ImageDraw.Draw(grid)
+        for k in range(-180,180,15):
+            u = (k+180)*W/360-x*TILE
+            if 0 <= u < TILE: gridpen.line((u,0,u,TILE), fill=58, width=2)
+        for k in range(-75,90,15):
+            v = (90-k)*H/180-y*TILE
+            if 0 <= v < TILE: gridpen.line((0,v,TILE,v), fill=58, width=2)
+        tile.paste((226,251,255), mask=grid)
+        tile.save(out / f'{y*COLS+x}.webp', quality=89, method=4)
+        overview.paste(tile.resize((overview_tile, overview_tile), Image.Resampling.LANCZOS),
+                       (x*overview_tile, y*overview_tile))
+overview.save(ART / 'world-surface.webp', quality=80, method=6)
 
 # Same inverse orthographic projection and directional light as surface.js.
 size = 896
@@ -95,4 +130,4 @@ for row in range(size):
         shade = [round(max(0,min(255,c*light*(1-rim)+r*rim))) for c,r in zip(rgb,(144,218,249))]
         alpha = round(min(1,d*size/3)*255)
         pixels[col,row] = (*shade,alpha)
-globe.save(ART / 'world-poster.webp', quality=88, method=6)
+globe.save(ART / 'world-poster.webp', quality=80, method=6)

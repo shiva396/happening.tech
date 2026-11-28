@@ -143,18 +143,49 @@ async function check() {
     await fallback.getByRole("link", { name: "Program view", exact: true }).click();
     await fallback.locator("[data-period=past]").click();
     assert(await fallback.locator(".event-card:visible").first().isVisible());
-    const dash = await browser.newPage();
-    await dash.route("**/art/dash.glb", (r) => r.abort());
-    await dash.goto(preview);
-    const bird = dash.getByRole("button", { name: "Say hello to Dash" });
-    await bird.click({ clickCount: 3, delay: 30 });
-    await dash.locator('[data-dash-state="celebrating"]').waitFor();
-    assert(await bird.locator("img").isVisible());
-    await dash.getByRole("link", { name: "Program view", exact: true }).click();
-    await dash.locator("[data-perch=program] [data-dash]").waitFor();
-    await dash.emulateMedia({ reducedMotion: "reduce" });
-    assert.equal(await dash.locator("[data-dash] canvas").count(), 0);
-    console.log("Native touch, keyboard, Canvas, unavailable textures, reduced motion and Dash recovery passed.");
+    const detail = await browser.newPage({
+      reducedMotion: "reduce", viewport: { width: 960, height: 640 }, deviceScaleFactor: 2,
+    });
+    const requests = [];
+    detail.on("request", (request) => requests.push(request.url()));
+    let release;
+    const gate = new Promise(resolve => { release = resolve; });
+    await detail.route("**/art/world-detail/*.webp", async route => {
+      await gate;
+      await route.continue();
+    });
+    await detail.goto(preview);
+    await detail.locator('[data-engine="webgl"][data-rendered="true"]').waitFor();
+    assert.equal(await detail.locator("[data-dash], [data-perch]").count(), 0);
+    assert(!requests.some(url => /world-detail|\/dash[/.]/i.test(url)));
+    const tile = detail.waitForRequest("**/art/world-detail/41.webp"); // Opening camera, 25° N / 42° E.
+    await detail.getByRole("button", { name: "Zoom in", exact: true }).click();
+    await tile;
+    for (let i = 0; i < 4; i++) await detail.locator("[data-camera=in]").click();
+    await detail.waitForFunction(() => document.querySelector(".world-surface").width === 1920);
+    const clip = { x: 445, y: 285, width: 70, height: 70 };
+    const coarse = await detail.screenshot({ clip });
+    release();
+    await detail.waitForLoadState("networkidle");
+    await detail.waitForFunction(() => {
+      const gl = document.querySelector(".world-surface").getContext("webgl");
+      const program = gl.getParameter(gl.CURRENT_PROGRAM);
+      return gl.getUniform(program, gl.getUniformLocation(program, "useDetail"));
+    });
+    assert(!coarse.equals(await detail.screenshot({ clip })), "Zoom detail changes rendered geography at the same camera position.");
+    const fallbackTile = canvas.waitForResponse("**/art/world-detail/*.webp");
+    await canvas.locator("[data-camera=in]").click();
+    await fallbackTile;
+    await canvas.waitForLoadState("networkidle");
+    assert(await canvas.locator(".world-surface").evaluate(c => c.width >= c.clientWidth));
+    await detail.unroute("**/art/world-detail/*.webp");
+    await detail.route("**/art/world-detail/*.webp", route => route.abort());
+    await detail.goto(new URL("?event=flutter-tech-summit-2027#world", preview).href);
+    await detail.waitForLoadState("networkidle");
+    assert(await detail.locator('[data-engine="webgl"][data-rendered="true"]').isVisible());
+    assert(await detail.locator("#world-preview h3").isVisible());
+    assert(!requests.some(url => /\/dash[/.]/i.test(url)));
+    console.log("Touch, keyboard, WebGL and software zoom detail, failed textures, and reduced motion passed.");
   } finally {
     await browser.close();
   }

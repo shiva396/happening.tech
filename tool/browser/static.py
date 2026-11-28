@@ -36,6 +36,11 @@ class Tags(HTMLParser):
 root = Path("build/jaspr")
 pages = {p.relative_to(root).as_posix().removesuffix("index.html"): Tags(p.read_text())
          for p in root.rglob("index.html") if "packages" not in p.relative_to(root).parts}
+assert not (root / "dash").exists()
+assert not any((root / "art").glob("dash.*"))
+assert all(not ({"data-dash", "data-perch"} & attrs.keys())
+           for page in pages.values() for _, attrs in page.items)
+assert {p.name for p in (root / "art/world-detail").glob("*.webp")} == {f"{i}.webp" for i in range(16 * 8)}
 site = pages[""].find("link", rel="canonical")[0]["href"]
 base = urlsplit(site).path
 ids = {path: {a["id"] for _, a in page.items if "id" in a} for path, page in pages.items()}

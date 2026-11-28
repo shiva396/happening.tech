@@ -4,8 +4,6 @@ import { createDiscovery, filterKeys, isPast } from "./state.js";
 
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
-const reaction = (type, extra = {}) =>
-  document.dispatchEvent(new CustomEvent("atlas:reaction", { detail: { type, ...extra } }));
 const base = (target) => new URL(target, document.baseURI).href;
 const reduced = matchMedia("(prefers-reduced-motion: reduce)");
 let motion;
@@ -78,8 +76,7 @@ function initAtlas({ events, communities }) {
     places = [],
     renderedPlaces,
     cameraTarget = null,
-    lastSelection = "",
-    previousEmpty;
+    lastSelection = "";
   const filters = $$("[data-filter]"),
     tabs = $$("[data-period]");
   const search = $("#locate"),
@@ -100,7 +97,6 @@ function initAtlas({ events, communities }) {
     if (state.current.mode !== mode || location.hash !== "#" + mode) state.update({ mode }, true);
     if (!frame) document.getElementById(mode)?.scrollIntoView({ behavior: animate() ? "smooth" : "instant" });
     closeLocator();
-    reaction(mode);
   }
   function focus(place) {
     if (!stage) {
@@ -265,25 +261,6 @@ function initAtlas({ events, communities }) {
     $("#program-count").textContent = matches.length + " " + (matches.length === 1 ? "event" : "events");
     $("#event-empty").hidden = matches.length > 0;
     $("#clear-active").hidden = !filterKeys.some((k) => s[k]) && !s.community;
-    if (previousEmpty === false && !matches.length) reaction("empty");
-    previousEmpty = !matches.length;
-    if (frame) {
-      const host = frame.querySelector("[data-dash]");
-      const perch =
-        s.mode === "program"
-          ? matches.length
-            ? "program"
-            : "empty"
-          : s.mode === "communities"
-            ? "community"
-            : "world";
-      const destination = frame.querySelector(".atlas-info")?.open ? "footer" : perch;
-      const slot = frame.querySelector('[data-perch="' + destination + '"]');
-      if (host && slot && host.parentNode !== slot) {
-        slot.append(host);
-        requestAnimationFrame(() => reaction(destination));
-      }
-    }
     const total = $("#upcoming-total");
     if (total) total.textContent = events.filter((e) => !isPast(e, now) && e.status !== "cancelled").length;
     places = state.places(matches, now);
@@ -313,7 +290,6 @@ function initAtlas({ events, communities }) {
       if (storyPlace || selected) globe.focus(storyPlace || selected);
       else globe.flyTo(anchor.latitude, anchor.longitude, s.city ? 2.9 : 1.6);
       cameraTarget = targetKey;
-      reaction(selected?.kind || "country");
     } else if (!anchor && cameraTarget !== null) {
       globe?.reset();
       cameraTarget = null;
@@ -321,14 +297,12 @@ function initAtlas({ events, communities }) {
     drawPreview(s, selected);
   }
   state.subscribe(render);
-  frame?.querySelector(".atlas-info")?.addEventListener("toggle", () => render(state.current));
   for (const field of filters) {
     field.addEventListener(field.type === "search" ? "input" : "change", () => {
       const patch = { [field.dataset.filter]: field.value, event: "", community: "" };
       if (["country", "city"].includes(field.dataset.filter)) Object.assign(patch, { lat: "", lon: "" });
       if (field.dataset.filter === "country") {
         patch.city = "";
-        reaction("country");
       }
       state.update(patch);
     });
@@ -429,7 +403,6 @@ function initAtlas({ events, communities }) {
   function applyMotion() {
     document.documentElement.dataset.motion = animate() ? "on" : "off";
     globe?.setMotion(animate());
-    reaction("motion", { enabled: animate() });
     const b = $('[data-camera="motion"]');
     if (b) {
       const label = animate() ? "Pause animations" : "Enable animations";
@@ -452,7 +425,6 @@ function initAtlas({ events, communities }) {
           onCountry: (country, latitude, longitude) => {
             state.select({ kind: "location", country, latitude, longitude });
           },
-          onRevolution: () => reaction("orbit"),
           onCamera: ({ latitude, longitude }) => {
             const el = $(".coordinates");
             const label =
@@ -503,7 +475,6 @@ function initAtlas({ events, communities }) {
             break;
         }
       });
-    import("../dash/dash.js").then(applyMotion).catch(() => {});
     window.addEventListener("pagehide", (e) => {
       if (!e.persisted) globe?.destroy();
     });
