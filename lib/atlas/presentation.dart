@@ -46,9 +46,6 @@ Component brand() => a(
 );
 
 Component overline(String glyph, String text) => div(classes: 'overline', [icon(glyph), .text(text)]);
-Component homeLink(String target, String label, String glyph) =>
-    a(href: './#$target', classes: 'pill', attributes: {'data-view': target}, [icon(glyph), .text(label)]);
-
 Component pageHead(
   String title,
   String path, {

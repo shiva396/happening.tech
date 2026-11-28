@@ -115,7 +115,10 @@ async function atlas(page) {
   await page.locator("#notifications #push-status").waitFor();
   assert.equal(new URL(page.url()).pathname, root.pathname);
   await page.goto(url("archive/"));
-  await page.locator(".split-heading [data-view=world]").click();
+  const archiveGlobe = page.locator(".split-heading [data-view=world]");
+  assert.equal(new URL(await archiveGlobe.getAttribute("href"), root).searchParams.get("period"), "past");
+  await archiveGlobe.click();
+  await page.waitForURL(target => target.pathname === root.pathname && target.hash === "#world");
   assert.equal(new URL(page.url()).searchParams.get("period"), "past");
   await page.goto(url("communities/"));
   const directorySearch = page.getByRole("searchbox", { name: "Search communities" });
