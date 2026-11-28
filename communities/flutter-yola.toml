@@ -1,0 +1,7 @@
+name = "Flutter Yola"
+city = "Jimeta"
+country = "Nigeria"
+latitude = 9.28
+longitude = 12.46
+url = "https://www.meetup.com/flutter-yola/"
+logo = "art/communities/flutter-yola.webp"

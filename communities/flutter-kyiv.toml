@@ -1,0 +1,7 @@
+name = "Flutter Kyiv"
+city = "Kyiv"
+country = "Ukraine"
+latitude = 50.44
+longitude = 30.52
+url = "https://www.meetup.com/flutter-kyiv/"
+logo = "art/communities/flutter-kyiv.webp"

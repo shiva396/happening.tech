@@ -1,0 +1,7 @@
+name = "Flutter Montevideo"
+city = "Montevideo"
+country = "Uruguay"
+latitude = -34.87
+longitude = -56.17
+url = "https://www.meetup.com/flutter-montevideo/"
+logo = "art/communities/flutter-montevideo.webp"

@@ -2,7 +2,7 @@
   "name": "flutter-spot-site-checks",
   "private": true,
   "scripts": {
-    "test": "node site.cjs && node recovery.cjs",
+    "test": "node site.cjs && node recovery.cjs && node appearance.cjs",
     "benchmark": "node benchmark.cjs"
   },
   "devDependencies": {

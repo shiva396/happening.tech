@@ -1,0 +1,7 @@
+name = "Flutter Tallinn"
+city = "Tallinn"
+country = "Estonia"
+latitude = 59.44
+longitude = 24.74
+url = "https://www.meetup.com/flutter-tallinn/"
+logo = "art/communities/flutter-tallinn.webp"

@@ -1,0 +1,7 @@
+name = "Flutter Ica"
+city = "Ica"
+country = "Peru"
+latitude = -14.06
+longitude = -75.75
+url = "https://www.meetup.com/flutter_ica/"
+logo = "art/communities/flutter-ica.webp"

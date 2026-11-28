@@ -1,0 +1,7 @@
+name = "Flutter Gothenburg"
+city = "Göteborg"
+country = "Sweden"
+latitude = 57.72
+longitude = 12.01
+url = "https://www.meetup.com/flutter-gothenburg/"
+logo = "art/communities/flutter-gothenburg.webp"

@@ -1,0 +1,7 @@
+name = "Flutter Messina"
+city = "Messina"
+country = "Italy"
+latitude = 38.18
+longitude = 15.57
+url = "https://www.meetup.com/flutter-messina/"
+logo = "art/communities/flutter-messina.webp"

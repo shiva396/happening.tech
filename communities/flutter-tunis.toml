@@ -1,0 +1,7 @@
+name = "Flutter Tunis"
+city = "Tunis"
+country = "Tunisia"
+latitude = 35.79
+longitude = 10.82
+url = "https://www.meetup.com/flutter-tunis/"
+logo = "art/communities/flutter-tunis.webp"

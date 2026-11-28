@@ -1,0 +1,7 @@
+name = "Flutter Munich"
+city = "München"
+country = "Germany"
+latitude = 48.14
+longitude = 11.58
+url = "https://www.meetup.com/flutter-munich/"
+logo = "art/communities/flutter-munich.webp"

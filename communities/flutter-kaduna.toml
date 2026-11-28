@@ -1,0 +1,7 @@
+name = "Flutter Kaduna"
+city = "Kaduna"
+country = "Nigeria"
+latitude = 10.52
+longitude = 7.44
+url = "https://www.meetup.com/flutter-kaduna/"
+logo = "art/communities/flutter-kaduna.webp"

@@ -1,0 +1,7 @@
+name = "Flutter Dakar 🇸🇳"
+city = "Dakar"
+country = "Senegal"
+latitude = 14.72
+longitude = -17.48
+url = "https://www.meetup.com/flutter-dakar/"
+logo = "art/communities/flutter-dakar.webp"

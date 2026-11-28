@@ -1,0 +1,7 @@
+name = "Flutter Voronezh"
+city = "Voronezh"
+country = "Russia"
+latitude = 51.72
+longitude = 39.26
+url = "https://www.meetup.com/flutter-voronezh/"
+logo = "art/communities/flutter-voronezh.webp"

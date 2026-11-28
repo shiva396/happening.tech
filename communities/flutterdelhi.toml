@@ -1,0 +1,7 @@
+name = "Flutter Delhi"
+city = "Delhi"
+country = "India"
+latitude = 28.67
+longitude = 77.21
+url = "https://www.meetup.com/flutterdelhi/"
+logo = "art/communities/flutterdelhi.webp"

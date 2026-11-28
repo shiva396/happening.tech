@@ -1,0 +1,7 @@
+name = "Flutterista"
+city = "Santa Clara"
+country = "United States"
+latitude = 37.35
+longitude = -121.96
+url = "https://www.meetup.com/flutterista/"
+logo = "art/communities/flutterista.webp"

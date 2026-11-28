@@ -1,0 +1,7 @@
+name = "Flutter Holland"
+city = "Utrecht"
+country = "Netherlands"
+latitude = 52.1
+longitude = 5.11
+url = "https://www.meetup.com/flutter-holland/"
+logo = "art/communities/flutter-holland.webp"

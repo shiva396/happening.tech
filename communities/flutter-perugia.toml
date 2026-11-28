@@ -1,0 +1,7 @@
+name = "Flutter Perugia"
+city = "Perugia"
+country = "Italy"
+latitude = 43.13
+longitude = 12.37
+url = "https://www.meetup.com/flutter-perugia/"
+logo = "art/communities/flutter-perugia.webp"

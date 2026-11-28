@@ -1,0 +1,7 @@
+name = "Flutter Málaga"
+city = "Málaga"
+country = "Spain"
+latitude = 36.72
+longitude = -4.42
+url = "https://www.meetup.com/flutter-malaga/"
+logo = "art/communities/flutter-malaga.webp"

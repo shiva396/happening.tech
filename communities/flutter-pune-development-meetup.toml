@@ -1,0 +1,7 @@
+name = "Flutter Pune"
+city = "Pune"
+country = "India"
+latitude = 18.53
+longitude = 73.84
+url = "https://www.meetup.com/flutter-pune-development-meetup/"
+logo = "art/communities/flutter-pune-development-meetup.webp"

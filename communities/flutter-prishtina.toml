@@ -1,0 +1,7 @@
+name = "Flutter Prishtina"
+city = "Prishtinë"
+country = "Kosovo"
+latitude = 42.65
+longitude = 21.17
+url = "https://www.meetup.com/flutter-prishtina/"
+logo = "art/communities/flutter-prishtina.webp"

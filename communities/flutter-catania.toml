@@ -1,0 +1,7 @@
+name = "Flutter Catania"
+city = "Catania"
+country = "Italy"
+latitude = 37.5
+longitude = 15.09
+url = "https://www.meetup.com/meetup-group-poliomfw/"
+logo = "art/communities/flutter-catania.webp"

@@ -1,0 +1,7 @@
+name = "Flutter Abu Dhabi & Dubai"
+city = "Abu Dhabi"
+country = "United Arab Emirates"
+latitude = 24.48
+longitude = 54.37
+url = "https://www.meetup.com/flutter-ad/"
+logo = "art/communities/flutter-ad.webp"

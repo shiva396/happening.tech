@@ -1,0 +1,7 @@
+name = "DC Flutter"
+city = "Mc Lean"
+country = "United States"
+latitude = 38.96
+longitude = -77.23
+url = "https://www.meetup.com/dcflutter/"
+logo = "art/communities/dcflutter.webp"

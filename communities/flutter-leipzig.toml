@@ -1,0 +1,7 @@
+name = "Flutter Leipzig"
+city = "Leipzig"
+country = "Germany"
+latitude = 51.35
+longitude = 12.4
+url = "https://www.meetup.com/flutter-leipzig/"
+logo = "art/communities/flutter-leipzig.webp"

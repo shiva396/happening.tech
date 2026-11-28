@@ -1,0 +1,7 @@
+name = "Flutter Curitiba"
+city = "Curitiba"
+country = "Brazil"
+latitude = -23.53
+longitude = -46.63
+url = "https://www.meetup.com/fluttercwb/"
+logo = "art/communities/fluttercwb.webp"

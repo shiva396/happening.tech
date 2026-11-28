@@ -1,57 +1,82 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:timezone/data/latest_all.dart' as zone_data;
 import 'package:timezone/timezone.dart' as tz;
-import 'package:toml/toml.dart';
 
+import 'catalog_toml.dart';
+import 'community.dart';
 import 'project.dart';
 
-const _requiredKeys = {
-  'title',
-  'city',
-  'country',
-  'community',
-  'topic',
-  'format',
-  'start',
-  'end',
-  'timezone',
-  'venue',
-  'description',
-  'url',
-};
-const _optionalKeys = {'registration_url', 'registration_label', 'price'};
-final _slugPattern = RegExp(r'^[a-z0-9]+(?:-[a-z0-9]+)*$');
+export 'community.dart';
+
+const eventCategories = {'Conference', 'Meetup', 'Workshop', 'Hackathon', 'Gathering'};
+const attendanceFormats = {'In person', 'Online', 'Hybrid'};
+const eventStatuses = {'scheduled', 'cancelled', 'rescheduled'};
+
 final _timestamp = RegExp(
   r'^(\d{4})-(\d{2})-(\d{2})(?:T([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d)(?:\.\d{1,6})?)?(Z|[+-](?:[01]\d|2[0-3]):[0-5]\d))?$',
 );
 
 /// A validated entry from the community-maintained event directory.
 class Event {
-  final String slug;
-  final Map<String, String> _data;
-  final DateTime startsAt;
-  final DateTime endsAtExclusive;
+  final String id, title, city, country, communityId, community, category, attendance;
+  final String start, end, timezone, venue, description, url, source, status, topic;
+  final String? artwork,
+      artworkCard,
+      artworkThumbnail,
+      artworkCredit,
+      artworkSource,
+      registrationUrl,
+      registrationLabel,
+      price;
+  final double? latitude, longitude;
+  final DateTime startsAt, endsAtExclusive, updatedAt;
+  final DateTime? registrationEnds;
+  final bool legacy;
 
-  Event._(this.slug, this._data, this.startsAt, this.endsAtExclusive);
+  const Event._({
+    required this.id,
+    required this.title,
+    required this.city,
+    required this.country,
+    required this.communityId,
+    required this.community,
+    required this.category,
+    required this.attendance,
+    required this.start,
+    required this.end,
+    required this.timezone,
+    required this.venue,
+    required this.description,
+    required this.url,
+    required this.source,
+    required this.status,
+    required this.artwork,
+    required this.artworkCard,
+    required this.artworkThumbnail,
+    required this.artworkCredit,
+    required this.artworkSource,
+    required this.registrationUrl,
+    required this.registrationLabel,
+    required this.price,
+    required this.latitude,
+    required this.longitude,
+    required this.startsAt,
+    required this.endsAtExclusive,
+    required this.updatedAt,
+    required this.registrationEnds,
+    required this.topic,
+    required this.legacy,
+  });
 
-  String get title => _data['title']!;
-  String get city => _data['city']!;
-  String get country => _data['country']!;
-  String get community => _data['community']!;
-  String get topic => _data['topic']!;
-  String get format => _data['format']!;
-  String get start => _data['start']!;
-  String get end => _data['end']!;
-  String get timezone => _data['timezone']!;
-  String get venue => _data['venue']!;
-  String get description => _data['description']!;
-  String get url => _data['url']!;
-  String? get registrationUrl => _data['registration_url'];
-  String? get registrationLabel => _data['registration_label'];
-  String? get price => _data['price'];
+  String get slug => id;
+  String get format => category;
   bool get allDay => start.length == 10;
+  bool registrationIsOpen(DateTime at) =>
+      status != 'cancelled' &&
+      endsAtExclusive.isAfter(at) &&
+      (registrationEnds == null || registrationEnds!.isAfter(at));
+  String? get activeRegistrationUrl => registrationIsOpen(DateTime.now()) ? registrationUrl : null;
 
   /// RFC 5545 calendar event. Date-only entries keep the host's calendar dates.
   String get ics {
@@ -66,14 +91,14 @@ class Event {
       'PRODID:-//$projectName//Community events//EN',
       'CALSCALE:GREGORIAN',
       'BEGIN:VEVENT',
-      // The calendar UID namespace predates the rename. Calendar clients use it to identify repeat imports.
-      'UID:$slug@happening.tech',
-      'DTSTAMP:${_utcStamp(DateTime.now())}',
+      'UID:$slug@$projectName',
+      'DTSTAMP:${_utcStamp(updatedAt)}',
+      if (status == 'cancelled') 'STATUS:CANCELLED',
       startField,
       endField,
       'SUMMARY:${_calendarText(title)}',
       'DESCRIPTION:${_calendarText(description)}',
-      'LOCATION:${_calendarText({venue, city, country}.join(', '))}',
+      'LOCATION:${_calendarText({venue, city, country}.where((part) => part.isNotEmpty).join(', '))}',
       'URL:$url',
       'END:VEVENT',
       'END:VCALENDAR',
@@ -127,73 +152,158 @@ String _urlKey(String value) {
   return uri.removeFragment().replace(path: path).toString();
 }
 
-Event _readEvent(File file, String slug) {
-  if (!_slugPattern.hasMatch(slug)) throw const FormatException('Use a lowercase, hyphen-separated filename');
-  final raw = TomlDocument.parse(file.readAsStringSync()).toMap();
-  final data = <String, String>{};
-  for (final key in raw.keys) {
-    if (!_requiredKeys.contains(key) && !_optionalKeys.contains(key)) throw FormatException('Unknown field "$key"');
-    final value = raw[key];
-    if (value is! String || value.trim().isEmpty) throw FormatException('"$key" must be a nonempty quoted string');
-    data[key] = value.trim();
-  }
-  final missing = _requiredKeys.difference(data.keys.toSet());
-  if (missing.isNotEmpty) throw FormatException('Missing ${missing.join(', ')}');
-  for (final key in ['url', 'registration_url']) {
-    final value = data[key];
-    if (value == null) continue;
-    final uri = Uri.tryParse(value);
-    if (uri == null ||
-        !['https', 'http'].contains(uri.scheme) ||
-        uri.host.isEmpty ||
-        uri.userInfo.isNotEmpty ||
-        RegExp(r'[\s\\]').hasMatch(value)) {
-      throw FormatException('"$key" must be an absolute HTTP(S) link');
-    }
-  }
-  if (data.containsKey('registration_label') && !data.containsKey('registration_url')) {
-    throw const FormatException('registration_label needs a registration_url');
-  }
-  final location = tz.timeZoneDatabase.locations[data['timezone']];
-  if (location == null) throw FormatException('Unknown IANA timezone "${data['timezone']}"');
-  if ((data['start']!.length == 10) != (data['end']!.length == 10)) {
-    throw const FormatException('Use either calendar dates for both start and end or timestamps for both');
-  }
-  final startsAt = _parseDate(data['start']!, 'start', location);
-  final endsAt = _parseDate(data['end']!, 'end', location, endOfDay: true);
-  if (!endsAt.isAfter(startsAt)) {
-    throw const FormatException('Event must end after it starts (date-only ends are inclusive)');
-  }
-  return Event._(slug, data, startsAt, endsAt);
+DateTime _instant(Fields data, String key) {
+  final value = fieldText(data, key)!;
+  if (value.length <= 10) throw FormatException('$key must include a time and UTC offset');
+  return _parseDate(value, key, tz.UTC);
 }
 
-/// Reads all event pages, including past entries with permanent URLs.
-List<Event> loadEvents({String directory = 'events'}) {
+String _choice(Fields data, String key, Set<String> choices) {
+  final value = fieldText(data, key)!;
+  if (!choices.contains(value)) throw FormatException('$key must be one of ${choices.join(', ')}');
+  return value;
+}
+
+Event _readEvent(String id, Fields data, Map<String, Community>? communities) {
+  final legacy = communities == null;
+  const shared = {'title', 'start', 'end', 'timezone', 'description', 'url'};
+  const tickets = {'registration_url', 'registration_label', 'price'};
+  if (legacy) {
+    checkKeys(data, {...shared, 'topic', 'format', 'venue', 'city', 'country', 'community'}, tickets);
+  } else {
+    checkKeys(
+      data,
+      {...shared, 'category', 'attendance', 'community_id', 'updated_at'},
+      {
+        ...tickets,
+        'city',
+        'country',
+        'venue',
+        'latitude',
+        'longitude',
+        'source',
+        'status',
+        'artwork',
+        'artwork_thumbnail',
+        'artwork_card',
+        'artwork_credit',
+        'artwork_source',
+        'registration_ends',
+      },
+    );
+  }
+  final communityId = fieldText(data, 'community_id') ?? '';
+  final organizer = communities?[communityId];
+  if (!legacy && organizer == null) throw FormatException('Unknown community "$communityId"');
+  final category = legacy ? fieldText(data, 'format')! : _choice(data, 'category', eventCategories);
+  final attendance = legacy
+      ? (data['city'] == 'Online' ? 'Online' : 'In person')
+      : _choice(data, 'attendance', attendanceFormats);
+  final city = fieldText(data, 'city') ?? '';
+  final country = fieldText(data, 'country') ?? '';
+  final (lat, lon) = coordinates(data);
+  if (!legacy && attendance != 'Online' && (city.isEmpty || country.isEmpty)) {
+    throw const FormatException('An in-person or hybrid event needs a city and country');
+  }
+  if (attendance == 'Online' && lat != null) {
+    throw const FormatException('Online events must omit physical coordinates');
+  }
+  final status = data.containsKey('status') ? _choice(data, 'status', eventStatuses) : 'scheduled';
+  final registration = fieldLink(data, 'registration_url');
+  if ((data.containsKey('registration_label') || data.containsKey('registration_ends')) && registration == null) {
+    throw const FormatException('Registration details need a registration_url');
+  }
+  final timezone = fieldText(data, 'timezone')!;
+  final zone = tz.timeZoneDatabase.locations[timezone];
+  if (zone == null) throw FormatException('Unknown IANA timezone "$timezone"');
+  final start = fieldText(data, 'start')!;
+  final end = fieldText(data, 'end')!;
+  if ((start.length == 10) != (end.length == 10)) {
+    throw const FormatException('Use either calendar dates for both start and end or timestamps for both');
+  }
+  final startsAt = _parseDate(start, 'start', zone);
+  final endsAt = _parseDate(end, 'end', zone, endOfDay: true);
+  if (!endsAt.isAfter(startsAt)) throw const FormatException('Event must end after it starts');
+  final registrationEnds = data.containsKey('registration_ends') ? _instant(data, 'registration_ends') : null;
+  final url = fieldLink(data, 'url')!;
+  final artwork = imagePath(data, 'artwork');
+  final thumbnail = imagePath(data, 'artwork_thumbnail');
+  final card = imagePath(data, 'artwork_card');
+  final credit = fieldText(data, 'artwork_credit');
+  final artSource = fieldLink(data, 'artwork_source');
+  if ((card != null || thumbnail != null || credit != null || artSource != null) && artwork == null) {
+    throw const FormatException('Artwork credits need an artwork path');
+  }
+  return Event._(
+    id: id,
+    title: fieldText(data, 'title')!,
+    city: city,
+    country: country,
+    communityId: communityId,
+    community: organizer?.name ?? fieldText(data, 'community')!,
+    category: category,
+    attendance: attendance,
+    start: start,
+    end: end,
+    timezone: timezone,
+    venue: fieldText(data, 'venue') ?? '',
+    description: fieldText(data, 'description')!,
+    url: url,
+    source: fieldLink(data, 'source') ?? url,
+    status: status,
+    artwork: artwork,
+    artworkThumbnail: thumbnail ?? artwork,
+    artworkCard: card,
+    artworkCredit: credit,
+    artworkSource: artSource,
+    registrationUrl: registration,
+    registrationLabel: fieldText(data, 'registration_label'),
+    price: fieldText(data, 'price'),
+    latitude: lat,
+    longitude: lon,
+    startsAt: startsAt,
+    endsAtExclusive: endsAt,
+    updatedAt: legacy ? startsAt : _instant(data, 'updated_at'),
+    registrationEnds: registrationEnds,
+    topic: fieldText(data, 'topic') ?? 'Flutter',
+    legacy: legacy,
+  );
+}
+
+List<Event> _load(String directory, Map<String, Community>? communities) {
   zone_data.initializeTimeZones();
-  final result = <Event>[];
-  final seenSlugs = <String>{};
-  final seenUrls = <String, String>{};
-  final files = Directory(
-    directory,
-  ).listSync(followLinks: false).whereType<File>().where((f) => f.path.endsWith('.toml'));
-  for (final file in files) {
-    final name = file.uri.pathSegments.last;
-    final slug = name.substring(0, name.length - '.toml'.length);
-    try {
-      final event = _readEvent(file, slug);
-      if (!seenSlugs.add(slug)) throw FormatException('Duplicate slug "$slug"');
-      for (final url in {event.url, ?event.registrationUrl}.map(_urlKey).toSet()) {
-        final previous = seenUrls[url];
-        if (previous != null) throw FormatException('Event URL already appears in $previous.toml');
-        seenUrls[url] = slug;
-      }
-      result.add(event);
-    } on Exception catch (error) {
-      throw FormatException('${file.path}: $error');
+  final result = readDirectory(directory, (id, fields) => _readEvent(id, fields, communities));
+  final identities = <String, String>{};
+  for (final event in result) {
+    // Series may reuse a venue and website for their next edition. Scope identities to the host day.
+    final day = tz.TZDateTime.from(event.startsAt, tz.getLocation(event.timezone)).toString().substring(0, 10);
+    final keys = {
+      'title:${event.title.toLowerCase().replaceAll(RegExp(r'\s+'), ' ')}|${event.city.toLowerCase()}',
+      'url:${_urlKey(event.url)}',
+      if (event.registrationUrl != null) 'url:${_urlKey(event.registrationUrl!)}',
+    };
+    for (final key in keys) {
+      final previous = identities['$day|$key'];
+      if (previous != null) throw FormatException('Duplicate event in $previous.toml and ${event.id}.toml');
+      identities['$day|$key'] = event.id;
     }
   }
   return result..sort((a, b) {
-    final order = a.startsAt.compareTo(b.startsAt);
-    return order == 0 ? a.slug.compareTo(b.slug) : order;
+    final byStart = a.startsAt.compareTo(b.startsAt);
+    return byStart == 0 ? a.id.compareTo(b.id) : byStart;
   });
+}
+
+List<Event> loadEvents({String directory = 'events', List<Community>? communities}) {
+  final organizers = communities ?? loadCommunities();
+  return _load(directory, {for (final group in organizers) group.id: group});
+}
+
+/// Old public event URLs still render individually after the Flutter-only catalog migration.
+List<Event> loadLegacyEvents({String directory = 'legacy-events'}) => _load(directory, null);
+
+/// Run the same record checks on an integration export before emitting its TOML.
+void validateContribution(Map<String, dynamic> fields, List<Community> communities) {
+  zone_data.initializeTimeZones();
+  _readEvent('contribution', fields, {for (final group in communities) group.id: group});
 }

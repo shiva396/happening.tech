@@ -1,0 +1,7 @@
+name = "Helsinki Flutter Meetup Group"
+city = "Helsinki"
+country = "Finland"
+latitude = 60.17
+longitude = 24.94
+url = "https://www.meetup.com/Helsinki-Flutter-Meetup-Group/"
+logo = "art/communities/helsinki-flutter-meetup-group.webp"

@@ -1,0 +1,8 @@
+name = "Utah Flutter"
+city = "American Fork"
+country = "United States"
+latitude = 40.3777
+longitude = -111.7958
+url = "https://www.meetup.com/utah-flutter/"
+description = "A monthly group for Flutter and Dart developers in Utah, with presentations from local builders."
+logo = "art/communities/utah-flutter.webp"

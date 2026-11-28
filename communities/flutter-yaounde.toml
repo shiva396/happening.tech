@@ -1,0 +1,7 @@
+name = "Flutter Cameroon"
+city = "Yaoundé"
+country = "Cameroon"
+latitude = 3.87
+longitude = 11.52
+url = "https://www.meetup.com/flutter-yaounde/"
+logo = "art/communities/flutter-yaounde.webp"

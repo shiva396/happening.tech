@@ -1,0 +1,7 @@
+name = "Flutter Campinas"
+city = "Campinas"
+country = "Brazil"
+latitude = -22.91
+longitude = -47.08
+url = "https://www.meetup.com/flutter-campinas/"
+logo = "art/communities/flutter-campinas.webp"

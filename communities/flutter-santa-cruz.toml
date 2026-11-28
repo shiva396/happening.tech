@@ -1,0 +1,7 @@
+name = "Flutter Santa Cruz"
+city = "Santa Cruz"
+country = "Bolivia"
+latitude = -17.77
+longitude = -63.21
+url = "https://www.meetup.com/santa-cruz-development-meetup-group/"
+logo = "art/communities/flutter-santa-cruz.webp"

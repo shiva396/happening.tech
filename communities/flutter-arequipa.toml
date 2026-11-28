@@ -1,0 +1,7 @@
+name = "Flutter Arequipa"
+city = "Arequipa"
+country = "Peru"
+latitude = -16.39
+longitude = -71.53
+url = "https://www.meetup.com/flutter-arequipa/"
+logo = "art/communities/flutter-arequipa.webp"

@@ -1,0 +1,7 @@
+name = "Flutter Islamabad"
+city = "Islamabad"
+country = "Pakistan"
+latitude = 33.72
+longitude = 73.06
+url = "https://www.meetup.com/flutterisb/"
+logo = "art/communities/flutterisb.webp"

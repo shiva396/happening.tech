@@ -1,0 +1,7 @@
+name = "Flutter Kampala"
+city = "Kampala"
+country = "Uganda"
+latitude = 0.32
+longitude = 32.58
+url = "https://www.meetup.com/flutter-kampala/"
+logo = "art/communities/flutter-kampala.webp"

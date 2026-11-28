@@ -1,0 +1,7 @@
+name = "Flutter Auckland"
+city = "Auckland"
+country = "New Zealand"
+latitude = -36.85
+longitude = 174.76
+url = "https://www.meetup.com/flutterauckland/"
+logo = "art/communities/flutterauckland.webp"

@@ -1,0 +1,7 @@
+name = "Flutter Sucre"
+city = "Sucre"
+country = "Bolivia"
+latitude = -19.06
+longitude = -65.26
+url = "https://www.meetup.com/flutter-sucre/"
+logo = "art/communities/flutter-sucre.webp"

@@ -1,0 +1,7 @@
+name = "FlutterLDN"
+city = "London"
+country = "United Kingdom"
+latitude = 51.52
+longitude = -0.1
+url = "https://www.meetup.com/FlutterLDN/"
+logo = "art/communities/flutterldn.webp"

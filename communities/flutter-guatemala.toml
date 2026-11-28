@@ -1,0 +1,7 @@
+name = "Flutter Guatemala"
+city = "Guatemala"
+country = "Guatemala"
+latitude = 14.63
+longitude = -90.55
+url = "https://www.meetup.com/Flutter-Guatemala/"
+logo = "art/communities/flutter-guatemala.webp"

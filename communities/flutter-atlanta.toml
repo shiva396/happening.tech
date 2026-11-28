@@ -1,0 +1,7 @@
+name = "Flutter Atlanta"
+city = "Atlanta"
+country = "United States"
+latitude = 33.83
+longitude = -84.39
+url = "https://www.meetup.com/flutter-atlanta/"
+logo = "art/communities/flutter-atlanta.webp"

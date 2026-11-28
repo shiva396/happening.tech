@@ -1,0 +1,7 @@
+name = "Flutter Accra"
+city = "Accra"
+country = "Ghana"
+latitude = 5.56
+longitude = -0.2
+url = "https://www.meetup.com/flutter-accra/"
+logo = "art/communities/flutter-accra.webp"

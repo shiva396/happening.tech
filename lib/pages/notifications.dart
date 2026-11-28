@@ -13,17 +13,14 @@ class NotificationsPage extends StatelessComponent {
     const enabled = publicKey != '' && endpoint != '';
     return div(classes: 'wrap', [
       header(classes: 'opening', [
-        h1([
-          .text('Notifications'),
-          span([.text('.')]),
-        ]),
+        h1([.text('Notifications')]),
       ]),
       section(
         classes: 'notice-settings',
         attributes: {'aria-label': 'Event alerts'},
         [
           h2([.text('New event alerts')]),
-          p([.text('Get a notification on this device when a new event joins the programme.')]),
+          p([.text('Get an alert on this device when a Flutter event is listed.')]),
           p(
             id: 'push-status',
             attributes: {'role': 'status'},
@@ -40,7 +37,7 @@ class NotificationsPage extends StatelessComponent {
                 .text('Enable notifications'),
               ],
             ),
-            script(src: 'notifications.js', defer: true),
+            script(src: 'notifications.js', attributes: {'type': 'module'}),
           ],
           p([
             a(href: 'https://github.com/$projectRepository/commits/main/events.atom', [

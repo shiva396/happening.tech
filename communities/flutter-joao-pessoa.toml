@@ -1,0 +1,7 @@
+name = "Flutter João Pessoa"
+city = "João Pessoa"
+country = "Brazil"
+latitude = -7.12
+longitude = -34.86
+url = "https://www.meetup.com/flutter-joao-pessoa/"
+logo = "art/communities/flutter-joao-pessoa.webp"

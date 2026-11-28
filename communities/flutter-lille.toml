@@ -1,0 +1,7 @@
+name = "Flutter Lille"
+city = "Lille"
+country = "France"
+latitude = 50.64
+longitude = 3.07
+url = "https://www.meetup.com/Flutter-Lille/"
+logo = "art/communities/flutter-lille.webp"

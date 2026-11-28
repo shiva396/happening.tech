@@ -1,0 +1,7 @@
+name = "Flutter Jaipur"
+city = "Jaipur"
+country = "India"
+latitude = 26.92
+longitude = 75.8
+url = "https://www.meetup.com/flutterjaipur/"
+logo = "art/communities/flutterjaipur.webp"

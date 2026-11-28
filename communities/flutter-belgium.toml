@@ -1,0 +1,7 @@
+name = "Flutter Belgium"
+city = "Brussels"
+country = "Belgium"
+latitude = 50.83
+longitude = 4.33
+url = "https://www.meetup.com/flutter-belgium/"
+logo = "art/communities/flutter-belgium.webp"

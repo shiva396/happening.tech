@@ -1,0 +1,7 @@
+name = "Flutter Chicago"
+city = "Chicago"
+country = "United States"
+latitude = 41.89
+longitude = -87.64
+url = "https://www.meetup.com/flutter-chicago/"
+logo = "art/communities/flutter-chicago.webp"

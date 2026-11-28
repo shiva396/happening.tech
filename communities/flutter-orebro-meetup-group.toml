@@ -1,0 +1,7 @@
+name = "Flutter Örebro"
+city = "Örebro"
+country = "Sweden"
+latitude = 59.28
+longitude = 15.22
+url = "https://www.meetup.com/flutter-orebro-meetup-group/"
+logo = "art/communities/flutter-orebro-meetup-group.webp"

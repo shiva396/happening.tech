@@ -1,0 +1,7 @@
+name = "Flutter Cracow"
+city = "Kraków"
+country = "Poland"
+latitude = 50.06
+longitude = 19.96
+url = "https://www.meetup.com/flutter-cracow/"
+logo = "art/communities/flutter-cracow.webp"

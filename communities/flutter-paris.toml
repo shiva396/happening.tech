@@ -1,0 +1,7 @@
+name = "Flutter Paris"
+city = "Paris"
+country = "France"
+latitude = 48.86
+longitude = 2.34
+url = "https://www.meetup.com/Flutter-Paris/"
+logo = "art/communities/flutter-paris.webp"

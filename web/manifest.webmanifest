@@ -5,5 +5,7 @@
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
-  "icons": [{ "src": "favicon.ico", "sizes": "32x32", "type": "image/x-icon" }]
+  "background_color": "#101925",
+  "theme_color": "#101925",
+  "icons": [{ "src": "art/atlas-mark.svg", "sizes": "any", "type": "image/svg+xml" }]
 }

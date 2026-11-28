@@ -1,0 +1,9 @@
+name = "FlutterBytes"
+city = "Lagos"
+country = "Nigeria"
+latitude = 6.5244
+longitude = 3.3792
+url = "https://www.flutterbytesconf.com/"
+description = "A Nigerian Flutter community that grew from a Lagos chat group into an annual developer conference."
+links = ["https://flutterbytes.substack.com/"]
+logo = "art/communities/flutterbytes.webp"

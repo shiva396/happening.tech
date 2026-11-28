@@ -1,0 +1,7 @@
+name = "Flutter Zürich"
+city = "Zürich"
+country = "Switzerland"
+latitude = 47.38
+longitude = 8.54
+url = "https://www.meetup.com/flutter-zurich/"
+logo = "art/communities/flutter-zurich.webp"

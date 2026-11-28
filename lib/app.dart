@@ -1,92 +1,73 @@
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import 'package:jaspr_router/jaspr_router.dart';
-import 'components/icon.dart';
-import 'components/playful_navigation.dart';
+import 'atlas/communities.dart';
+import 'atlas/details.dart';
+import 'atlas/presentation.dart';
+import 'atlas/world.dart';
 import 'event.dart';
 import 'pages/home.dart';
 import 'pages/submit.dart';
 import 'pages/notifications.dart';
-import 'components/motion.dart';
-import 'project.dart';
 
 class App extends StatelessComponent {
   final List<Event> events;
-  const App(this.events, {super.key});
+  final List<Event> legacy;
+  final List<Community> communities;
+  const App(this.events, this.communities, this.legacy, {super.key});
 
   @override
   Component build(BuildContext context) {
-    final path = Uri.parse(context.url).path;
-    return div([
-      a(href: '.$path#content', classes: 'skip', [.text('Skip to content')]),
-      header(classes: 'masthead', [
-        div(classes: 'wrap mast-inner', [
-          a(href: './', classes: 'brand', [
-            .text(projectWordmark),
-            span([.text(projectSuffix)]),
-          ]),
-          PlayfulNavigation(path),
-          div(classes: 'mast-actions', [
-            button(
-              id: 'theme-switch',
-              attributes: {'type': 'button', 'aria-label': 'Switch theme'},
-              [icon('moon'), icon('sun')],
-            ),
-            a(href: 'submit', classes: 'list-event', [.text('List an event')]),
-          ]),
-        ]),
-      ]),
-      main_(id: 'content', [
-        Router(
-          routes: [
-            Route(path: '/', title: 'The programme · $projectName', builder: (_, _) => Programme(events)),
-            Route(
-              path: '/world',
-              title: 'World view · $projectName',
-              builder: (_, _) => Programme(events, world: true),
-            ),
-            Route(
-              path: '/archive',
-              title: 'Event archive · $projectName',
-              builder: (_, _) => Programme(events, archive: true),
-            ),
-            Route(
-              path: '/past',
-              title: 'Event archive · $projectName',
-              builder: (_, _) => a(id: 'legacy-archive', href: 'archive/', [.text('Open the event archive')]),
-            ),
-            Route(
-              path: '/notifications',
-              title: 'Notifications · $projectName',
-              builder: (_, _) => const NotificationsPage(),
-            ),
-            Route(path: '/submit', title: 'List an event · $projectName', builder: (_, _) => const SubmitPage()),
-            for (final event in events)
-              Route(
-                path: '/events/${event.slug}',
-                title: '${event.title} · $projectName',
-                builder: (_, _) => EventPage(event),
-              ),
-          ],
+    final path = Uri.parse(context.url).path.replaceFirst(RegExp(r'/$'), '');
+    final home = path.isEmpty || path == '/world';
+    final content = main_(id: 'content', [
+      Router(
+        routes: [
+          for (final path in ['/', '/world']) Route(path: path, builder: (_, _) => Atlas(events, communities)),
+          for (final path in ['/archive', '/past'])
+            Route(path: path, builder: (_, _) => Atlas(events, communities, archive: true)),
+          Route(path: '/communities', builder: (_, _) => Communities(communities, events, directory: true)),
+          for (final c in communities)
+            Route(path: '/communities/${c.id}', builder: (_, _) => CommunityDetails(c, events)),
+          for (final e in events) Route(path: '/events/${e.id}', builder: (_, _) => EventDetails(e)),
+          for (final e in legacy) Route(path: '/events/${e.id}', builder: (_, _) => EventDetails(e, legacy: true)),
+          Route(
+            path: '/notifications',
+            builder: (_, _) =>
+                Component.fragment([pageHead('Notifications', 'notifications/'), const NotificationsPage()]),
+          ),
+          Route(
+            path: '/submit',
+            builder: (_, _) =>
+                Component.fragment([pageHead('List a Flutter event', 'submit/'), SubmitPage(communities)]),
+          ),
+        ],
+      ),
+    ]);
+    final community = path.startsWith('/communities/')
+        ? communities.where((c) => path == '/communities/${c.id}').firstOrNull
+        : null;
+    final event = path.startsWith('/events/')
+        ? [...events, ...legacy].where((e) => path == '/events/${e.id}').firstOrNull
+        : null;
+    final section = path.split('/').elementAtOrNull(1);
+    final chapter = switch (section) {
+      'events' || 'archive' || 'past' => 'program',
+      _ => section,
+    };
+    return div(classes: 'globe-site', [
+      a(href: home ? './#program' : '.$path/#content', classes: 'skip', [.text('Skip to content')]),
+      if (home)
+        content
+      else
+        WorldView(
+          events,
+          communities,
+          [content],
+          permanentView: chapter,
+          latitude: community?.latitude ?? event?.latitude,
+          longitude: community?.longitude ?? event?.longitude,
         ),
-      ]),
-      footer(classes: 'site-foot wrap', [
-        a(href: './', classes: 'footer-brand', [.text(projectName)]),
-        nav(
-          attributes: {'aria-label': 'Community'},
-          [
-            a(href: 'archive/', [.text('Event archive')]),
-            for (final (href, label, glyph) in [
-              ('notifications/', 'Notifications', 'bell'),
-              ('https://github.com/$projectRepository/blob/main/CONTRIBUTING.md', 'Contribute', 'pull-request'),
-            ])
-              a(href: href, classes: 'community-action', [
-                motionSlot(glyph, icon(glyph)),
-                .text(label),
-              ]),
-          ],
-        ),
-      ]),
     ]);
   }
 }

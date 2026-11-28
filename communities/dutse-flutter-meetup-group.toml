@@ -1,0 +1,7 @@
+name = "Flutter Dutse"
+city = "Dutse"
+country = "Nigeria"
+latitude = 11.8
+longitude = 9.33
+url = "https://www.meetup.com/dutse-flutter-meetup-group/"
+logo = "art/communities/dutse-flutter-meetup-group.webp"

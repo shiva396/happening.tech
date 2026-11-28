@@ -1,0 +1,9 @@
+name = "FlutterKaigi"
+city = "Tokyo"
+country = "Japan"
+latitude = 35.6762
+longitude = 139.6503
+url = "https://flutterkaigi.jp/"
+description = "The community conference for Flutter developers in Japan."
+links = ["https://github.com/FlutterKaigi"]
+logo = "art/communities/flutterkaigi.webp"

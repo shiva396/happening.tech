@@ -18,3 +18,5 @@ jobs:
           sdk: 3.14.0
       - run: dart pub get --enforce-lockfile
       - run: dart run tool/validate.dart
+      - run: dart run tool/check_import.dart
+      - run: python3 -m unittest discover -s tool/push -p 'test_*.py'

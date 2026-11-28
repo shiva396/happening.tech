@@ -1,0 +1,7 @@
+name = "Flutter Łódź"
+city = "Łódź"
+country = "Poland"
+latitude = 51.77
+longitude = 19.46
+url = "https://www.meetup.com/flutter-lodz/"
+logo = "art/communities/flutter-lodz.webp"

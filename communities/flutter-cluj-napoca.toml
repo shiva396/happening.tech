@@ -1,0 +1,7 @@
+name = "Flutter Cluj-Napoca"
+city = "Cluj-Napoca"
+country = "Romania"
+latitude = 46.78
+longitude = 23.59
+url = "https://www.meetup.com/flutter-cluj-napoca/"
+logo = "art/communities/flutter-cluj-napoca.webp"

@@ -1,0 +1,7 @@
+name = "Flutter Egypt"
+city = "Cairo"
+country = "Egypt"
+latitude = 30.06
+longitude = 31.25
+url = "https://www.meetup.com/flutteregypt/"
+logo = "art/communities/flutteregypt.webp"

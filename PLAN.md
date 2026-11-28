@@ -1,57 +1,15 @@
-# World Tech Events
+# Flutter community atlas
 
-An open-source, global platform to discover tech events happening around the world, inspired by Tamilnadu.tech, but with a modern identity and a more intuitive discovery experience.
+The opening screen is Earth. A land tap or place search opens a country or city inside the sphere, with local gatherings, community profiles and credited photography. The same circular reading area hosts the program, directory, activity, event details, contribution form and notification settings. The dock returns visitors to the surface with their selection intact.
 
-## The Plan
+| Area | Implementation |
+| --- | --- |
+| Catalog | `events/` and `communities/` hold reviewed TOML. The Dart domain validates coordinates, host time zones, duplicates, organizer references and registration deadlines. `legacy-events/` preserves earlier detail routes. |
+| Publication | GitHub Pages rebuilds after changes to main and on a daily schedule. `tool/import_event.dart` converts a permitted organizer JSON-LD export to reviewable TOML. |
+| Pages | `lib/atlas/` contains the world, program, directory, profiles and activity stream. `web/discovery/` handles geographic place pages, in-globe reading, filters, deep links and browser history. |
+| World | `web/world/` projects and clusters the catalog, manages camera gestures and selects countries. The static poster, textured WebGL surface and Canvas fallback share one projection. `tool/world/bake.py` bakes a matching overview, poster and two levels of NASA satellite tiles up to 21,504 × 10,752 pixels. Both renderers request regional tiles as the camera zooms. |
+| Namma Dash | The mascot is paused. Its model, poster and source are kept with the authoring tools outside the published site. |
+| Design | Self-hosted Source Sans 3 and light and dark color palettes live under `web/`. Light opens across the globe and then the screen. Dark closes both passes in reverse order. The reading panel has a single curved scrollbar inset from the rim. The original mascot reference and product brief live in `docs/atlas/`. |
+| Verification | The catalog fixtures, static-link audit, browser checks and performance sampler exercise the production Pages build. The browser guide explains how to repeat them. |
 
-- Build the platform using Jaspr, leveraging the Dart ecosystem.
-- Design a fresh, modern layout that makes discovering worldwide tech events interesting and effortless.
-- Aggregate events from Meetup, official Flutter communities and other developer communities.
-- Maintain a TOML-based event directory, allowing anyone to contribute an event through a GitHub PR.
-- Automate event aggregation, duplicate detection and expiry of past events wherever possible.
-- Make the entire project open source and community-driven.
-
-## Event archive, contributions and notifications
-
-- [x] Give completed events a searchable archive at `/archive/` and redirect old `/past/` bookmarks.
-- [x] Link the footer’s **Contribute** action to the [GitHub contribution guide](CONTRIBUTING.md). Give **Contribute** and **Notifications** distinct animations.
-- [x] Publish the listing feed, implement browser opt-in and opt-out, and configure the private subscription store and VAPID keys.
-- [ ] Enable live push for newly published events. Host the subscription API over HTTPS, configure its URL and scoped GitHub token, and redeploy Pages. Verify that a subscribed device receives an alert with the site closed and that tapping it opens the event. Follow the [Web Push setup guide](tool/push/README.md).
-
-## The Experience
-
-Rather than building another conventional event listing website, we could make it feel like a living atlas of the global tech community.
-
-- **World View:** An interactive world map showcasing upcoming events and active tech communities.
-- **Timeline View:** A chronological stream of upcoming events across the world.
-- **Explore View:** Discover events by technology, country, city, community or event type.
-- **Around Me:** Discover events happening nearby.
-- **Personalized Timezone:** Display event timings in the visitor's local timezone.
-- **Event Cards:** Minimal, informative cards with direct registration links and calendar integration.
-- **Community Discovery:** Explore developer communities and their upcoming events.
-
-## Design Direction
-
-- Minimal, modern and typography-driven.
-- Fluid transitions and meaningful micro-interactions.
-- Subtle animations that communicate how active the global tech community is.
-- Light and dark themes.
-- Responsive, accessible and fast.
-- No unnecessary sign-ups or friction to discover events.
-
-## Engineering Direction
-
-- Jaspr with SEO-friendly rendering.
-- A unified event schema, irrespective of where the event originates.
-- Independent, extensible event source adapters.
-- TOML-based community contributions with automated PR validation.
-- Scheduled event synchronization through GitHub Actions or a similar service.
-- Avoid unnecessary backend infrastructure initially.
-
-## Launch
-
-Start with Flutter and prominent developer communities, gradually expand across technologies, countries and ecosystems.
-
-Keep the first release simple, delightful and useful enough that communities naturally want to contribute.
-
-**One world. Every tech community. Endless discoveries.**
+Live source polling requires an approved integration and source credentials. Organizers can submit a permitted export through the existing import and review flow. [Contribution guide](CONTRIBUTING.md)
