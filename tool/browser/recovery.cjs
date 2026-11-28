@@ -157,6 +157,14 @@ async function check() {
       initial,
     );
     const card = desktop.locator(".world-postcard:not(.world-stack)").first();
+    // At world scale every visible postcard can represent multiple communities.
+    // Follow the clusters into a city before selecting an individual listing.
+    for (let level = 0; level < 4 && !(await card.count()); level++) {
+      const cluster = desktop.locator(".world-stack").first();
+      const previous = await cluster.elementHandle();
+      await cluster.click();
+      await desktop.waitForFunction(button => !button.isConnected, previous);
+    }
     await card.click();
     await desktop.locator("#world-preview h3").waitFor();
     const sidePanel = await desktop.locator("#world-preview").boundingBox();
