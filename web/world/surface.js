@@ -51,7 +51,17 @@ void main() {
   vec3 lit = mix(color*light,vec3(.459,.706,.922),rim);
   gl_FragColor = vec4(lit, min(1.,d*radius*.67));
 }`;
-const surfaceURL = new URL("../art/world-surface.webp", import.meta.url);
+export async function loadOverview() {
+  const image = new Image();
+  image.src = new URL("../art/world-surface.avif", import.meta.url);
+  try {
+    await image.decode();
+  } catch {
+    image.src = new URL("../art/world-surface.webp", import.meta.url);
+    await image.decode();
+  }
+  return image;
+}
 
 export async function makeSurface(canvas, redraw) {
   const gl = canvas.getContext("webgl", {
@@ -101,9 +111,7 @@ export async function makeSurface(canvas, redraw) {
     }
     gl.linkProgram(program);
     if (!gl.getProgramParameter(program, gl.LINK_STATUS)) throw new Error("Globe program unavailable");
-    const bitmap = new Image();
-    bitmap.src = surfaceURL;
-    await bitmap.decode();
+    const bitmap = await loadOverview();
     if (gl.isContextLost()) throw new Error("Globe context lost");
     gl.useProgram(program);
     buffer = gl.createBuffer();
@@ -149,9 +157,9 @@ export async function makeSurface(canvas, redraw) {
       view = loc("view"),
       useDetail = loc("useDetail");
     return {
-      draw(width, height, r, camera, moving, quality, scale) {
+      draw(width, height, r, camera, moving, quality, scale, readerRadius) {
         const zoom = camera.zoom * scale;
-        details?.update(width / scale, height / scale, r, camera, moving, zoom);
+        details?.update(width / scale, height / scale, r, camera, moving, zoom, readerRadius / scale);
         const density = Math.min(
           (window.devicePixelRatio || 1) * scale, (moving ? quality : 3) * scale,
           Math.sqrt((moving ? 4000000 : 8400000) / (width * height)), maxBuffer / Math.max(width, height),

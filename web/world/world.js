@@ -69,7 +69,8 @@ export async function mountWorld(stage, options = {}) {
   let drag = null,
     pinch = null;
   const animated = () => motionPreference && !reduced.matches;
-  let reading = false;
+  let reading = false, readerRadius = 0;
+  const readerFrame = stage.closest(".world-frame");
   const readingScale = Number(getComputedStyle(stage).getPropertyValue("--reading-scale")) || 1;
   const canDraw = () => !disposed && visible && !document.hidden && width > 0 && height > 0;
 
@@ -179,11 +180,11 @@ export async function mountWorld(stage, options = {}) {
     // During renderer initialization the poster and cards retain their shared first frame.
     const view = renderer ? camera : HOME,
       r = radiusAt(width, height, view.zoom);
-    renderer?.draw(width, height, r, view, Boolean(moving || pointers.size || safariGesture || wheelTimer), quality, reading ? readingScale : 1);
+    renderer?.draw(width, height, r, view, Boolean(moving || pointers.size || safariGesture || wheelTimer), quality, reading ? readingScale : 1, reading ? readerRadius : 0);
     stage.dataset.rendered = String(Boolean(renderer));
     const diameter = Math.ceil(r * 2) + "px";
     if (stage.style.getPropertyValue("--hit-size") !== diameter) stage.style.setProperty("--hit-size", diameter);
-    overlay.draw(view, width, height, r);
+    if (!reading) overlay.draw(view, width, height, r);
     const key = [view.longitude.toFixed(1), view.latitude.toFixed(1), view.zoom.toFixed(2)].join("/");
     if (key !== lastCamera) {
       lastCamera = key;
@@ -215,6 +216,7 @@ export async function mountWorld(stage, options = {}) {
     const rect = entries[0].contentRect;
     width = rect.width;
     height = rect.height;
+    if (readerFrame) readerRadius = parseFloat(getComputedStyle(readerFrame, "::after").width) / 2 || 0;
     const diameter = radiusAt(width, height, 1) * 2;
     stage.style.setProperty("--earth-diameter", diameter + "px");
     queue();

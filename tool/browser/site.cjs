@@ -11,6 +11,7 @@ const url = (path) => new URL(path, root).href;
 async function atlas(page) {
   await page.goto(root.href);
   const data = await page.locator("#atlas-data").evaluate((node) => JSON.parse(node.textContent));
+  assert.equal(await page.locator("[data-directory-id]").count(), 0, "The unopened directory stays out of the globe DOM");
   const cards = page.locator(".event-card:visible");
   const expectedOrder = (past) =>
     data.events
@@ -288,6 +289,9 @@ eachBrowser(async (browser, name) => {
   const staticPage = await browser.newPage({ javaScriptEnabled: false });
   await staticPage.goto(root.href);
   assert(await staticPage.locator(".atlas-earth-poster").isVisible());
+  await staticPage.getByRole("link", { name: "Communities", exact: true }).click();
+  assert(await staticPage.getByRole("link", { name: "Flutter Nairobi", exact: true }).isVisible());
+  await staticPage.goBack();
   assert(await staticPage.locator("#program .filter-bar").isHidden());
   await staticPage.locator("[data-period=past]").click();
   assert.equal(

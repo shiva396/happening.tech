@@ -74,10 +74,11 @@ html:not(.interactive) .world-tools :is(.locator.enhanced, .theme-switch) { disp
   background: var(--paper); border: 1px solid var(--line); border-radius: 1.15rem;
   box-shadow: 0 2px 7px #08142126, 0 14px 40px #08142138;
 }
-.world-preview > img { width: 100%; height: clamp(6rem, 15svh, 9rem); object-fit: cover; border-radius: 0; }
-.world-preview > .community-logo { object-fit: contain; background: var(--ice); }
+.world-preview picture { display: contents; }
+.world-preview img { width: 100%; height: clamp(6rem, 15svh, 9rem); object-fit: cover; border-radius: 0; }
+.world-preview .community-logo { object-fit: contain; background: var(--ice); }
 .world-preview .preview-copy { min-width: 0; padding: 1rem 1.1rem; }
-.world-preview:not(:has(> img)) .preview-copy { padding-top: 1.6rem; }
+.world-preview:not(:has(picture)) .preview-copy { padding-top: 1.6rem; }
 .world-preview h3 { margin: .22rem 0 .4rem; font-size: clamp(1.25rem, 1.6vw, 1.5rem); line-height: 1.16; }
 .world-preview .field-label { color: var(--muted); font-size: .84rem; }
 .world-preview p { font-size: .94rem; line-height: 1.4; }
@@ -94,6 +95,8 @@ html:not(.interactive) .world-tools :is(.locator.enhanced, .theme-switch) { disp
 .world-preview .preview-actions .text-link:first-child {
   border-radius: 1rem; color: var(--on-active); background: var(--active); padding: .2rem .8rem;
 }
+/* Keep the unopened reader out of the first layout and native image lazy-load range. */
+.atlas-starting .world-frame:not(.permalink):not([data-view]) .globe-pages { display: none; }
 .globe-pages { position: relative; margin-top: var(--frame-height); }
 .world-frame[data-view] { height: var(--frame-height); min-height: 0; }
 .world-frame[data-view] .world-touch { touch-action: none; }
@@ -159,8 +162,8 @@ html[data-motion="off"] .world-frame *, html[data-motion="off"] .world-scene { a
     width: auto; max-width: 28rem; margin-inline: auto; transform: none; max-height: min(30svh, 14rem); padding: .8rem 2.4rem .8rem .85rem;
     display: flex; align-items: flex-start; gap: .7rem;
   }
-  .world-preview > img { flex: none; width: 3.65rem; height: 4.4rem; border-radius: .65rem; }
-  .world-preview .preview-copy, .world-preview:not(:has(> img)) .preview-copy { padding: 0; }
+  .world-preview img { flex: none; width: 3.65rem; height: 4.4rem; border-radius: .65rem; }
+  .world-preview .preview-copy, .world-preview:not(:has(picture)) .preview-copy { padding: 0; }
   .world-preview h3 { font-size: 1.12rem; margin: .05rem 0 .2rem; }
   .world-preview .preview-actions { margin-top: .35rem; }
   .world-preview .preview-actions .text-link { min-height: 1.85rem; }

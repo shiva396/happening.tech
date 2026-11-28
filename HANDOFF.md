@@ -1,6 +1,6 @@
 # flutter.spot atlas handoff
 
-The redesign is on `feature/flutter-community-atlas`. The Earth fills the opening viewport. Tap land or use Find a place to open local events and communities inside the sphere. The dock opens the program, directory and activity there. Event details, profiles, the listing form and notification settings use the same interior. Browser history restores place and selection. Shared permanent links render within the same globe frame directly from HTML. The atlas uses the `flutter_spot` Dart package. The public event URLs from the earlier catalog still resolve. All calendar downloads use `@flutter.spot` UIDs, so re-importing an event saved with an earlier UID can create a duplicate in a calendar app.
+The Earth fills the opening viewport. Tap land or use Find a place to open local events and communities inside the sphere. The dock opens the program, directory and activity there. Event details, profiles, the listing form and notification settings use the same interior. Browser history restores place and selection. Shared permanent links render within the same globe frame directly from HTML. The atlas uses the `flutter_spot` Dart package. The public event URLs from the earlier catalog still resolve. All calendar downloads use `@flutter.spot` UIDs, so re-importing an event saved with an earlier UID can create a duplicate in a calendar app.
 
 The production build generated 179 static pages from 12 Flutter events, 150 communities and 10 archived event records on 28 November 2026. The sitemap contains 167 primary atlas pages. The additional routes preserve previously shared links. [Product brief](docs/atlas/BRIEF.md) · [Implementation guide](PLAN.md)
 
@@ -32,11 +32,15 @@ Medians of three cold visits to the production build on a loopback HTTP server. 
 
 | Cold profile | LCP | Lab INP candidate | CLS | Zoom frame p95 | Initial transfer | JS heap at end |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Desktop, 1440 × 900, DPR 1, unthrottled | 124 ms | 56 ms | 0.0000 | 16.7 ms | 804 KiB, 32 requests | 5.1 MiB |
-| Mobile emulation, 390 × 844, DPR 2 | 740 ms | 120 ms | 0.0000 | 16.7 ms | 755 KiB, 28 requests | 3.4 MiB |
+| Desktop, 1440 × 900, DPR 1, unthrottled | 156 ms | 120 ms | 0.0000 | 16.7 ms | 392 KiB, 16 requests | 4.3 MiB |
+| Mobile emulation, 390 × 844, DPR 2 | 684 ms | 104 ms | 0.0000 | 16.8 ms | 377 KiB, 13 requests | 3.4 MiB |
 
 The mobile profile used 4× CPU slowdown, 80 ms latency, 4 Mbit/s downstream and 1 Mbit/s upstream. The Earth poster was the LCP element. The whole-device GPU counter varied across the short zoom samples and does not isolate browser work. Transfer totals cover requests through initial network idle. A physical iOS or Android handset and real-user performance data were unavailable. [Repeat the tests](tool/browser/README.md)
 
+The published files went from 21.96 MB to 15.72 MB. The globe now fetches the directory when opened and uses the event thumbnail or card image for its preview. A cold globe visit previously transferred 804 KiB on desktop and 755 KiB on emulated mobile. Bundled scripts keep the location lookup, software renderer and reader scrollbar on demand.
+
+The 640 satellite tiles occupy 10.79 MB, down from 15.54 MB. Both levels retain 672 × 672 tiles. The 512 fine tiles use AVIF, with mean luminance SSIM of 0.979 against the NASA source, compared with 0.981 for the previous WebP encoding. When a fine image cannot be decoded, the renderer requests its intermediate WebP parent. The two crops below show previous and optimized tiles at their native pixel scale. [Compare satellite detail](docs/atlas/screenshots/satellite-compression.webp)
+
 ## Publication
 
-The repository rename merged in #3. The redesign PR targets main. The Pages workflow publishes main and rebuilds daily. Live source polling would require an approved integration and credentials. The contribution form and local JSON-LD import are ready for use. [Contribution guide](CONTRIBUTING.md)
+The repository rename and atlas redesign merged in #3 and #4. The Pages workflow publishes main and rebuilds daily. Live source polling would require an approved integration and credentials. The contribution form and local JSON-LD import are ready for use. [Contribution guide](CONTRIBUTING.md)

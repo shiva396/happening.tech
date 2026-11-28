@@ -84,8 +84,7 @@ Map<String, Object?> communityRecord(Community c) => {
   'country': c.country,
   'latitude': c.latitude,
   'longitude': c.longitude,
-  'description': c.description,
-  'url': c.url,
+  if (c.description.isNotEmpty) 'description': c.description,
   'artwork': c.logo,
 };
 
@@ -98,6 +97,7 @@ Map<String, Object?> eventRecord(Event e) => {
   'latitude': e.latitude,
   'longitude': e.longitude,
   'artwork': eventImage(e),
+  if (e.artworkCard != null) 'cardArtwork': e.artworkCard,
   'thumbnail': e.artworkThumbnail,
   'artworkCredit': e.artworkCredit,
   'artworkSource': e.artworkSource,

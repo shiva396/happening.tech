@@ -22,11 +22,13 @@ jobs:
           dart pub global run jaspr_cli:jaspr build
           --dart-define-server=SITE_BASE_PATH=/flutter.spot
           --dart-define-server="PROJECT_REPOSITORY=$GITHUB_REPOSITORY"
-      - run: dart run tool/sitemap.dart https://shiva396.github.io/flutter.spot/
-      - run: python3 tool/browser/static.py
       - uses: actions/setup-node@v6
         with:
           node-version: 24
+      - run: npm ci --prefix tool/assets
+      - run: npm run build --prefix tool/assets
+      - run: dart run tool/sitemap.dart https://shiva396.github.io/flutter.spot/
+      - run: python3 tool/browser/static.py
       - run: npm ci --prefix tool/browser
       - run: tool/browser/node_modules/.bin/playwright-core install --with-deps chromium firefox webkit
       - name: Test the published layout and navigation

@@ -1,7 +1,6 @@
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 import '../atlas/activity.dart';
-import '../atlas/communities.dart';
 import '../atlas/presentation.dart';
 import '../atlas/program.dart';
 import '../atlas/world.dart';
@@ -15,13 +14,15 @@ class Atlas extends StatelessComponent {
   @override
   Component build(BuildContext context) => div(id: 'atlas', [
     pageHead(archive ? 'Past Flutter events' : 'The global Flutter atlas', archive ? 'archive/' : ''),
-    dataIsland(events, communities),
+    dataIsland(events, archive ? const [] : communities),
     if (archive)
       ProgramView(events, archive: true)
     else
       WorldView(events, communities, [
         ProgramView(events),
-        Communities(communities, events),
+        section(id: 'communities', classes: 'section communities', [
+          a(classes: 'text-link', href: 'communities/', [.text('Browse Flutter communities')]),
+        ]),
         Activity(events),
       ]),
   ]);
