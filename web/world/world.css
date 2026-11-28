@@ -1,6 +1,5 @@
 .atlas-earth {
-  --world-paper: #fbfdff;
-  --world-ink: #14212d;
+  --world-ink: var(--ink);
   --world-anchor: #187acd;
   --world-leader: #dcf1ff;
   --world-card-width: 112px;
@@ -29,6 +28,13 @@
   height: var(--hit-size, var(--earth-diameter));
   box-shadow: 0 0 2px 1px #8dc9fb77, 0 0 14px 2px #5888c341;
 }
+.atlas-earth::after {
+  content: "";
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  width: var(--hit-size, var(--earth-diameter)); height: var(--hit-size, var(--earth-diameter));
+  border-radius: 50%; background: var(--terrain-wash); pointer-events: none;
+}
+.world-cards { z-index: 1; }
 .atlas-earth-poster {
   display: block;
   pointer-events: none;
@@ -110,9 +116,9 @@
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
   gap: 0;
-  border: 1px solid #fff;
+  border: 1px solid var(--line);
   border-radius: 11px;
-  background: #fbfcfd;
+  background: var(--paper);
   color: var(--world-ink);
   box-shadow: var(--world-card-shadow);
   font: inherit;

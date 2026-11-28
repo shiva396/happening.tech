@@ -25,7 +25,7 @@
 .entry-preview p { margin-top: .8rem; color: var(--muted); }
 #entry-preview-host { color: var(--ink); font-weight: 650; }
 .entry-preview { overflow-wrap: anywhere; }
-#entry-submit, .entry-actions a { display: inline-flex; align-items: center; min-height: var(--control); padding: .6rem 1.15rem; background: var(--blue); color: white; border-radius: var(--pill); font-weight: 600; text-decoration: none; }
+#entry-submit, .entry-actions a { display: inline-flex; align-items: center; min-height: var(--control); padding: .6rem 1.15rem; background: var(--active); color: var(--on-active); border-radius: var(--pill); font-weight: 600; text-decoration: none; }
 #entry-note, #entry-outcome { margin-block: .85rem; color: var(--muted); }
 #entry-output { padding-top: 1.5rem; border-top: 1px solid var(--line); margin-top: 1.5rem; }
 #entry-output h2 .icon { margin-right: .4rem; }

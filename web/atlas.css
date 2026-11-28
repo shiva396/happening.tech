@@ -23,8 +23,8 @@ h3 { font-weight: 650; letter-spacing: -.008em; }
 .overline .icon { width: 1rem; height: 1rem; }
 .pill, .extra-filters summary, .locator summary, .list-event { min-height: var(--control); padding: .55rem 1.1rem; border: 1px solid var(--line); border-radius: var(--pill); background: var(--paper); color: var(--ink); font-size: .9375rem; font-weight: 650; text-decoration: none; justify-content: center; }
 .pill:hover, .extra-filters summary:hover, .locator summary:hover { text-decoration: none; border-color: var(--blue); color: var(--blue); }
-.pill.solid, .list-event { background: var(--ink); color: white; border-color: var(--ink); }
-.pill.solid:hover { background: var(--blue); color: white; }
+.pill.solid, .list-event { background: var(--active); color: var(--on-active); border-color: var(--active); }
+.pill.solid:hover { background: var(--blue); color: var(--on-active); }
 .brand { font-size: 1.52rem; font-weight: 750; gap: .5rem; color: var(--ink); text-decoration: none; letter-spacing: -.028em; }
 .brand b { font-weight: 490; color: var(--blue); }
 .brand:hover { text-decoration: none; }

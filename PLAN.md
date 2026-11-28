@@ -9,7 +9,7 @@ The opening screen is Earth. A land tap or place search opens a country or city 
 | Pages | `lib/atlas/` contains the world, program, directory, profiles and activity stream. `web/discovery/` handles geographic place pages, in-globe reading, filters, deep links and browser history. |
 | World | `web/world/` projects and clusters the catalog, manages camera gestures and selects countries. The static poster, textured WebGL surface and Canvas fallback share one projection. `tool/world/bake.py` bakes a matching overview, poster and two levels of NASA satellite tiles up to 21,504 × 10,752 pixels. Both renderers request regional tiles as the camera zooms. |
 | Namma Dash | The mascot is paused. Its model, poster and source are kept with the authoring tools outside the published site. |
-| Design | Self-hosted Source Sans 3, blue-and-white design tokens and component styles live under `web/`. The original mascot reference and product brief live in `docs/atlas/`. |
+| Design | Self-hosted Source Sans 3 and light and dark color palettes live under `web/`. The appearance switch reveals the theme from the globe’s center in two passes. The reading panel scrolls along a curved track. The original mascot reference and product brief live in `docs/atlas/`. |
 | Verification | The catalog fixtures, static-link audit, browser checks and performance sampler exercise the production Pages build. The browser guide explains how to repeat them. |
 
 Live source polling requires an approved integration and source credentials. Organizers can submit a permitted export through the existing import and review flow. [Contribution guide](CONTRIBUTING.md)

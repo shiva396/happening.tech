@@ -65,15 +65,23 @@ class WorldView extends StatelessComponent {
             div(classes: 'world-top', [
               brand(),
               div(classes: 'world-tools', [
+                button(
+                  classes: 'theme-switch enhanced',
+                  attributes: {'type': 'button', 'aria-label': 'Dark theme', 'aria-pressed': 'false'},
+                  [icon('sun'), icon('moon')],
+                ),
                 if (standalone)
                   a(classes: 'pill enhanced', href: './#find', [icon('search'), .text('Find a place')])
                 else
                   details(id: 'find', classes: 'locator enhanced', [
-                    summary([
-                      icon('search'),
-                      span([.text('Find a place')]),
-                      span(classes: 'locator-shortcut', attributes: {'aria-hidden': 'true'}, [.text('/')]),
-                    ]),
+                    summary(
+                      attributes: {'aria-label': 'Find a place'},
+                      [
+                        icon('search'),
+                        span([.text('Find a place')]),
+                        span(classes: 'locator-shortcut', attributes: {'aria-hidden': 'true'}, [.text('/')]),
+                      ],
+                    ),
                     div(classes: 'locator-popover', [
                       input(
                         type: InputType.search,
@@ -137,6 +145,7 @@ class WorldView extends StatelessComponent {
                 [],
               ),
             div(
+              id: 'atlas-reader',
               classes: 'globe-pages',
               attributes: {'aria-label': 'Explore the atlas', 'role': 'region'},
               [

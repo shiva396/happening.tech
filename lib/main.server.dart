@@ -16,6 +16,15 @@ void main() {
       title: projectName,
       meta: const {'description': projectDescription, 'theme-color': '#101925'},
       head: [
+        script(
+          content: '''
+          try {
+            const saved = localStorage.getItem('flutter.spot.theme');
+            if (saved === 'light' || saved === 'dark') document.documentElement.dataset.theme = saved;
+          } catch {}
+        ''',
+        ),
+        link(href: 'art/world-poster.webp', rel: 'preload', attributes: {'as': 'image', 'fetchpriority': 'high'}),
         link(href: 'manifest.webmanifest', rel: 'manifest'),
         link(href: 'art/atlas-mark.svg', rel: 'icon', type: 'image/svg+xml'),
         link(

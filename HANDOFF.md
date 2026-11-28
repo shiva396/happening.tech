@@ -13,13 +13,15 @@ The production build generated 40 static pages from 12 Flutter events, 11 commun
 
 The 2,048 × 1,024 overview and two regional detail levels use NASA’s August 2004 Blue Marble satellite mosaic. The finest level is 21,504 × 10,752 pixels. The globe loads visible tiles on demand, with three requests in flight and up to 16 resident WebGL tiles. Spreading two fingers by 50% increases the camera zoom by about 2.16× and keeps the place under their midpoint. Curved leaders connect the existing pin and card endpoints. Selecting a listing opens details at the right edge on desktop and above the dock on phones. The comparison shows Warsaw from the same camera position. [Zoom comparison](docs/atlas/screenshots/zoom-comparison.webp)
 
+The atlas follows the system light or dark setting on first visit. The sun or moon button saves a choice across pages and visits. Switching themes reveals a circle to the globe’s rim, then opens a second circle from the same point to the screen corners. Reduced motion and the atlas pause setting apply the choice immediately. The right edge of a scrollable reading panel has a curved track with fixed endpoints. Its thumb supports dragging, touch and keyboard navigation. [Watch the theme change](docs/atlas/screenshots/theme-iris.webp)
+
 The atlas uses a self-hosted Source Sans 3 variable font for map labels, reading views and forms.
 
 ## Verification
 
 - The locked dependencies, Dart analysis, catalog validator and import fixtures passed. The form produced both an online TOML listing and a hybrid listing with coordinates. Both passed the production parser.
 - Chromium 158, Firefox 153 and WebKit 26.5 exercised discovery, city-to-profile navigation, deep links, browser history, keyboard controls, in-globe utility pages, preserved form drafts, static navigation, DST validation and form downloads. Layout checks covered 320–1440 px. Chromium also exercised land selection, drag, pinch, scrolling the reading area, recovery from an unavailable article, Canvas fallback, high-density close-ups, unavailable map tiles, animation preferences and the notification flow with a fixture provider.
-- The static audit checked internal links, SVG symbol references, metadata, canonical URLs, structured event data, the sitemap and all 22 calendar identities. axe-core 4.14.1 reported zero automated WCAG A/AA violations across 16 states, including the globe, a selected postcard, a city, all dock views, in-globe readers and permanent pages.
+- The static audit checked internal links, SVG symbol references, metadata, canonical URLs, structured event data, the sitemap and all 22 calendar identities. axe-core 4.14.1 reported zero automated WCAG A/AA violations across 16 states in each theme, including the globe, a selected postcard, a city, all dock views, in-globe readers and permanent pages.
 - Three Python notification tests and four Node storage tests passed. Photography credits are included with the assets. [Credits](web/art/events/CREDITS.txt)
 
 ## Performance
@@ -28,8 +30,8 @@ Medians of three cold visits to the production build on a loopback HTTP server. 
 
 | Cold profile | LCP | Lab INP candidate | CLS | Zoom frame p95 | Initial transfer | JS heap at end |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Desktop, 1440 × 900, DPR 1, unthrottled | 136 ms | 48 ms | 0.000 | 16.7 ms | 629 KiB, 30 requests | 4.4 MiB |
-| Mobile emulation, 390 × 844, DPR 2 | 568 ms | 104 ms | 0.000 | 16.7 ms | 582 KiB, 26 requests | 3.2 MiB |
+| Desktop, 1440 × 900, DPR 1, unthrottled | 140 ms | 72 ms | 0.0000 | 16.7 ms | 639 KiB, 31 requests | 4.3 MiB |
+| Mobile emulation, 390 × 844, DPR 2 | 644 ms | 160 ms | 0.0000 | 16.8 ms | 592 KiB, 27 requests | 3.9 MiB |
 
 The mobile profile used 4× CPU slowdown, 80 ms latency, 4 Mbit/s downstream and 1 Mbit/s upstream. The Earth poster was the LCP element. The whole-device GPU counter varied across the short zoom samples and does not isolate browser work. Transfer totals cover requests through initial network idle. A physical iOS or Android handset and real-user performance data were unavailable. [Repeat the tests](tool/browser/README.md)
 

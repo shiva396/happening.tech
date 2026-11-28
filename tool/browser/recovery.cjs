@@ -94,6 +94,22 @@ async function check() {
     await touch("touchEnd", []);
     await page.waitForFunction(() => document.querySelector(".globe-pages").scrollTop > 20);
     assert.equal(await page.evaluate(() => scrollY), 0);
+    const rail = page.getByRole("scrollbar", { name: "Scroll atlas content" });
+    await rail.press("Home");
+    const points = await rail.evaluate(el => {
+      const track = el.querySelector(".scroll-track"), rect = el.getBoundingClientRect();
+      return Array.from({length: 11}, (_, index) => {
+        const point = track.getPointAtLength(track.getTotalLength() * index / 10);
+        return [rect.x + point.x, rect.y + point.y];
+      });
+    });
+    await touch("touchStart", [points[0]]);
+    for (const point of points.slice(1)) await touch("touchMove", [point]);
+    await touch("touchEnd", []);
+    await page.waitForFunction(() => {
+      const reader = document.querySelector("#atlas-reader");
+      return reader.scrollTop + reader.clientHeight >= reader.scrollHeight - 1;
+    });
     await page.setViewportSize({width: 320, height: 568});
     await page.goto(new URL("?event=flutter-tech-summit-2027#world", preview).href);
     await page.locator(".world-focused").waitFor();

@@ -1,6 +1,6 @@
 # flutter.spot
 
-The globe is the interface for exploring Flutter gatherings. Rotate the Earth, tap a country, or find a city to see its events and organizers. The bottom dock opens the program, community directory and activity inside the globe. Each listing also has a permanent HTML page with the same globe frame. The program, archive, directory and event pages work with JavaScript disabled.
+The globe is the interface for exploring Flutter gatherings. Rotate the Earth, tap a country, or find a city to see its events and organizers. The sun or moon button switches between light and dark themes. The bottom dock opens the program, community directory and activity inside the globe. Each listing also has a permanent HTML page with the same globe frame. The program, archive, directory and event pages work with JavaScript disabled.
 
 ## Run locally
 

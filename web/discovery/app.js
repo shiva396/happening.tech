@@ -1,3 +1,4 @@
+import { mountTheme } from "./theme.js";
 import { placeUrl } from "./place.js";
 import { mountGlobePages, refreshRegistration } from "./pages.js";
 import { createDiscovery, filterKeys, isPast } from "./state.js";
@@ -508,5 +509,17 @@ if (localEarth) {
     globe.setReading(true);
     globe.flyTo(Number(localEarth.dataset.lat), Number(localEarth.dataset.lon), 3.4);
   }).catch(() => {});
+}
+const frame = $(".world-frame");
+if (frame) {
+  mountTheme(frame, animate);
+  const reader = frame.querySelector(".globe-pages");
+  new IntersectionObserver(([entry], observer) => {
+    if (!entry.isIntersecting) return;
+    observer.disconnect();
+    import("./scrollbar.js").then(({ mountScrollbar }) => mountScrollbar(reader)).catch(() => {
+      // Native scrolling remains available if the enhancement cannot load.
+    });
+  }).observe(reader);
 }
 document.documentElement.classList.add("interactive");
