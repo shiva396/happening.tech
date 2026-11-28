@@ -1,182 +1,131 @@
 const assert = require("node:assert/strict");
-const { eachBrowser, preview } = require("./browser.cjs");
+const { chromium } = require("playwright-core");
+const { preview } = require("./browser.cjs");
 
-async function interruptedAnimation(page) {
-  let requests = 0;
-  let releaseDownload;
-  const held = new Promise((resolve) => {
-    releaseDownload = resolve;
-  });
-  await page.route("**/motion/animals/monkey.lottie", async (route) => {
-    requests++;
-    if (requests === 1) {
-      await route.fulfill({ contentType: "application/octet-stream", body: "incomplete archive" });
-    } else {
-      await held;
-      await route.continue();
-    }
-  });
-  await page.goto(preview);
-  await page.waitForFunction(() => customElements.get("nav-performance") !== undefined);
-  const link = page.getByRole("link", { name: "Programme", exact: true });
-  const actor = page.locator('[data-animal="monkey"]');
-  // Install both observers before the first hover. The decoder can reject both planes in a single frame.
-  await actor.evaluate((node) => {
-    window.removedPlayers = 0;
-    new MutationObserver((records) => {
-      for (const record of records) {
-        for (const removed of record.removedNodes) {
-          if (removed.nodeName === "DOTLOTTIE-WC") window.removedPlayers++;
-        }
-      }
-    }).observe(node, { subtree: true, childList: true });
-  });
-  await link.hover();
-  await page.waitForFunction(() => window.removedPlayers === 2);
-  assert.equal(await actor.locator("dotlottie-wc").count(), 0);
-
-  await page.mouse.move(0, 0);
-  const retry = page.waitForRequest("**/motion/animals/monkey.lottie", { timeout: 12000 });
-  await Promise.all([retry, link.hover()]);
-  try {
-    await page.mouse.move(0, 0);
-    await link.hover();
-    await page.emulateMedia({ reducedMotion: "reduce" });
-    await page.waitForFunction(() => matchMedia("(prefers-reduced-motion: reduce)").matches);
-  } finally {
-    releaseDownload();
-  }
-  await page.waitForFunction(
-    () =>
-      performance.getEntriesByType("resource").filter((entry) => entry.name.endsWith("/monkey.lottie"))
-        .length >= 2,
-  );
-  assert.equal(await actor.locator("dotlottie-wc").count(), 0);
-  await page.emulateMedia({ reducedMotion: "no-preference" });
-  await page.mouse.move(0, 0);
-  await link.hover();
-  await page.waitForFunction(
-    () => document.querySelector('[data-animal="monkey"] dotlottie-wc')?.dotLottie?.isPlaying,
-  );
-  assert.equal(await actor.locator("dotlottie-wc").count(), 2);
-  assert.equal(requests, 2);
-  await page.getByRole("link", { name: "World view", exact: true }).click();
-  await page.waitForURL(/\/world\/?$/);
-}
-
-async function failedMapImage(page) {
-  let requests = 0;
-  await page.route("**/art/earth-satellite.webp", (route) =>
-    ++requests === 1
-      ? route.fulfill({ status: 503, headers: { "cache-control": "no-store" }, body: "" })
-      : route.continue(),
-  );
-  const satellite = page.getByRole("button", { name: "Satellite", exact: true });
-  await satellite.click();
-  await page.locator(".map-status").waitFor();
-  assert.equal(await page.locator('[data-map-style="terrain"]').getAttribute("aria-pressed"), "true");
-  assert(await page.locator(".earth-surface:not(.satellite-surface)").isVisible());
-  await satellite.click();
-  await page.locator(".country-atlas.satellite-view").waitFor();
-  assert(await page.locator(".map-status").isHidden());
-  assert.equal(requests, 2);
-}
-
-async function touchZoom(browser) {
-  const page = await browser.newPage({
-    hasTouch: true,
-    isMobile: true,
-    viewport: { width: 390, height: 844 },
-    reducedMotion: "reduce",
+async function check() {
+  const browser = await chromium.launch({
+    executablePath: process.env.CHROME_BIN,
+    args: ["--enable-unsafe-swiftshader"],
   });
   try {
-    await page.goto(new URL("world/", preview.endsWith("/") ? preview : preview + "/").href);
-    const globe = page.locator("#country-globe");
-    await globe.scrollIntoViewIfNeeded();
-    const stage = await globe.boundingBox();
-    const x = Math.round(stage.x + stage.width / 2),
-      y = Math.round(stage.y + stage.height / 2);
-    const client = await page.context().newCDPSession(page);
-    const touch = (type, positions) =>
-      client.send("Input.dispatchTouchEvent", {
-        type,
-        touchPoints: positions.map(([dx, dy], id) => ({ x: x + dx, y: y + dy, id: id + 1 })),
-      });
-    const radius = () =>
-      page.evaluate(async () => {
-        // Allow input dispatch and the next globe paint to complete.
-        await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)));
-        return Number(document.querySelector(".globe-focus").getAttribute("r"));
-      });
-    const initial = await radius();
-    await touch("touchStart", [
-      [-30, -20],
-      [30, 20],
-    ]);
-    for (const offset of [-15, -30, 0, 30]) {
-      await touch("touchMove", [
-        [-30, offset - 20],
-        [30, offset + 20],
-      ]);
-      assert.equal(await radius(), initial, "Parallel fingers should preserve zoom");
-    }
-    await touch("touchMove", [
-      [-60, -10],
-      [60, 70],
-    ]);
-    await page.waitForFunction(
-      (r) => Number(document.querySelector(".globe-focus").getAttribute("r")) > r * 1.9,
-      initial,
-    );
-    await touch("touchMove", [
-      [-27, 12],
-      [27, 48],
-    ]);
-    await page.waitForFunction(
-      (r) => Number(document.querySelector(".globe-focus").getAttribute("r")) < r,
-      initial,
-    );
-    await touch("touchCancel", []);
-    const last = await radius();
-    await touch("touchStart", [[0, 0]]);
-    await touch("touchMove", [[20, 10]]);
-    await touch("touchEnd", []);
-    assert.equal(await radius(), last, "A fresh one-finger drag should only rotate");
-  } finally {
-    await page.close();
-  }
-}
-
-eachBrowser(async (browser, name) => {
-  const page = await browser.newPage();
-  const errors = [];
-  page.on("pageerror", (error) => errors.push(error.message));
-  await interruptedAnimation(page);
-  await failedMapImage(page);
-  if (browser.browserType().name() === "webkit") {
-    const globe = page.locator("#country-globe");
-    const initial = Number(await page.locator(".globe-focus").getAttribute("r"));
-    await globe.evaluate((svg) => {
-      svg.dispatchEvent(new Event("gesturestart", { cancelable: true }));
-      const change = Object.assign(new Event("gesturechange", { cancelable: true }), { scale: 1.5 });
-      svg.dispatchEvent(change);
-      svg.dispatchEvent(new Event("gestureend"));
+    const page = await browser.newPage({
+      viewport: { width: 390, height: 844 },
+      deviceScaleFactor: 2,
+      isMobile: true,
+      hasTouch: true,
+      reducedMotion: "reduce",
     });
+    await page.goto(preview);
+    const stage = page.locator('.atlas-earth[data-rendered="true"]');
+    await stage.waitFor();
+    const coordinates = page.locator(".coordinates");
+    const home = await coordinates.textContent();
+    const globe = page.getByRole("group", { name: /Interactive globe\. Drag/ });
+    await globe.focus();
+    await globe.press("ArrowRight");
+    await page.waitForFunction((s) => document.querySelector(".coordinates").textContent !== s, home);
+    await globe.press("Home");
+    await page.waitForFunction((s) => document.querySelector(".coordinates").textContent === s, home);
+    const r = await globe.boundingBox();
+    // Choose an unobstructed point on the globe to start a native touch gesture.
+    const point = await globe.evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      for (const dy of [0, 0.12, -0.12, 0.22, -0.22])
+        for (const dx of [0, 0.12, -0.12]) {
+          const x = r.x + r.width * (0.5 + dx),
+            y = r.y + r.height * (0.5 + dy);
+          if ([-26, 0, 26].every((offset) => document.elementFromPoint(x + offset, y) === el)) return { x, y };
+        }
+      throw Error("No exposed globe surface");
+    });
+    const { x, y } = point;
+    const cdp = await page.context().newCDPSession(page);
+    const touch = (type, points) =>
+      cdp.send("Input.dispatchTouchEvent", {
+        type,
+        touchPoints: points.map(([x, y], id) => ({ id: id + 1, x, y })),
+      });
+    await touch("touchStart", [
+      [x - 24, y],
+      [x + 24, y],
+    ]);
+    for (let i = 1; i <= 8; i++)
+      await touch("touchMove", [
+        [x - 24 - i * 3, y],
+        [x + 24 + i * 3, y],
+      ]);
+    await touch("touchEnd", []);
     await page.waitForFunction(
-      (r) => Number(document.querySelector(".globe-focus").getAttribute("r")) > r * 1.4,
+      (w) => parseFloat(document.querySelector(".world-touch").style.getPropertyValue("--hit-size")) > w * 1.5,
+      r.width,
+    );
+    await page.getByRole("button", { name: "Reset orientation" }).click();
+    await touch("touchStart", [[x, y]]);
+    for (let i = 1; i <= 10; i++) await touch("touchMove", [[x, y - i * 10]]);
+    await touch("touchEnd", []);
+    await page.waitForFunction(() => scrollY > 20);
+    const desktop = await browser.newPage({ reducedMotion: "reduce", viewport: { width: 1440, height: 900 } });
+    await desktop.goto(preview);
+    await desktop.locator('.atlas-earth[data-rendered="true"]').waitFor();
+    const start = await desktop.locator(".world-touch").evaluate((el) => {
+      const r = el.getBoundingClientRect();
+      for (const dy of [0, 0.1, -0.1, 0.2])
+        for (const dx of [0, 0.1, -0.1]) {
+          const x = r.x + r.width * (0.5 + dx),
+            y = r.y + r.height * (0.5 + dy);
+          if (document.elementFromPoint(x, y) === el) return { x, y };
+        }
+      throw Error("No exposed globe surface");
+    });
+    const initial = await desktop.locator(".coordinates").textContent();
+    await desktop.mouse.move(start.x, start.y);
+    await desktop.mouse.down();
+    await desktop.mouse.move(start.x + 70, start.y + 12, { steps: 6 });
+    await desktop.mouse.up();
+    await desktop.waitForFunction(
+      (before) => document.querySelector(".coordinates").textContent !== before,
       initial,
     );
+    const card = desktop.locator(".world-postcard:not(.world-stack)").first();
+    await card.click();
+    await desktop.locator("#world-preview h3").waitFor();
+    await desktop.close();
+    const canvas = await browser.newPage({ reducedMotion: "reduce" });
+    await canvas.addInitScript(() => {
+      const original = HTMLCanvasElement.prototype.getContext;
+      HTMLCanvasElement.prototype.getContext = function (type, ...args) {
+        return type.includes("webgl") ? null : original.call(this, type, ...args);
+      };
+    });
+    await canvas.goto(preview);
+    await canvas.locator('[data-engine="canvas"][data-rendered="true"]').waitFor();
+    await canvas.locator(".world-touch").press("ArrowLeft");
+    await canvas.waitForFunction(() => document.querySelector(".coordinates").textContent.includes("32.0° E"));
+    const fallback = await browser.newPage({ reducedMotion: "reduce" });
+    await fallback.route("**/art/world-surface.webp", (r) => r.abort());
+    await fallback.goto(preview);
+    await fallback.locator(".world-postcard").first().waitFor();
+    assert(await fallback.locator(".atlas-earth-poster").isVisible());
+    await fallback.getByRole("link", { name: "Program view", exact: true }).click();
+    await fallback.locator("[data-period=past]").click();
+    assert(await fallback.locator(".event-card:visible").first().isVisible());
+    const dash = await browser.newPage();
+    await dash.route("**/art/dash.glb", (r) => r.abort());
+    await dash.goto(preview);
+    const bird = dash.getByRole("button", { name: "Say hello to Dash" });
+    await bird.click({ clickCount: 3, delay: 30 });
+    await dash.locator('[data-dash-state="celebrating"]').waitFor();
+    assert(await bird.locator("img").isVisible());
+    await dash.getByRole("link", { name: "Program view", exact: true }).click();
+    await dash.locator("[data-perch=program] [data-dash]").waitFor();
+    await dash.emulateMedia({ reducedMotion: "reduce" });
+    assert.equal(await dash.locator("[data-dash] canvas").count(), 0);
+    console.log("Native touch, keyboard, Canvas, unavailable textures, reduced motion and Dash recovery passed.");
+  } finally {
+    await browser.close();
   }
-  if (browser.browserType().name() === "chromium") {
-    await touchZoom(browser);
-    console.log(name + " passed two-contact slide, pinch, spread and cancellation.");
-  }
-  assert.deepEqual(errors, []);
-  console.log(
-    name +
-      " recovered from a corrupt archive, interrupted download, repeated hover, and failed satellite image.",
-  );
-}).catch((error) => {
-  console.error(error);
+}
+check().catch((e) => {
+  console.error(e);
   process.exitCode = 1;
 });

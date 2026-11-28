@@ -26,7 +26,7 @@ Use [Namma Flutter](communities/namma-flutter.toml) as an example. Optional `log
 | `source`, `updated_at` | Optional verification URL, defaulting to `url`. Required review timestamp with a UTC offset. |
 | `registration_url`, `registration_label`, `registration_ends`, `price` | Optional ticket details. Use an offset timestamp for the registration deadline. Remove a ticket link if the organizer withdraws it. |
 | `status` | scheduled (default), cancelled or rescheduled. For a rescheduled event, update the dates in the original file. |
-| `artwork`, `artwork_thumbnail`, `artwork_credit`, `artwork_source` | Optional local image and thumbnail paths relative to `web/`, a byline and its source URL. For city photos, identify the location depicted. |
+| `artwork`, `artwork_card`, `artwork_thumbnail`, `artwork_credit`, `artwork_source` | Optional local detail, card and thumbnail image paths relative to `web/`, a byline and its source URL. For city photos, identify the location depicted. |
 
 An event without artwork gets a deterministic illustration. When contributing photographs, add any required attribution and license information alongside the assets. The atlas city photographs have a [credit file](web/art/events/CREDITS.txt).
 

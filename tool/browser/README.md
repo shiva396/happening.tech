@@ -1,29 +1,36 @@
-# Browser checks
+# Test the atlas
 
-These checks exercise the static HTML, CSS, assets and browser code that Jaspr publishes to Pages. Start a production preview from the repository root.
-
-```sh
-dart pub global run jaspr_cli:jaspr build --dart-define-server=PROJECT_REPOSITORY=shiva396/flutter.spot
-python3 -m http.server 4173 --directory build/jaspr
-```
-
-In this directory, use Node 20 or later.
+From the repository root, install the pinned tools and build the Pages layout.
 
 ```sh
-npm ci
-npx playwright-core install --with-deps chromium firefox webkit
-npm test
-NODE_PATH="$PWD/node_modules" BROWSER_ENGINE=webkit node ../nav_animals/check.cjs
+dart pub get --enforce-lockfile
+dart pub global activate jaspr_cli 0.24.0-beta.2
+dart analyze --fatal-infos
+dart run tool/validate.dart
+dart run tool/check_import.dart
+dart pub global run jaspr_cli:jaspr build --dart-define-server=SITE_BASE_PATH=/flutter.spot --dart-define-server=SITE_URL=https://shiva396.github.io/flutter.spot/
+dart run tool/sitemap.dart https://shiva396.github.io/flutter.spot/
+python3 tool/browser/static.py
+npm ci --prefix tool/browser
+tool/browser/node_modules/.bin/playwright-core install --with-deps chromium firefox webkit
+preview_root=$(mktemp -d)
+ln -s "$PWD/build/jaspr" "$preview_root/flutter.spot"
+python3 -m http.server 4173 --bind 127.0.0.1 --directory "$preview_root"
 ```
 
-The site suite covers directory filters, calendar links, the archive, the activity tooltip, country selection, globe zoom, both map styles, theme persistence, listing validation and TOML generation. It checks six page states at ten widths between 320 and 2560 CSS pixels. The navigation suite also waits for the actual minute cue and checks the rendered pixels of each animal. The recovery checks inject a corrupt animal archive, delay a retry while reduced motion is enabled, and temporarily return HTTP 503 for satellite imagery. Trackpad scroll and pinch signals are tested separately. Chromium also receives emulated two-contact input to check parallel movement, spread, pinch and cancellation. Form checks cover unsupported links, invalid time zones, reversed dates and times, and both skipped and repeated daylight-saving hours. The pull request workflow runs these suites on all three engines under the Pages project path.
-
-Set `PREVIEW_URL` for a different preview and `BROWSER_ENGINE` to run a single engine. For a locally installed Chrome or Edge, set `BROWSER_ENGINE=chromium` and `CHROME_BIN` to its executable.
-
-## Compare animation cost
+In a second terminal, run the browser and notification suites.
 
 ```sh
-BASELINE_URL=http://localhost:4175/ PREVIEW_URL=http://localhost:4173/ npm run benchmark
+export PREVIEW_URL=http://127.0.0.1:4173/flutter.spot/
+npm test --prefix tool/browser
+node tool/browser/community.cjs
+node --test tool/push/store.test.mjs
+python3 -m unittest discover -s tool/push -p 'test_*.py'
+npm run benchmark --prefix tool/browser
 ```
 
-Serve the two builds on the same machine and keep other browser workloads idle. The runner alternates build order over five fresh browser contexts per build and engine at 1280 × 800. It counts animal archive requests through 750 ms after component registration, times pointer entry to the first advancing koala frame, and samples animation-frame intervals for the next 1.5 seconds. It reports median startup latency and the pooled 95th percentile frame interval. Frame intervals measure browser scheduling, while the navigation suite checks visible pixels. Omit `BASELINE_URL` to measure one build.
+The browser suite checks the atlas in Chromium, Firefox and WebKit at widths from 320 to 1440 pixels. It checks location selection, filters, history, static navigation, form validation and downloaded TOML. Chromium also exercises native touch input through CDP, software globe rendering, failed texture/model requests, reduced motion and notification subscription recovery. The subscription service and push provider are local fixtures.
+
+The benchmark runs three cold visits at each of two sizes. The desktop profile uses a 1440 × 900 viewport. The 390 × 844 mobile profile uses DPR 2, fourfold CPU slowdown, 80 ms latency and a 4 Mbit/s download limit. The sampler records browser LCP, session-window CLS, the longest interaction in each short visit, animation-frame intervals during a zoom, pre-interaction transfer size, the WebGL renderer and final JavaScript heap usage. Set `CHROME_BIN` to use a system Chromium executable.
+
+Set `NATIVE_GPU=1` on a Linux machine with working OpenGL to profile the hardware renderer. An optional `GPU_BUSY_PATH` can point to the active GPU’s readable sysfs busy-percent counter. It samples whole-device activity during the zoom.

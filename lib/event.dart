@@ -21,7 +21,14 @@ final _timestamp = RegExp(
 class Event {
   final String id, title, city, country, communityId, community, category, attendance;
   final String start, end, timezone, venue, description, url, source, status, topic;
-  final String? artwork, artworkThumbnail, artworkCredit, artworkSource, registrationUrl, registrationLabel, price;
+  final String? artwork,
+      artworkCard,
+      artworkThumbnail,
+      artworkCredit,
+      artworkSource,
+      registrationUrl,
+      registrationLabel,
+      price;
   final double? latitude, longitude;
   final DateTime startsAt, endsAtExclusive, updatedAt;
   final DateTime? registrationEnds;
@@ -45,6 +52,7 @@ class Event {
     required this.source,
     required this.status,
     required this.artwork,
+    required this.artworkCard,
     required this.artworkThumbnail,
     required this.artworkCredit,
     required this.artworkSource,
@@ -83,8 +91,7 @@ class Event {
       'PRODID:-//$projectName//Community events//EN',
       'CALSCALE:GREGORIAN',
       'BEGIN:VEVENT',
-      // The calendar UID namespace predates the rename. Calendar clients use it to identify repeat imports.
-      'UID:$slug@${legacy ? 'happening.tech' : projectName}',
+      'UID:$slug@$projectName',
       'DTSTAMP:${_utcStamp(updatedAt)}',
       if (status == 'cancelled') 'STATUS:CANCELLED',
       startField,
@@ -178,6 +185,7 @@ Event _readEvent(String id, Fields data, Map<String, Community>? communities) {
         'status',
         'artwork',
         'artwork_thumbnail',
+        'artwork_card',
         'artwork_credit',
         'artwork_source',
         'registration_ends',
@@ -220,9 +228,10 @@ Event _readEvent(String id, Fields data, Map<String, Community>? communities) {
   final url = fieldLink(data, 'url')!;
   final artwork = imagePath(data, 'artwork');
   final thumbnail = imagePath(data, 'artwork_thumbnail');
+  final card = imagePath(data, 'artwork_card');
   final credit = fieldText(data, 'artwork_credit');
   final artSource = fieldLink(data, 'artwork_source');
-  if ((thumbnail != null || credit != null || artSource != null) && artwork == null) {
+  if ((card != null || thumbnail != null || credit != null || artSource != null) && artwork == null) {
     throw const FormatException('Artwork credits need an artwork path');
   }
   return Event._(
@@ -244,6 +253,7 @@ Event _readEvent(String id, Fields data, Map<String, Community>? communities) {
     status: status,
     artwork: artwork,
     artworkThumbnail: thumbnail ?? artwork,
+    artworkCard: card,
     artworkCredit: credit,
     artworkSource: artSource,
     registrationUrl: registration,

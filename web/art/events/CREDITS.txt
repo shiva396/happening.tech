@@ -1,7 +1,7 @@
 City photography for flutter.spot
 
 These photographs show each host city. The Athens photograph depicts the host community of an online event.
-Files have been resized and converted to WebP. Thumbnails use the same licenses as the originals.
+Files have been resized and converted to WebP. Program cards are cropped to a landscape frame. The card/ and thumb/ derivatives use the credits and licenses listed for the matching original filename.
 
 athens.webp and thumb/athens.webp
 Athens Acropolis at Daybreak.jpg

@@ -7,4 +7,5 @@ const projectDescription = 'Explore Flutter events and developer communities aro
 const siteAddress = String.fromEnvironment('SITE_URL', defaultValue: 'https://shiva396.github.io/flutter.spot/');
 const nammaWebsite = 'https://nammaflutter.com/';
 const contributionGuide = 'https://github.com/$projectRepository/blob/main/CONTRIBUTING.md';
-String publicUrl(String path) => Uri.parse(siteAddress.endsWith('/') ? siteAddress : '$siteAddress/').resolve(path).toString();
+String publicUrl(String path) =>
+    Uri.parse(siteAddress.endsWith('/') ? siteAddress : '$siteAddress/').resolve(path).toString();

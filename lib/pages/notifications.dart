@@ -23,7 +23,7 @@ class NotificationsPage extends StatelessComponent {
         attributes: {'aria-label': 'Event alerts'},
         [
           h2([.text('New event alerts')]),
-          p([.text('Get a notification on this device when a new event joins the programme.')]),
+          p([.text('Get a notification on this device when a new event joins the Flutter program.')]),
           p(
             id: 'push-status',
             attributes: {'role': 'status'},

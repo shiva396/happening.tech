@@ -54,7 +54,11 @@ function groupsAt(places, level) {
   }
   return entries.map((group) => {
     const events = group.items.filter((item) => item.kind === "event");
-    const representative = events.find((item) => item.ongoing) || events[0] || group.items[0];
+    const representative =
+      events.find((item) => item.ongoing) ||
+      events[0] ||
+      group.items.find((item) => item.artwork) ||
+      group.items[0];
     return { ...group, representative, events };
   });
 }

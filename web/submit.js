@@ -8,7 +8,6 @@
   const value = (name) => field(name).value.trim();
   const node = (name) => document.getElementById("entry-" + name);
   const art = node("art");
-  const illustratedPlaces = new Set(art.dataset.places.split(" "));
   const repository = studio.dataset.repository;
   const hasRepository = /^[\w.-]+\/[\w.-]+$/.test(repository);
   let fileUrl;
@@ -17,8 +16,7 @@
   }
 
   const zones = Intl.supportedValuesOf?.("timeZone") || [];
-  field("timezone").value =
-    Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
+  field("timezone").value = Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC";
   for (const zone of new Set(["UTC", field("timezone").value, ...zones])) {
     const option = document.createElement("option");
     option.value = zone;
@@ -31,35 +29,24 @@
       fileUrl = null;
     }
     node("output").hidden = true;
-    const online = field("online").checked;
+    const online = value("attendance") === "Online";
     node("place").hidden = online;
-    for (const name of ["city", "country", "venue"])
-      field(name).disabled = online;
+    for (const name of ["city", "country", "venue", "latitude", "longitude"]) field(name).disabled = online;
     node("registration").hidden = !value("registration_url");
     field("end_date").min = value("start_date");
     field("start_time").required = Boolean(value("end_time"));
     field("end_time").required = Boolean(value("start_time"));
     if (errorField?.disabled) clearError();
-    const topic = value("topic").toLowerCase();
-    const tones = ["iris", "moss", "ember"];
-    let sum = 0;
-    for (let i = 0; i < value("community").length; i++)
-      sum += value("community").charCodeAt(i);
-    const tone =
-      { flutter: "iris", python: "ember", "open source": "moss" }[topic] ||
-      tones[sum % 3];
-    node("poster").className = "poster " + tone;
-    const place = online ? "online" : value("city").toLowerCase().replaceAll(" ", "-");
-    art.src = "art/posters/" + (illustratedPlaces.has(place) ? place : "gathering") + ".webp";
-    node("format").textContent = value("format");
+    const signature = Array.from(value("title")).reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
+    art.src = "art/atlas-print-" + (signature % 3) + ".svg";
+    node("format").textContent = value("category");
     node("year").textContent = value("start_date").slice(0, 4);
-    node("preview-place").textContent = online
-      ? "Online"
-      : value("city") || "Your city";
+    node("preview-place").textContent = online ? "Online" : value("city") || "Your city";
     node("preview-title").textContent = value("title") || "Your event";
-    node("preview-host").textContent = value("community") || "Your community";
-    node("preview-description").textContent =
-      value("description") || "Your description will appear here.";
+    node("preview-host").textContent = value("community_id")
+      ? field("community_id").selectedOptions[0].textContent
+      : "Your community";
+    node("preview-description").textContent = value("description") || "Your description will appear here.";
     const start = field("start_date").valueAsDate;
     node("preview-date").textContent = start
       ? new Intl.DateTimeFormat(undefined, {
@@ -85,11 +72,7 @@
       hourCycle: "h23",
     });
     function wallTime(timestamp) {
-      const parts = Object.fromEntries(
-        formatter
-          .formatToParts(timestamp)
-          .map(({ type, value }) => [type, value]),
-      );
+      const parts = Object.fromEntries(formatter.formatToParts(timestamp).map(({ type, value }) => [type, value]));
       return Date.parse(
         parts.year +
           "-" +
@@ -105,21 +88,14 @@
           "Z",
       );
     }
-    const offsets = new Set(
-      [-86400000, 0, 86400000].map(
-        (delta) => wallTime(target + delta) - (target + delta),
-      ),
-    );
-    const matches = [...offsets]
-      .map((offset) => target - offset)
-      .filter((time) => wallTime(time) === target);
+    const offsets = new Set([-86400000, 0, 86400000].map((delta) => wallTime(target + delta) - (target + delta)));
+    const matches = [...offsets].map((offset) => target - offset).filter((time) => wallTime(time) === target);
     return matches.length === 1 ? new Date(matches[0]).toISOString() : null;
   }
 
   const missing = {
     title: "Give your event a name.",
-    community: "Who’s organizing this event?",
-    topic: "Add the main topic people will explore.",
+    community_id: "Choose the organizing community.",
     description: "Tell people what they’ll do at the event.",
     start_date: "Choose the day your event starts.",
     timezone: "Choose the time zone at the venue.",
@@ -181,9 +157,13 @@
   }
 
   function onEdit(event) {
-    if (errorField === event.target ||
-        (errorField && ["timezone", "start_date", "end_date", "start_time", "end_time"].includes(event.target.name) &&
-        ["end_date", "start_time", "end_time"].includes(errorField.name))) clearError();
+    if (
+      errorField === event.target ||
+      (errorField &&
+        ["timezone", "start_date", "end_date", "start_time", "end_time"].includes(event.target.name) &&
+        ["end_date", "start_time", "end_time"].includes(errorField.name))
+    )
+      clearError();
     update();
   }
 
@@ -198,7 +178,8 @@
       if (!input.willValidate) continue;
       if (input.validity.badInput) return invalid(input.name, "Finish entering the date or time.");
       if (input.required && !input.value.trim()) return invalid(input.name, missing[input.name]);
-      if (input.validity.typeMismatch) return invalid(input.name, "Enter a full link beginning with https:// or http://.");
+      if (input.validity.typeMismatch)
+        return invalid(input.name, "Enter a full link beginning with https:// or http://.");
       if (input.name === "end_date" && input.validity.rangeUnderflow)
         return invalid(input.name, "Choose a last day on or after the start date.");
       if (!input.validity.valid) return invalid(input.name, input.validationMessage);
@@ -220,10 +201,7 @@
         link.password ||
         /[\s\\]/.test(raw)
       ) {
-        return invalid(
-          name,
-          "Enter a full HTTP or HTTPS link without spaces or account credentials.",
-        );
+        return invalid(name, "Enter a full HTTP or HTTPS link without spaces or account credentials.");
       }
     }
 
@@ -232,10 +210,7 @@
       if (/^[+-]/.test(timezone)) throw new RangeError();
       Intl.DateTimeFormat("en", { timeZone: timezone });
     } catch {
-      return invalid(
-        "timezone",
-        "Choose a time zone such as Asia/Kolkata or Europe/London.",
-      );
+      return invalid("timezone", "Choose a time zone such as Asia/Kolkata or Europe/London.");
     }
     const day = value("start_date");
     let start = day;
@@ -250,29 +225,35 @@
         );
       }
       if (end <= start)
-        return invalid(
-          "end_time",
-          "Choose an end after the start. For an overnight event, set its last day.",
-        );
+        return invalid("end_time", "Choose an end after the start. For an overnight event, set its last day.");
     }
 
-    const online = field("online").checked;
+    const online = value("attendance") === "Online";
     const entry = {
       title: value("title"),
-      city: online ? "Online" : value("city"),
-      country: online ? "Worldwide" : value("country"),
-      community: value("community"),
-      topic: value("topic"),
-      format: value("format"),
+      community_id: value("community_id"),
+      category: value("category"),
+      attendance: value("attendance"),
+      updated_at: new Date().toISOString(),
       start,
       end,
       timezone: Intl.DateTimeFormat("en", {
         timeZone: timezone,
       }).resolvedOptions().timeZone,
-      venue: online ? "Online" : value("venue"),
       description: value("description"),
       url: value("url"),
     };
+    if (!online) {
+      entry.city = value("city");
+      entry.country = value("country");
+      if (value("venue")) entry.venue = value("venue");
+      for (const name of ["latitude", "longitude"]) {
+        if (!value(name)) continue;
+        const other = name === "latitude" ? "longitude" : "latitude";
+        if (!value(other)) return invalid(other, "Supply both coordinates to place this event on the globe.");
+        entry[name] = Number(value(name));
+      }
+    }
     if (value("registration_url")) {
       entry.registration_url = value("registration_url");
       entry.registration_label = value("registration_label");
@@ -283,15 +264,10 @@
     // escaping in a TOML basic string.
     const contents =
       Object.entries(entry)
-        .map(
-          ([key, val]) =>
-            key + " = " + JSON.stringify(val).replace(/\x7f/g, "\\u007f"),
-        )
+        .map(([key, val]) => key + " = " + JSON.stringify(val).replace(/\x7f/g, "\\u007f"))
         .join("\n") + "\n";
     const filename = slugFor(entry.title, day) + ".toml";
-    fileUrl = URL.createObjectURL(
-      new Blob([contents], { type: "application/toml;charset=utf-8" }),
-    );
+    fileUrl = URL.createObjectURL(new Blob([contents], { type: "application/toml;charset=utf-8" }));
     node("download").href = fileUrl;
     node("download").download = filename;
     node("github").hidden = !hasRepository;
@@ -306,11 +282,9 @@
       : "Download the TOML file to keep your listing. When the project repository opens, add it to the events folder in a pull request.";
     node("output").hidden = false;
     node(hasRepository ? "github" : "download").focus();
-    node("output").querySelector("[data-motion]").dispatchEvent(new Event("play-motion", { bubbles: true }));
   });
 
   node("submit").disabled = false;
-  node("note").textContent =
-    "You can review your file before sharing it with the directory.";
+  node("note").textContent = "You can review your file before sharing it with the directory.";
   update();
 })();

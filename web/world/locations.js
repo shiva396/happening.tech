@@ -9,7 +9,9 @@ async function countryFeatures() {
   return feature(topo, topo.objects.countries).features.flatMap((country) => {
     const geo = country.geometry;
     const polygons = geo.type === "Polygon" ? [geo.coordinates] : geo.coordinates;
-    return polygons.map((rings) => ({ name: country.properties.name, rings: rings.map(unwrapRing) }));
+    const name =
+      country.properties.name === "United States of America" ? "United States" : country.properties.name;
+    return polygons.map((rings) => ({ name, rings: rings.map(unwrapRing) }));
   });
 }
 

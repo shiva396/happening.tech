@@ -1,11 +1,12 @@
-import '../components/motion.dart';
+import '../event.dart';
 import '../project.dart';
-import '../components/poster_art.dart';
+import '../components/icon.dart';
 import 'package:jaspr/dom.dart';
 import 'package:jaspr/jaspr.dart';
 
 class SubmitPage extends StatelessComponent {
-  const SubmitPage({this.repository = projectRepository, super.key});
+  final List<Community> communities;
+  const SubmitPage(this.communities, {this.repository = projectRepository, super.key});
 
   final String repository;
 
@@ -17,6 +18,7 @@ class SubmitPage extends StatelessComponent {
     bool optional = false,
     String? list,
     int limit = 160,
+    Map<String, String> constraints = const {},
   }) {
     return label([
       span([.text(title)]),
@@ -29,6 +31,7 @@ class SubmitPage extends StatelessComponent {
           'placeholder': ?hint,
           'list': ?list,
           'maxlength': '$limit',
+          ...constraints,
         },
       ),
     ]);
@@ -51,36 +54,58 @@ class SubmitPage extends StatelessComponent {
             .text('List an event'),
             span(classes: 'entry-period', [.text('.')]),
           ]),
-          aside(classes: 'entry-review', attributes: {'aria-label': 'How listings are published'}, [
-            svg(classes: 'icon', viewBox: '0 0 24 24', attributes: {'aria-hidden': 'true'}, [
-              Component.element(tag: 'use', attributes: {'href': 'art/icons.svg#pull-request'}),
-            ]),
-            div([
-              strong([.text('Listings go through GitHub review')]),
-              p([
-                .text(
-                  repository.isEmpty
-                      ? 'For this MVP, download your event file here. When the repository opens, submit it in a GitHub pull request. A maintainer reviews and merges accepted listings for publication.'
-                      : 'Prepare your event file here, then open a pull request on GitHub. A maintainer reviews and merges accepted listings for publication.',
-                ),
+          aside(
+            classes: 'entry-review',
+            attributes: {'aria-label': 'How listings are published'},
+            [
+              svg(
+                classes: 'icon',
+                viewBox: '0 0 24 24',
+                attributes: {'aria-hidden': 'true'},
+                [
+                  Component.element(tag: 'use', attributes: {'href': 'art/icons.svg#pull-request'}),
+                ],
+              ),
+              div([
+                strong([.text('Listings go through GitHub review')]),
+                p([
+                  .text(
+                    repository.isEmpty
+                        ? 'For this MVP, download your event file here. When the repository opens, submit it in a GitHub pull request. A maintainer reviews and merges accepted listings for publication.'
+                        : 'Prepare your event file here, then open a pull request on GitHub. A maintainer reviews and merges accepted listings for publication.',
+                  ),
+                ]),
               ]),
-            ]),
-          ]),
+            ],
+          ),
           a(classes: 'entry-jump', href: 'submit/#entry-preview', [.text('See your listing preview')]),
           div(classes: 'entry-layout', [
             form(id: 'entry-form', [
               _group('The gathering', [
                 _field('title', 'Event name', hint: 'What’s the gathering called?'),
-                _field('community', 'Organizing community', hint: 'Who’s bringing people together?'),
+                label([
+                  span([.text('Organizing community')]),
+                  select(
+                    name: 'community_id',
+                    attributes: {'required': ''},
+                    [
+                      option(value: '', [.text('Choose a community')]),
+                      for (final c in communities) option(value: c.id, [.text(c.name)]),
+                    ],
+                  ),
+                ]),
+                a(classes: 'text-link', href: '$contributionGuide#add-a-community', [.text('Add a missing community')]),
                 div(classes: 'entry-pair', [
-                  _field('topic', 'Main topic', hint: 'e.g. Flutter'),
-                  label([
-                    span([.text('Event type')]),
-                    select(name: 'format', [
-                      for (final value in ['Meetup', 'Conference', 'Workshop', 'Hackathon', 'Talk', 'Other'])
-                        option([.text(value)]),
+                  for (final (key, caption, values) in [
+                    ('category', 'Event type', eventCategories),
+                    ('attendance', 'Attendance', attendanceFormats),
+                  ])
+                    label([
+                      span([.text(caption)]),
+                      select(name: key, [
+                        for (final v in values) option(value: v, selected: v == 'Meetup', [.text(v)]),
+                      ]),
                     ]),
-                  ]),
                 ]),
                 label([
                   span([.text('About the event')]),
@@ -108,16 +133,22 @@ class SubmitPage extends StatelessComponent {
                     _field('end_time', 'End time', type: InputType.time, optional: true),
                   ]),
                 ]),
-                label(classes: 'entry-check', [
-                  input(name: 'online', type: InputType.checkbox),
-                  span([.text('This event is fully online')]),
-                ]),
                 div(id: 'entry-place', [
                   div(classes: 'entry-pair', [
                     _field('city', 'City', hint: 'e.g. Chennai'),
                     _field('country', 'Country', hint: 'e.g. India'),
                   ]),
-                  _field('venue', 'Venue', hint: 'Venue name, or “To be announced”'),
+                  _field('venue', 'Venue (optional)', hint: 'Venue name', optional: true),
+                  div(classes: 'entry-pair', [
+                    for (final (key, caption, bound) in [('latitude', 'Latitude', 90), ('longitude', 'Longitude', 180)])
+                      _field(
+                        key,
+                        '$caption (optional)',
+                        type: InputType.number,
+                        optional: true,
+                        constraints: {'min': '-$bound', 'max': '$bound', 'step': 'any'},
+                      ),
+                  ]),
                 ]),
               ]),
               _group('How to attend', [
@@ -146,12 +177,16 @@ class SubmitPage extends StatelessComponent {
                 _field('price', 'Price (optional)', hint: 'e.g. Free or ₹500', optional: true),
               ]),
               button(id: 'entry-submit', type: ButtonType.submit, disabled: true, [.text('Prepare listing')]),
-              p(id: 'entry-note', [.text('Enable JavaScript to prepare and download your listing.')]),
+              p(id: 'entry-note', [
+                .text('Enable JavaScript to prepare a file here, or use the '),
+                a(href: contributionGuide, [.text('contribution guide')]),
+                .text('.'),
+              ]),
               div(
                 id: 'entry-output',
                 attributes: {'hidden': ''},
                 [
-                  h2([motionSlot('check', .text('✓')), .text('Your listing is ready.')]),
+                  h2([icon('check'), .text('Your listing is ready.')]),
                   p(id: 'entry-outcome', attributes: {'role': 'status'}, []),
                   div(classes: 'entry-actions', [
                     a(id: 'entry-github', href: '#', attributes: {'hidden': ''}, [.text('Propose on GitHub')]),
@@ -166,8 +201,8 @@ class SubmitPage extends StatelessComponent {
               attributes: {'aria-label': 'Live listing preview'},
               [
                 h2([.text('Listing preview')]),
-                div(id: 'entry-poster', classes: 'poster iris', [
-                  posterArt(preview: true),
+                div(id: 'entry-poster', classes: 'poster', [
+                  img(src: 'art/atlas-print-0.svg', id: 'entry-art', alt: ''),
                   div(classes: 'poster-top', [
                     span(id: 'entry-format', [.text('Meetup')]),
                     span(id: 'entry-year', []),

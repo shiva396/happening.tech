@@ -1,25 +1,25 @@
 # flutter.spot
 
-A community programme of developer events, built with Jaspr and published on GitHub Pages. Browse upcoming events in Programme or World view. Open **Event archive** in the footer for completed listings.
+Explore Flutter gatherings and the communities that host them on an interactive Earth. Select a postcard, search for a city, or switch to the chronological program. The program, archive, community directory and individual listings are static HTML and work with JavaScript disabled.
 
 ## Run locally
 
-With Dart 3.14 installed:
+Use Dart 3.14 and Jaspr CLI 0.24.0-beta.2.
 
 ```sh
-dart pub get
+dart pub get --enforce-lockfile
 dart pub global activate jaspr_cli 0.24.0-beta.2
 dart pub global run jaspr_cli:jaspr serve
 ```
 
-Open [the local preview](http://localhost:8080). Build the static site with `dart pub global run jaspr_cli:jaspr build`. Shared colours, type, sizing, and motion settings live in [web/constants](web/constants/).
+Open the [local site](http://localhost:8080). The [browser checks](tool/browser/README.md) include the production build command for GitHub Pages.
 
-## Contribute
+## Explore and contribute
 
-Use **List an event** to prepare a listing. **Contribute** opens the [GitHub contribution guide](CONTRIBUTING.md). A maintainer reviews the pull request before it goes live.
+The event and community filenames are their permanent IDs. Contributors can prepare an event in the site's listing form, edit TOML directly, or import a permitted organizer export for review. A maintainer reviews proposals before publication. The directory includes communities with no upcoming events. [Contribution guide](CONTRIBUTING.md)
 
-## Notifications
+Notifications are available through the listing feed. Maintainers can configure opt-in browser notifications for newly published events. [Web Push setup](tool/push/README.md)
 
-Open **Notifications** in the footer to manage alerts for this device or follow listing changes in a feed reader. Browser alerts announce newly added events after publication.
+## Design and implementation
 
-Maintainers can enable browser delivery using the [Web Push setup guide](tool/push/README.md). The feed works immediately.
+Jaspr generates the pages from the catalog. A shared URL state connects the program and globe. The world renderer and Namma Dash load independently. Palette, typography, focus and control sizes live in the [design tokens](web/constants/atlas.css). [Design brief](docs/atlas/BRIEF.md) · [Project guide](PLAN.md) · [City photo credits](web/art/events/CREDITS.txt) · [Map data and library credits](web/vendor/globe/LICENSE.txt)

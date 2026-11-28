@@ -22,6 +22,8 @@ jobs:
           dart pub global run jaspr_cli:jaspr build
           --dart-define-server=SITE_BASE_PATH=/flutter.spot
           --dart-define-server="PROJECT_REPOSITORY=$GITHUB_REPOSITORY"
+      - run: dart run tool/sitemap.dart https://shiva396.github.io/flutter.spot/
+      - run: python3 tool/browser/static.py
       - uses: actions/setup-node@v6
         with:
           node-version: 24
@@ -40,6 +42,3 @@ jobs:
           node --test tool/push/store.test.mjs
           node tool/browser/community.cjs
           npm test --prefix tool/browser
-          for engine in chromium firefox webkit; do
-            BROWSER_ENGINE="$engine" node tool/nav_animals/check.cjs
-          done

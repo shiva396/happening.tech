@@ -1,0 +1,34 @@
+@font-face {
+  font-family: "DM Sans";
+  src: url("../fonts/dmsans.woff2") format("woff2");
+  font-weight: 100 1000;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Instrument Serif";
+  src: url("../fonts/instrumentserif.woff2") format("woff2");
+  font-style: italic;
+  font-display: swap;
+}
+:root {
+  color-scheme: light;
+  --ink: #0e263c;
+  --muted: #506578;
+  --blue: #01589b;
+  --cyan: #13b9fd;
+  --ice: #e8f2fb;
+  --sky: #f2f8fc;
+  --paper: #fff;
+  --line: #cbdbe5;
+  --body: "DM Sans", system-ui, sans-serif;
+  --editorial: "Instrument Serif", Georgia, serif;
+  --gutter: clamp(1.1rem, 5.5vw, 6rem);
+  --page: 88rem;
+  --section-space: clamp(3.25rem, 6.2vw, 6.5rem);
+  --control: 2.75rem;
+  --radius: .75rem;
+  --pill: 99rem;
+  --shadow: 0 8px 28px -12px #163c5e40;
+  --motion-fast: 170ms;
+  --ease: cubic-bezier(.2,.65,.25,1);
+}

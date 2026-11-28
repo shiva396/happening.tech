@@ -98,4 +98,3 @@ THIS SOFTWARE.
 
 Country geometry: Natural Earth 1:50m, via world-atlas 2.0.2, simplified for small-screen display. https://www.naturalearthdata.com/
 Physical map: Natural Earth I with Shaded Relief and Water, 1:50m. Prepared from NE1_50M_SR_W for local display. https://www.naturalearthdata.com/downloads/50m-raster-data/50m-natural-earth-1/
-Satellite imagery: NASA Visible Earth, The Blue Marble (2002), land surface, ocean color and sea ice. Image by Reto Stöckli, NASA Goddard Space Flight Center. https://commons.wikimedia.org/wiki/File:Land_ocean_ice_2048.jpg
