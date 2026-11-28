@@ -13,6 +13,8 @@ The production build generated 40 static pages from 12 Flutter events, 11 commun
 
 The close-up uses a 12,288 × 6,144 Natural Earth map with 1:10 million coastlines, lakes, land boundaries and shaded terrain. It loads local tiles on demand. The initial overview is 2,048 × 1,024. The same view over Warsaw is shown at maximum zoom before and after the change. [Zoom comparison](docs/atlas/screenshots/zoom-comparison.webp)
 
+The atlas uses a self-hosted Source Sans 3 variable font for map labels, reading views and forms.
+
 ## Verification
 
 - The locked dependencies, Dart analysis, catalog validator and import fixtures passed. The form produced both an online TOML listing and a hybrid listing with coordinates. Both passed the production parser.
@@ -26,8 +28,8 @@ Medians of three cold visits to the production build on a loopback HTTP server. 
 
 | Cold profile | LCP | Lab INP candidate | CLS | Zoom frame p95 | Initial transfer | JS heap at end |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Desktop, 1440 × 900, DPR 1, unthrottled | 88 ms | 48 ms | 0.000 | 16.7 ms | 687 KiB, 31 requests | 4.4 MiB |
-| Mobile emulation, 390 × 844, DPR 2 | 836 ms | 96 ms | 0.000 | 16.7 ms | 674 KiB, 28 requests | 4.0 MiB |
+| Desktop, 1440 × 900, DPR 1, unthrottled | 108 ms | 48 ms | 0.000 | 16.8 ms | 658 KiB, 30 requests | 4.4 MiB |
+| Mobile emulation, 390 × 844, DPR 2 | 576 ms | 88 ms | 0.000 | 16.7 ms | 611 KiB, 26 requests | 3.1 MiB |
 
 The mobile profile used 4× CPU slowdown, 80 ms latency, 4 Mbit/s downstream and 1 Mbit/s upstream. The Earth poster was the LCP element. The whole-device GPU counter varied across the short zoom samples and does not isolate browser work. Transfer totals cover requests through initial network idle. A physical iOS or Android handset and real-user performance data were unavailable. [Repeat the tests](tool/browser/README.md)
 

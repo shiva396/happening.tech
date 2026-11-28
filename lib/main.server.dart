@@ -18,6 +18,12 @@ void main() {
       head: [
         link(href: 'manifest.webmanifest', rel: 'manifest'),
         link(href: 'art/atlas-mark.svg', rel: 'icon', type: 'image/svg+xml'),
+        link(
+          href: 'fonts/source-sans-3-latin.woff2',
+          rel: 'preload',
+          type: 'font/woff2',
+          attributes: {'as': 'font', 'crossorigin': 'anonymous'},
+        ),
         link(href: 'constants/atlas.css', rel: 'stylesheet'),
         link(href: 'atlas.css', rel: 'stylesheet'),
         link(href: 'world/world.css', rel: 'stylesheet'),

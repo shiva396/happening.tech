@@ -46,47 +46,29 @@ class Communities extends StatelessComponent {
       if (directory) pageHead('Global Flutter communities', 'communities/'),
       div(classes: 'section-inner', [
         div(classes: 'split-heading', [
-          div([
-            if (directory) overline('users', 'Community directory'),
-            if (directory)
-              h1([
-                .text('Global Flutter '),
-                em([.text('communities.')]),
-              ])
-            else
-              h2([
-                .text('Flutter '),
-                em([.text('communities.')]),
-              ]),
+          if (directory) h1([.text('Flutter communities')]) else h2([.text('Flutter communities')]),
+        ]),
+        div(classes: 'filter-bar enhanced', [
+          label(classes: 'search-field', [
+            icon('search'),
+            input(
+              type: InputType.search,
+              id: 'community-query',
+              attributes: {'placeholder': 'Search by name or location', 'aria-label': 'Search communities'},
+            ),
+          ]),
+          label(classes: 'select-field', [
+            select(
+              id: 'community-country',
+              attributes: {'aria-label': 'Filter communities by country'},
+              [
+                option(value: '', [.text('All countries')]),
+                for (final c in countries) option(value: c, [.text(c)]),
+              ],
+            ),
+            icon('chevron-down'),
           ]),
         ]),
-        ...[
-          if (directory)
-            p(classes: 'section-lede', [
-              .text('An open directory of local Flutter groups. Find your community or suggest one to add.'),
-            ]),
-          div(classes: 'filter-bar enhanced', [
-            label(classes: 'search-field', [
-              icon('search'),
-              input(
-                type: InputType.search,
-                id: 'community-query',
-                attributes: {'placeholder': 'Search by name or location', 'aria-label': 'Search communities'},
-              ),
-            ]),
-            label(classes: 'select-field', [
-              select(
-                id: 'community-country',
-                attributes: {'aria-label': 'Filter communities by country'},
-                [
-                  option(value: '', [.text('All countries')]),
-                  for (final c in countries) option(value: c, [.text(c)]),
-                ],
-              ),
-              icon('chevron-down'),
-            ]),
-          ]),
-        ],
         div(classes: 'community-grid', [
           for (final c in curated) communityCard(c, events),
         ]),
@@ -94,7 +76,7 @@ class Communities extends StatelessComponent {
           id: 'community-empty',
           classes: 'empty-state',
           attributes: {if (communities.isNotEmpty) 'hidden': ''},
-          [.text('No communities match this location yet. Know a Flutter group here?')],
+          [.text('No communities match your search.')],
         ),
         a(classes: 'text-link directory-contribute', href: '$contributionGuide#add-a-community', [
           icon('plus'),

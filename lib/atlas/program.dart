@@ -62,19 +62,10 @@ class ProgramView extends StatelessComponent {
       [
         div(classes: 'section-inner', [
           div(classes: 'split-heading', [
-            div([
-              if (archive) overline('calendar-days', 'The program'),
-              if (archive)
-                h1(id: 'program-title', [
-                  .text('Past Flutter '),
-                  em([.text('gatherings.')]),
-                ])
-              else
-                h2(id: 'program-title', [
-                  .text('Event '),
-                  em([.text('program.')]),
-                ]),
-            ]),
+            if (archive)
+              h1(id: 'program-title', [.text('Past events')])
+            else
+              h2(id: 'program-title', [.text('Event program')]),
             if (archive) homeLink('world', 'World view', 'globe'),
           ]),
           div(classes: 'filter-bar enhanced', [
@@ -121,9 +112,7 @@ class ProgramView extends StatelessComponent {
             classes: 'empty-state',
             attributes: {if (active.isNotEmpty) 'hidden': ''},
             [
-              icon('search'),
-              h3([.text('No gatherings here yet')]),
-              p([.text('Explore another place or share a Flutter event with the atlas.')]),
+              h3([.text('No events found')]),
               div(classes: 'inline-actions', [
                 button(classes: 'pill enhanced', attributes: {'data-clear': ''}, [.text('Clear filters')]),
                 a(classes: 'text-link', href: 'submit/', [.text('List an event')]),

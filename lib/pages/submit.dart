@@ -50,10 +50,7 @@ class SubmitPage extends StatelessComponent {
         id: 'entry-studio',
         attributes: {'data-repository': repository},
         [
-          h1([
-            .text('List an event'),
-            span(classes: 'entry-period', [.text('.')]),
-          ]),
+          h1([.text('List an event')]),
           aside(
             classes: 'entry-review',
             attributes: {'aria-label': 'How listings are published'},
@@ -67,12 +64,12 @@ class SubmitPage extends StatelessComponent {
                 ],
               ),
               div([
-                strong([.text('Listings go through GitHub review')]),
+                strong([.text('How to submit your event')]),
                 p([
                   .text(
                     repository.isEmpty
-                        ? 'For this MVP, download your event file here. When the repository opens, submit it in a GitHub pull request. A maintainer reviews and merges accepted listings for publication.'
-                        : 'Prepare your event file here, then open a pull request on GitHub. A maintainer reviews and merges accepted listings for publication.',
+                        ? 'Fill in the details below to download your event file. A maintainer can help you publish it.'
+                        : 'Fill in the details below, then send your event file to the maintainers in a GitHub pull request.',
                   ),
                 ]),
               ]),
@@ -186,7 +183,7 @@ class SubmitPage extends StatelessComponent {
                 id: 'entry-output',
                 attributes: {'hidden': ''},
                 [
-                  h2([icon('check'), .text('Your listing is ready.')]),
+                  h2([icon('check'), .text('Your listing is ready')]),
                   p(id: 'entry-outcome', attributes: {'role': 'status'}, []),
                   div(classes: 'entry-actions', [
                     a(id: 'entry-github', href: '#', attributes: {'hidden': ''}, [.text('Propose on GitHub')]),

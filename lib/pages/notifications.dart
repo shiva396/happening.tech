@@ -13,17 +13,14 @@ class NotificationsPage extends StatelessComponent {
     const enabled = publicKey != '' && endpoint != '';
     return div(classes: 'wrap', [
       header(classes: 'opening', [
-        h1([
-          .text('Notifications'),
-          span([.text('.')]),
-        ]),
+        h1([.text('Notifications')]),
       ]),
       section(
         classes: 'notice-settings',
         attributes: {'aria-label': 'Event alerts'},
         [
           h2([.text('New event alerts')]),
-          p([.text('Get a notification on this device when a new event joins the Flutter program.')]),
+          p([.text('Get an alert on this device when a Flutter event is listed.')]),
           p(
             id: 'push-status',
             attributes: {'role': 'status'},

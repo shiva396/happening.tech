@@ -161,7 +161,7 @@
   white-space: nowrap;
   padding: 3px 2px 0;
   text-align: left;
-  font-size: 0.74rem;
+  font-size: .875rem;
   line-height: 1.15;
   font-weight: 650;
   letter-spacing: 0.005em;
@@ -198,7 +198,7 @@
     padding: 3px;
   }
   .world-caption {
-    font-size: 0.68rem;
+    font-size: .8125rem;
   }
 }
 @media (prefers-reduced-motion: reduce) {

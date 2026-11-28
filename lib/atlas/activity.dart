@@ -15,12 +15,7 @@ class Activity extends StatelessComponent {
     final started = ordered.where((e) => e.status != 'cancelled' && !e.startsAt.isAfter(now)).take(4);
     return section(id: 'activity', classes: 'section activity', [
       div(classes: 'section-inner activity-layout', [
-        div([
-          h2([
-            .text('Recent '),
-            em([.text('activity.')]),
-          ]),
-        ]),
+        h2([.text('Recent activity')]),
         div(classes: 'timeline', [
           for (final e in started)
             a(href: 'events/${e.slug}/', [
@@ -32,7 +27,7 @@ class Activity extends StatelessComponent {
               ]),
               icon('chevron-right'),
             ]),
-          if (started.isEmpty) p([.text('Completed gatherings will appear here as the program unfolds.')]),
+          if (started.isEmpty) p([.text('No recent events.')]),
         ]),
       ]),
     ]);

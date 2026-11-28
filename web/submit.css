@@ -1,11 +1,10 @@
 #entry-studio { max-width: 70rem; }
-.entry-period { color: var(--blue); }
 .entry-review { display: flex; gap: .75rem; align-items: start; max-width: 46rem; background: var(--sky); padding: 1rem; border-radius: var(--radius); margin: 1.5rem 0 2.5rem; }
 .entry-review .icon { color: var(--blue); margin-top: .2rem; }
 .entry-review p { color: var(--muted); margin-top: .25rem; }
 .entry-layout { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, .85fr); align-items: start; gap: var(--gutter); }
 #entry-form fieldset { margin: 0 0 2rem; padding: 0; border: 0; min-width: 0; }
-#entry-form legend, .entry-preview h2, #entry-output h2 { font-size: 1.5rem; font-weight: 600; letter-spacing: -.045em; margin: 0 0 1rem; padding: 0; }
+#entry-form legend, .entry-preview h2, #entry-output h2 { font-size: 1.5rem; font-weight: 600; letter-spacing: -.01em; margin: 0 0 1rem; padding: 0; }
 .entry-fields, #entry-place { display: grid; gap: 1rem; }
 .entry-fields { border-top: 1px solid var(--line); padding-top: 1.1rem; }
 .entry-pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .9rem; }
@@ -19,7 +18,7 @@
 #entry-poster { position: relative; isolation: isolate; overflow: hidden; border-radius: var(--radius); min-height: 15rem; background: var(--blue); display: flex; flex-direction: column; justify-content: space-between; color: white; padding: 1.1rem; }
 #entry-art { position: absolute; z-index: -2; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 #entry-poster::after { content: ""; position: absolute; z-index: -1; inset: 0; background: linear-gradient(transparent, #072b43dd); }
-.poster-title { margin: 1.8rem 0 .5rem; font-size: 2rem; letter-spacing: -.05em; line-height: 1.05; font-weight: 650; }
+.poster-title { margin: 1.8rem 0 .5rem; font-size: 2rem; letter-spacing: -.015em; line-height: 1.15; font-weight: 650; }
 .poster-top, .poster-foot { display: flex; gap: .5rem; justify-content: space-between; font-size: .85rem; }
 .poster-top span { color: var(--ink); background: var(--paper); border-radius: var(--pill); padding: .2rem .6rem; }
 .poster-top :empty { display: none; }
