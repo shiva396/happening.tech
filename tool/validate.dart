@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:happening_tech/event.dart';
+import 'package:flutter_spot/event.dart';
 
 void main(List<String> arguments) {
   try {

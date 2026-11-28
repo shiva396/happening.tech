@@ -20,8 +20,8 @@ jobs:
       - name: Build a project-path preview
         run: >
           dart pub global run jaspr_cli:jaspr build
-          --dart-define-server=SITE_BASE_PATH=/happening.tech
-          --dart-define-server="HAPPENING_REPOSITORY=$GITHUB_REPOSITORY"
+          --dart-define-server=SITE_BASE_PATH=/flutter.spot
+          --dart-define-server="PROJECT_REPOSITORY=$GITHUB_REPOSITORY"
       - uses: actions/setup-node@v6
         with:
           node-version: 24
@@ -29,11 +29,11 @@ jobs:
       - run: tool/browser/node_modules/.bin/playwright-core install --with-deps chromium firefox webkit
       - name: Test the published layout and navigation
         env:
-          PREVIEW_URL: http://127.0.0.1:4173/happening.tech/
+          PREVIEW_URL: http://127.0.0.1:4173/flutter.spot/
           NODE_PATH: ${{ github.workspace }}/tool/browser/node_modules
         run: |
           preview=$(mktemp -d)
-          ln -s "$PWD/build/jaspr" "$preview/happening.tech"
+          ln -s "$PWD/build/jaspr" "$preview/flutter.spot"
           python3 -m http.server 4173 --bind 127.0.0.1 --directory "$preview" > "$RUNNER_TEMP/preview.log" 2>&1 &
           trap 'kill $!' EXIT
           curl --fail --retry 10 --retry-connrefused --retry-delay 1 --silent "$PREVIEW_URL" -o /dev/null

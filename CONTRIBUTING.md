@@ -1,4 +1,4 @@
-# Contribute to happening.tech
+# Contribute to flutter.spot
 
 ## List or correct an event
 
