@@ -1,0 +1,7 @@
+name = "Flutter Taipei"
+city = "Taipei"
+country = "Taiwan"
+latitude = 25.02
+longitude = 121.45
+url = "https://www.meetup.com/Flutter-Taipei/"
+logo = "art/communities/flutter-taipei.webp"

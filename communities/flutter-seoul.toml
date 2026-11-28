@@ -1,0 +1,7 @@
+name = "Flutter Seoul"
+city = "Seoul"
+country = "South Korea"
+latitude = 37.56
+longitude = 126.99
+url = "https://www.meetup.com/flutter-seoul/"
+logo = "art/communities/flutter-seoul.webp"

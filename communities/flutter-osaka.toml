@@ -1,0 +1,7 @@
+name = "Flutter Osaka"
+city = "Osaka"
+country = "Japan"
+latitude = 34.68
+longitude = 135.5
+url = "https://www.meetup.com/flutter-osaka/"
+logo = "art/communities/flutter-osaka.webp"

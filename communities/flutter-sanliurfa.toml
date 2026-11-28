@@ -1,0 +1,7 @@
+name = "Flutter Sanliurfa"
+city = "Urfa"
+country = "Turkey"
+latitude = 37.17
+longitude = 38.79
+url = "https://www.meetup.com/flutter-sanliurfa/"
+logo = "art/communities/flutter-sanliurfa.webp"

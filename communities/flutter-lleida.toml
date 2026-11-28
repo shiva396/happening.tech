@@ -1,0 +1,7 @@
+name = "Flutter Lleida"
+city = "Lleida"
+country = "Spain"
+latitude = 41.62
+longitude = 0.63
+url = "https://www.meetup.com/flutter-lleida/"
+logo = "art/communities/flutter-lleida.webp"

@@ -75,6 +75,7 @@ html:not(.interactive) .world-tools :is(.locator.enhanced, .theme-switch) { disp
   box-shadow: 0 2px 7px #08142126, 0 14px 40px #08142138;
 }
 .world-preview > img { width: 100%; height: clamp(6rem, 15svh, 9rem); object-fit: cover; border-radius: 0; }
+.world-preview > .community-logo { object-fit: contain; background: var(--ice); }
 .world-preview .preview-copy { min-width: 0; padding: 1rem 1.1rem; }
 .world-preview:not(:has(> img)) .preview-copy { padding-top: 1.6rem; }
 .world-preview h3 { margin: .22rem 0 .4rem; font-size: clamp(1.25rem, 1.6vw, 1.5rem); line-height: 1.16; }
@@ -226,9 +227,7 @@ html[data-motion="off"] .world-frame::after { transition: none; }
   position: fixed; inset: 0; z-index: 20; pointer-events: none;
   background: #dfebed55;
 }
-.theme-iris[data-target="dark"] { background: #10283f61; }
-.theme-iris[data-pass="screen"][data-target="light"] { background: #d7e2e5; }
-.theme-iris[data-pass="screen"][data-target="dark"] { background: #243541; }
+.theme-iris[data-pass="screen"] { z-index: 21; background: #d7e2e5; }
 :root[data-iris="screen"]::view-transition { pointer-events: none; }
 :root[data-iris="screen"]::view-transition-group(root),
 :root[data-iris="screen"]::view-transition-old(root) { animation: none; }
@@ -237,13 +236,20 @@ html[data-motion="off"] .world-frame::after { transition: none; }
 :root[data-iris="screen"]::view-transition-new(root) {
   animation: theme-open 510ms cubic-bezier(.23,.66,.35,1) both;
 }
+:root[data-iris="screen"][data-theme="dark"]::view-transition-new(root) { z-index: 0; animation: none; }
+:root[data-iris="screen"][data-theme="dark"]::view-transition-old(root) {
+  z-index: 1; animation: theme-open 510ms cubic-bezier(.23,.66,.35,1) reverse both;
+}
 @keyframes theme-open {
   from { clip-path: circle(0px at var(--iris-origin)); }
   to { clip-path: circle(var(--iris-edge) at var(--iris-origin)); }
 }
 
-.globe-pages.has-curved-scroll { scrollbar-width: none; padding-inline-end: var(--reader-gutter); }
-.globe-pages.has-curved-scroll::-webkit-scrollbar { display: none; }
+.world-frame[data-view] .globe-pages.awaiting-scrollbar { scrollbar-color: transparent transparent; }
+.world-frame[data-view] .globe-pages.has-curved-scroll {
+  scrollbar-width: none; scrollbar-gutter: auto; padding-inline-end: var(--reader-gutter);
+}
+.globe-pages.has-curved-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
 .reader-scrollbar {
   position: absolute; z-index: 4; overflow: visible; fill: none;
   stroke-linecap: round; touch-action: none; pointer-events: none;

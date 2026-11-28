@@ -1,0 +1,7 @@
+name = "Flutter Kathmandu"
+city = "Kathmandu"
+country = "Nepal"
+latitude = 27.71
+longitude = 85.31
+url = "https://www.meetup.com/flutter-kathmandu/"
+logo = "art/communities/flutter-kathmandu.webp"

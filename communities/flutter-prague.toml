@@ -1,0 +1,7 @@
+name = "Flutter Prague"
+city = "Prague"
+country = "Czechia"
+latitude = 50.08
+longitude = 14.43
+url = "https://www.meetup.com/flutter-prague/"
+logo = "art/communities/flutter-prague.webp"

@@ -1,0 +1,7 @@
+name = "Flutter Ahmedabad"
+city = "Ahmedabad"
+country = "India"
+latitude = 23.03
+longitude = 72.58
+url = "https://www.meetup.com/flutterahm/"
+logo = "art/communities/flutterahm.webp"

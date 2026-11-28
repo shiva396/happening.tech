@@ -17,15 +17,16 @@ export function mountScrollbar(reader) {
   const track = path("scroll-track"), thumb = path("scroll-thumb"), hit = path("scroll-hit");
   rail.setAttribute("hidden", "");
   frame.append(rail);
-  let height = 0, bow = 0, portion = 1, range = 0, gutter, grab, pointer;
+  let height = 0, radius = 0, angle = 0, portion = 1, range = 0, gutter, grab, pointer;
   const clamp = (v, max = 1) => Math.max(0, Math.min(max, v));
   const inset = 3, axis = 12;
-  // A subcurve of the same quadratic keeps the entire thumb on the track.
+  // Thumb, track and pointer position share one circular arc and angular scale.
+  function point(t) {
+    const theta = (2 * t - 1) * angle;
+    return [axis + radius * (Math.cos(theta) - Math.cos(angle)), height / 2 + radius * Math.sin(theta)];
+  }
   function segment(from, to) {
-    const x = t => axis + 4 * bow * t * (1 - t);
-    const y = t => inset + (height - 2 * inset) * t;
-    const control = x(from) + 2 * bow * (1 - 2 * from) * (to - from);
-    return `M ${x(from)} ${y(from)} Q ${control} ${y((from + to) / 2)} ${x(to)} ${y(to)}`;
+    return `M ${point(from).join(" ")} A ${radius} ${radius} 0 0 1 ${point(to).join(" ")}`;
   }
   function follow() {
     if (range <= 0) return;
@@ -45,11 +46,23 @@ export function mountScrollbar(reader) {
     if (gutter === undefined) {
       gutter = reader.offsetWidth - reader.clientWidth;
       reader.style.setProperty("--reader-gutter", gutter + "px");
-      reader.classList.add("has-curved-scroll");
+      reader.classList.replace("awaiting-scrollbar", "has-curved-scroll");
     }
     // Read untransformed layout positions during the reader's entrance animation.
-    const right = rightEdge - (gutter || 6) / 2;
-    bow = clamp(height * .075, Math.min(52, Math.max(0, frameWidth - right - 4)));
+    const endX = rightEdge - (gutter || 6) / 2;
+    const rimRadius = parseFloat(getComputedStyle(frame, "::after").width) / 2;
+    const halfHeight = Math.max(1, height / 2 - inset);
+    const centerX = frameWidth / 2;
+    // A circle through the ends shares the globe's center. Reserve room for the
+    // thumb and its focus stroke even when the reader is almost as wide as the rim.
+    const innerRadius = Math.min(Math.hypot(endX - centerX, halfHeight), rimRadius - 18);
+    const midX = Math.min(centerX + innerRadius, frameWidth - 12);
+    const circleEnd = centerX + Math.sqrt(Math.max(0, innerRadius ** 2 - halfHeight ** 2));
+    // On phones the globe extends beyond the viewport. Keep the arc within reach.
+    const right = Math.min(circleEnd, midX - 14);
+    const bow = midX - right;
+    angle = 2 * Math.atan2(Math.min(bow, halfHeight), halfHeight);
+    radius = halfHeight / Math.sin(angle);
     rail.style.left = right - axis + "px";
     rail.style.top = topEdge + "px";
     rail.style.width = bow + 2 * axis + "px";
@@ -61,7 +74,8 @@ export function mountScrollbar(reader) {
     follow();
   }
   function position(e) {
-    return clamp((e.clientY - rail.getBoundingClientRect().top - inset) / (height - 2 * inset));
+    const dy = e.clientY - rail.getBoundingClientRect().top - height / 2;
+    return clamp(.5 + Math.asin(Math.max(-1, Math.min(1, dy / radius))) / (2 * angle));
   }
   function drag(e) {
     reader.scrollTop = clamp((position(e) - grab) / (1 - portion)) * range;

@@ -1,0 +1,7 @@
+name = "Flutter Paderborn"
+city = "Paderborn"
+country = "Germany"
+latitude = 51.72
+longitude = 8.74
+url = "https://www.meetup.com/flutter-paderborn/"
+logo = "art/communities/flutter-paderborn.webp"

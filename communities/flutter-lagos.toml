@@ -1,0 +1,7 @@
+name = "Flutter Lagos"
+city = "Lagos"
+country = "Nigeria"
+latitude = 6.45
+longitude = 3.47
+url = "https://www.meetup.com/flutter-lagos/"
+logo = "art/communities/flutter-lagos.webp"

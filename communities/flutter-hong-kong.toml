@@ -1,0 +1,7 @@
+name = "Flutter Hong Kong"
+city = "Hong Kong"
+country = "Hong Kong"
+latitude = 22.27
+longitude = 114.14
+url = "https://www.meetup.com/flutter-hong-kong/"
+logo = "art/communities/flutter-hong-kong.webp"

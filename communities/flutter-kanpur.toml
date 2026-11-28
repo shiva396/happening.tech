@@ -1,0 +1,7 @@
+name = "Flutter Kanpur"
+city = "Kanpur"
+country = "India"
+latitude = 26.47
+longitude = 80.33
+url = "https://www.meetup.com/meetup-group-flutterkanpur/"
+logo = "art/communities/flutter-kanpur.webp"

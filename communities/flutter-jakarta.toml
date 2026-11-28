@@ -1,0 +1,7 @@
+name = "Flutter Jakarta"
+city = "Jakarta"
+country = "Indonesia"
+latitude = -6.18
+longitude = 106.83
+url = "https://www.meetup.com/Flutter-Jakarta/"
+logo = "art/communities/flutter-jakarta.webp"

@@ -1,0 +1,7 @@
+name = "Flutter Faro"
+city = "Faro"
+country = "Portugal"
+latitude = 37.03
+longitude = -7.94
+url = "https://www.meetup.com/flutter-faro/"
+logo = "art/communities/flutter-faro.webp"

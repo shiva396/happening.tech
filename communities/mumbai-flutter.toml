@@ -1,0 +1,7 @@
+name = "Flutter Mumbai"
+city = "Mumbai"
+country = "India"
+latitude = 18.96
+longitude = 72.82
+url = "https://www.meetup.com/mumbai-flutter/"
+logo = "art/communities/mumbai-flutter.webp"

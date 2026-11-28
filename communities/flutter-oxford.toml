@@ -1,0 +1,7 @@
+name = "Flutter Oxford"
+city = "Oxford"
+country = "United Kingdom"
+latitude = 51.78
+longitude = -1.27
+url = "https://www.meetup.com/flutter-oxford/"
+logo = "art/communities/flutter-oxford.webp"

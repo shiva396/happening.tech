@@ -1,0 +1,7 @@
+name = "Flutter Surabaya"
+city = "Surabaya"
+country = "Indonesia"
+latitude = -7.24
+longitude = 112.74
+url = "https://www.meetup.com/flutter-surabaya/"
+logo = "art/communities/flutter-surabaya.webp"

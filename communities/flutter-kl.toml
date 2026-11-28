@@ -1,0 +1,7 @@
+name = "Flutter KL"
+city = "Kuala Lumpur"
+country = "Malaysia"
+latitude = 3.16
+longitude = 101.71
+url = "https://www.meetup.com/flutter-kl/"
+logo = "art/communities/flutter-kl.webp"

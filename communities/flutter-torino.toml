@@ -1,0 +1,7 @@
+name = "Flutter Torino"
+city = "Torino"
+country = "Italy"
+latitude = 45.05
+longitude = 7.67
+url = "https://www.meetup.com/flutter-torino/"
+logo = "art/communities/flutter-torino.webp"

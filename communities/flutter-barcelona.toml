@@ -1,0 +1,7 @@
+name = "Flutter Barcelona"
+city = "Barcelona"
+country = "Spain"
+latitude = 41.4
+longitude = 2.17
+url = "https://www.meetup.com/flutter-barcelona/"
+logo = "art/communities/flutter-barcelona.webp"

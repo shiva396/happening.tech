@@ -1,0 +1,7 @@
+name = "Flutter Vienna"
+city = "Vienna"
+country = "Austria"
+latitude = 48.22
+longitude = 16.37
+url = "https://www.meetup.com/fluttervienna/"
+logo = "art/communities/fluttervienna.webp"

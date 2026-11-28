@@ -151,7 +151,7 @@ Component fieldSelect(String name, String labelText, Iterable<String> values, {S
 
 Component communityIdentity(Community c) => span(classes: 'community-mark', [
   if (c.logo != null)
-    img(src: c.logo!, alt: '', loading: MediaLoading.lazy)
+    img(src: c.logo!, alt: '', loading: MediaLoading.lazy, attributes: {'decoding': 'async'})
   else
     .text(c.name.split(RegExp(r'\s+')).take(2).map((w) => w.substring(0, 1)).join().toUpperCase()),
 ]);

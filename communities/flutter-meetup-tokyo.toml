@@ -1,0 +1,7 @@
+name = "Flutter Tokyo"
+city = "Tokyo"
+country = "Japan"
+latitude = 35.67
+longitude = 139.77
+url = "https://www.meetup.com/flutter-meetup-tokyo/"
+logo = "art/communities/flutter-meetup-tokyo.webp"

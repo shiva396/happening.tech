@@ -1,0 +1,7 @@
+name = "Flutter Houston"
+city = "Houston"
+country = "United States"
+latitude = 29.72
+longitude = -95.22
+url = "https://www.meetup.com/flutterhouston/"
+logo = "art/communities/flutterhouston.webp"

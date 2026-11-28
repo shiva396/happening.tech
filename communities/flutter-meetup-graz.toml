@@ -1,0 +1,7 @@
+name = "Flutter Graz"
+city = "Graz"
+country = "Austria"
+latitude = 47.08
+longitude = 15.42
+url = "https://www.meetup.com/flutter-meetup-graz/"
+logo = "art/communities/flutter-meetup-graz.webp"

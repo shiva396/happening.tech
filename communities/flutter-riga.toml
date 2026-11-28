@@ -1,0 +1,7 @@
+name = "Flutter Riga"
+city = "Riga"
+country = "Latvia"
+latitude = 56.97
+longitude = 24.13
+url = "https://www.meetup.com/flutter-riga/"
+logo = "art/communities/flutter-riga.webp"

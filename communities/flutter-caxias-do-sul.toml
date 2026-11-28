@@ -1,0 +1,7 @@
+name = "Flutter Caxias do Sul"
+city = "Caxias do Sul"
+country = "Brazil"
+latitude = -29.18
+longitude = -51.17
+url = "https://www.meetup.com/flutter-caxias-do-sul/"
+logo = "art/communities/flutter-caxias-do-sul.webp"

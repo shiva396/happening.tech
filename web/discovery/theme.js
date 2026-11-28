@@ -48,41 +48,66 @@ export function mountTheme(frame, canAnimate) {
     root.style.setProperty("--iris-origin", origin);
     root.style.setProperty("--iris-edge", edge + "px");
 
-    function wave(kind, radius, duration) {
-      root.dataset.iris = kind;
-      const layer = document.createElement("div");
-      layer.className = "theme-iris";
-      layer.dataset.target = theme;
-      layer.dataset.pass = kind;
-      layer.setAttribute("aria-hidden", "true");
-      job.layers.push(layer);
-      document.body.append(layer);
-      job.animation = layer.animate([
-        { clipPath: "circle(0px at " + origin + ")" },
-        { clipPath: "circle(" + radius + "px at " + origin + ")" },
-      ], { duration, easing: "cubic-bezier(.22,.65,.32,1)", fill: "both" });
+    const closing = theme === "dark";
+    const globeRadius = Math.min(disk.width / 2, edge);
+    const circle = radius => "circle(" + radius + "px at " + origin + ")";
+    function layer(pass) {
+      const el = document.createElement("div");
+      el.className = "theme-iris";
+      el.dataset.pass = pass;
+      el.setAttribute("aria-hidden", "true");
+      job.layers.push(el);
+      document.body.append(el);
+      return el;
+    }
+    function sweep(el, radius, duration) {
+      job.animation = el.animate([
+        { clipPath: circle(0) }, { clipPath: circle(radius) },
+      ], { duration, easing: "cubic-bezier(.22,.65,.32,1)", direction: closing ? "reverse" : "normal", fill: "both" });
       return job.animation.finished;
     }
-    try {
-      await wave("globe", Math.min(disk.width / 2, edge), 360);
+    function fade(el, from, to) {
+      job.animation = el.animate([{ opacity: from }, { opacity: to }], { duration: 120, fill: "both" });
+      return job.animation.finished;
+    }
+    let globeLayer;
+    function swap() {
       if (running !== job) return;
+      apply(theme);
+      if (closing) {
+        // The incoming snapshot ends where the final globe pass begins.
+        globeLayer = layer("globe");
+        globeLayer.style.clipPath = circle(globeRadius);
+      } else {
+        globeLayer.remove();
+      }
+    }
+    try {
+      if (!closing) {
+        root.dataset.iris = "globe";
+        globeLayer = layer("globe");
+        await sweep(globeLayer, globeRadius, 360);
+        if (running !== job) return;
+      }
+      root.dataset.iris = "screen";
       if (document.startViewTransition) {
-        root.dataset.iris = "screen";
-        job.transition = document.startViewTransition(() => {
-          if (running !== job) return;
-          apply(theme);
-          job.layers.forEach(layer => layer.remove());
-        });
+        job.transition = document.startViewTransition(swap);
         // Cancelling before snapshot capture rejects ready even when finished resolves.
         job.transition.ready.catch(() => {});
         await job.transition.finished;
       } else {
-        await wave("screen", edge, 450);
+        const plate = layer("screen");
+        if (closing) await fade(plate, 0, 1);
+        else await sweep(plate, edge, 450);
         if (running !== job) return;
-        apply(theme);
-        job.layers[0].remove();
-        job.animation = job.layers[1].animate([{ opacity: 1 }, { opacity: 0 }], { duration: 120, fill: "both" });
-        await job.animation.finished;
+        swap();
+        if (closing) await sweep(plate, edge, 450);
+        else await fade(plate, 1, 0);
+        plate.remove();
+      }
+      if (closing && running === job) {
+        root.dataset.iris = "globe";
+        await sweep(globeLayer, globeRadius, 360);
       }
     } catch {
       // The tab can lose visibility while the browser captures a transition.

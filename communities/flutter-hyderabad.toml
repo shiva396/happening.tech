@@ -1,0 +1,7 @@
+name = "Flutter Hyderabad"
+city = "Hyderabad"
+country = "India"
+latitude = 17.4
+longitude = 78.48
+url = "https://www.meetup.com/flutter-hyderabad/"
+logo = "art/communities/flutter-hyderabad.webp"

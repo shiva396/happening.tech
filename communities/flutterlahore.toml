@@ -1,0 +1,7 @@
+name = "Flutter Lahore"
+city = "Lahore"
+country = "Pakistan"
+latitude = 31.56
+longitude = 74.35
+url = "https://www.meetup.com/flutterlahore/"
+logo = "art/communities/flutterlahore.webp"

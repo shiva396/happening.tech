@@ -1,0 +1,7 @@
+name = "Flutter Managua"
+city = "Managua"
+country = "Nicaragua"
+latitude = 12.15
+longitude = -86.27
+url = "https://www.meetup.com/fluttermga/"
+logo = "art/communities/fluttermga.webp"

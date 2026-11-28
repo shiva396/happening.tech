@@ -1,0 +1,7 @@
+name = "Flutter Ecuador"
+city = "Manta"
+country = "Ecuador"
+latitude = -0.97
+longitude = -80.71
+url = "https://www.meetup.com/flutter-meetup-ecuador/"
+logo = "art/communities/flutter-meetup-ecuador.webp"

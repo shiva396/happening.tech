@@ -1,0 +1,7 @@
+name = "Flutter Oslo"
+city = "Oslo"
+country = "Norway"
+latitude = 59.91
+longitude = 10.75
+url = "https://www.meetup.com/oslo-flutter-dart-meetup/"
+logo = "art/communities/oslo-flutter-dart-meetup.webp"

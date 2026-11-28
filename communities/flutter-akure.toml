@@ -1,0 +1,7 @@
+name = "Flutter Akure"
+city = "Akure"
+country = "Nigeria"
+latitude = 7.25
+longitude = 5.2
+url = "https://www.meetup.com/flutter-akure/"
+logo = "art/communities/flutter-akure.webp"

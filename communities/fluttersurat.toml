@@ -1,0 +1,7 @@
+name = "Flutter Surat"
+city = "Surat"
+country = "India"
+latitude = 21.2
+longitude = 72.82
+url = "https://www.meetup.com/fluttersurat/"
+logo = "art/communities/fluttersurat.webp"

@@ -1,0 +1,7 @@
+name = "Flutter Vadodara"
+city = "Vadodara"
+country = "India"
+latitude = 22.31
+longitude = 73.18
+url = "https://www.meetup.com/fluttervadodara/"
+logo = "art/communities/fluttervadodara.webp"

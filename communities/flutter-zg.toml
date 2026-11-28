@@ -1,0 +1,7 @@
+name = "Flutter Zagreb"
+city = "Zagreb"
+country = "Croatia"
+latitude = 45.8
+longitude = 15.97
+url = "https://www.meetup.com/flutter-zg/"
+logo = "art/communities/flutter-zg.webp"

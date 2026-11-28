@@ -148,6 +148,8 @@
   object-fit: cover;
   display: block;
 }
+.world-postcard[data-kind="community"] .world-photo { background: var(--ice); }
+.world-postcard[data-kind="community"] .world-photo img { object-fit: contain; }
 .world-caption {
   flex: none;
   display: block;

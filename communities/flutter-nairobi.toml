@@ -1,0 +1,7 @@
+name = "Flutter Nairobi"
+city = "Nairobi"
+country = "Kenya"
+latitude = -1.29
+longitude = 36.82
+url = "https://www.meetup.com/flutter_nairobi/"
+logo = "art/communities/flutter-nairobi.webp"

@@ -1,0 +1,7 @@
+name = "Flutter Colombo"
+city = "Colombo"
+country = "Sri Lanka"
+latitude = 6.93
+longitude = 79.85
+url = "https://www.meetup.com/fluttercolombo/"
+logo = "art/communities/fluttercolombo.webp"

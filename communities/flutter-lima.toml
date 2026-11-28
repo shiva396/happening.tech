@@ -1,0 +1,7 @@
+name = "Flutter Lima"
+city = "Lima"
+country = "Peru"
+latitude = -12.07
+longitude = -77.05
+url = "https://www.meetup.com/flutter-lima/"
+logo = "art/communities/flutter-lima.webp"

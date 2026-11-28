@@ -1,0 +1,7 @@
+name = "Flutter Angers"
+city = "Angers"
+country = "France"
+latitude = 47.48
+longitude = -0.54
+url = "https://www.meetup.com/flutter-angers/"
+logo = "art/communities/flutter-angers.webp"

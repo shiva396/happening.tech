@@ -1,0 +1,7 @@
+name = "Flutter Austin"
+city = "Austin"
+country = "United States"
+latitude = 30.27
+longitude = -97.74
+url = "https://www.meetup.com/flutter-austin/"
+logo = "art/communities/flutter-austin.webp"

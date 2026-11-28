@@ -1,0 +1,7 @@
+name = "Flutter Kolkata"
+city = "Kolkata"
+country = "India"
+latitude = 22.57
+longitude = 88.36
+url = "https://www.meetup.com/flutter-kolkata/"
+logo = "art/communities/flutter-kolkata.webp"

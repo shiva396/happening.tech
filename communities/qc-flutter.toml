@@ -1,0 +1,7 @@
+name = "Flutter Charlotte"
+city = "Charlotte"
+country = "United States"
+latitude = 35.23
+longitude = -80.84
+url = "https://www.meetup.com/qc-flutter/"
+logo = "art/communities/qc-flutter.webp"

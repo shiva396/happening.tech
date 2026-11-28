@@ -1,0 +1,7 @@
+name = "Flutter Indore"
+city = "Indore"
+country = "India"
+latitude = 22.72
+longitude = 75.86
+url = "https://www.meetup.com/flutterindore/"
+logo = "art/communities/flutterindore.webp"

@@ -99,7 +99,7 @@ input:not([type=checkbox]), select, textarea { border: 1px solid var(--line); bo
 .community-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1.3rem; margin-block: 1.65rem .9rem; }
 .community-card { display: flex; align-items: flex-start; gap: .85rem; padding-block: 1.25rem; border-top: 1px solid var(--line); }
 .community-mark { flex: none; height: 3rem; width: 3rem; display: grid; place-items: center; color: var(--blue); background: var(--ice); border: 1px solid var(--line); border-radius: .75rem; font-weight: 650; letter-spacing: 0; }
-.community-mark img { max-height: 100%; border-radius: inherit; }
+.community-mark img { width: 100%; height: 100%; min-height: 0; object-fit: contain; border-radius: inherit; }
 .community-card h3 { font-size: 1.15rem; margin: .17rem 0 .3rem; }
 .community-card small { color: var(--blue); }
 .activity-layout, .detail-layout { display: grid; grid-template-columns: .85fr 1.15fr; gap: var(--gutter); align-items: start; }

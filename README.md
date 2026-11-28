@@ -16,6 +16,8 @@ Open the [local site](http://localhost:8080). The [browser checks](tool/browser/
 
 ## Explore and contribute
 
+The directory includes the 144 groups listed in the Flutter Meetup Network on 28 November 2026, alongside six other Flutter organizers. Each profile has a permanent link and locally hosted artwork. [Meetup directory](https://www.meetup.com/pro/flutter/) · [Image sources](docs/atlas/community-art.md)
+
 The event and community filenames are their permanent IDs. Contributors can prepare an event in the site's listing form, edit TOML directly, or import a permitted organizer export for review. A maintainer reviews proposals before publication. The directory includes communities with no upcoming events. [Contribution guide](CONTRIBUTING.md)
 
 Notifications are available through the listing feed. Maintainers can configure opt-in browser notifications for newly published events. [Web Push setup](tool/push/README.md)

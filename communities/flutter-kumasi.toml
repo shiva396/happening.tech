@@ -1,0 +1,7 @@
+name = "Flutter Kumasi"
+city = "Kumasi"
+country = "Ghana"
+latitude = 6.69
+longitude = -1.63
+url = "https://www.meetup.com/flutter-kumasi/"
+logo = "art/communities/flutter-network.webp"

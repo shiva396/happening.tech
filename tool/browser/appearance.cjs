@@ -31,6 +31,7 @@ eachBrowser(async (browser, name) => {
           origin: root.style.getPropertyValue("--iris-origin"),
           edge: parseFloat(root.style.getPropertyValue("--iris-edge")),
           diameter: disk.width,
+          direction: layer?.getAnimations()[0]?.effect.getTiming().direction,
           lastClip: layer?.getAnimations()[0]?.effect.getKeyframes().at(-1)?.clipPath,
         });
       }).observe(root, { attributes: true, attributeFilter: ["data-iris"] });
@@ -45,6 +46,16 @@ eachBrowser(async (browser, name) => {
     assert(Math.abs(parseFloat(globe.lastClip.match(/circle\(([\d.]+)/)[1]) - globe.diameter / 2) < 1);
     assert(screen.edge >= Math.hypot(550, 380));
     assert.equal(await toggle.getAttribute("aria-pressed"), "false");
+
+    await page.evaluate(() => { window.irisPasses.length = 0; });
+    await toggle.click();
+    await waitForTheme("dark");
+    const closing = await page.evaluate(() => window.irisPasses);
+    assert.deepEqual(closing.map(step => step.pass), ["screen", "globe"]);
+    assert.equal(closing[1].direction, "reverse");
+    assert.equal(closing[1].origin, globe.origin);
+    await toggle.click();
+    await waitForTheme("light");
 
     // Reverse a change while snapshot capture is pending. A cancelled transition must leave no overlay.
     await toggle.click();
@@ -64,11 +75,21 @@ eachBrowser(async (browser, name) => {
       const path = el.querySelector(".scroll-track"), length = path.getTotalLength();
       const start = path.getPointAtLength(0), middle = path.getPointAtLength(length/2), end = path.getPointAtLength(length);
       const box = el.getBoundingClientRect();
-      return { x: box.x + start.x, top: box.y + start.y, bottom: box.y + end.y,
+      const frame = el.closest(".world-frame");
+      const radius = parseFloat(getComputedStyle(frame, "::after").width) / 2;
+      const gaps = [0, .25, .5, .75, 1].map(fraction => {
+        const p = path.getPointAtLength(length * fraction);
+        return radius - Math.hypot(box.x + p.x - frame.clientWidth / 2, box.y + p.y - frame.clientHeight / 2);
+      });
+      return { gaps, x: box.x + start.x, top: box.y + start.y, bottom: box.y + end.y,
         midX: box.x + middle.x, midY: box.y + middle.y, endX: box.x + end.x };
     });
     const box = await reader.boundingBox();
-    assert(Math.abs(track.x - track.endX) < .5 && track.midX - track.x > 20);
+    assert(Math.abs(track.x - track.endX) < .5 && track.midX > track.x);
+    assert(Math.min(...track.gaps) >= 17 && Math.max(...track.gaps) - Math.min(...track.gaps) < 1,
+      "The scrollbar should have an even inset along the globe's rim");
+    const nativeScrollbar = await reader.evaluate(el => [getComputedStyle(el).scrollbarWidth, el.offsetWidth - el.clientWidth]);
+    assert.deepEqual(nativeScrollbar, ["none", 0], "Only the rim arc should occupy the scroll gutter");
     assert(Math.abs(track.top - box.y) <= 4 && Math.abs(track.bottom - box.y - box.height) <= 4);
     assert(Math.abs(track.x - box.x - box.width) < 10);
     await rail.press("End");

@@ -1,0 +1,7 @@
+name = "Flutter Chandigarh"
+city = "Chandigarh"
+country = "India"
+latitude = 30.75
+longitude = 76.78
+url = "https://www.meetup.com/flutter-chandigarh/"
+logo = "art/communities/flutter-chandigarh.webp"

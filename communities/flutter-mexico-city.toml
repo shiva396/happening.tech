@@ -1,0 +1,7 @@
+name = "Flutter Mexico City"
+city = "México City"
+country = "Mexico"
+latitude = 19.43
+longitude = -99.14
+url = "https://www.meetup.com/flutter-mexico-city/"
+logo = "art/communities/flutter-mexico-city.webp"

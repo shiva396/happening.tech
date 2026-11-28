@@ -1,0 +1,7 @@
+name = "Flutter Hamburg"
+city = "Hamburg"
+country = "Germany"
+latitude = 53.55
+longitude = 10
+url = "https://www.meetup.com/flutter-meetup-hamburg/"
+logo = "art/communities/flutter-meetup-hamburg.webp"

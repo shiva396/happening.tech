@@ -1,0 +1,7 @@
+name = "Flutter Tel-Aviv"
+city = "Tel Aviv-Yafo"
+country = "Israel"
+latitude = 32.07
+longitude = 34.77
+url = "https://www.meetup.com/flutter-il/"
+logo = "art/communities/flutter-il.webp"

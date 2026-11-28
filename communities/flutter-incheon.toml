@@ -1,0 +1,7 @@
+name = "Flutter Incheon / 플러터 인천"
+city = "Incheon"
+country = "South Korea"
+latitude = 37.48
+longitude = 126.64
+url = "https://www.meetup.com/flutter-incheon/"
+logo = "art/communities/flutter-incheon.webp"

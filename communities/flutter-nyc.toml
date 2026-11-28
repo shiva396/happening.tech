@@ -1,0 +1,7 @@
+name = "Flutter New York"
+city = "New York"
+country = "United States"
+latitude = 40.75
+longitude = -73.99
+url = "https://www.meetup.com/flutter-nyc/"
+logo = "art/communities/flutter-nyc.webp"

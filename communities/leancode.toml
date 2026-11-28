@@ -6,3 +6,4 @@ longitude = 21.0122
 url = "https://leancode.co/"
 description = "The Warsaw Flutter team behind Flutter Tech Summit, Flutter Warsaw and open-source tools including Patrol."
 links = ["https://www.fluttertechsummit.com/"]
+logo = "art/communities/leancode.webp"

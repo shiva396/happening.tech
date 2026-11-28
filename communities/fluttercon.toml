@@ -5,3 +5,4 @@ latitude = 52.52
 longitude = 13.405
 url = "https://www.nextappcon.com/fluttercon"
 description = "Flutter and Dart conference organizers bringing developers together for technical talks, workshops and roundtables."
+logo = "art/communities/fluttercon.webp"

@@ -1,0 +1,7 @@
+name = "Flutter Bordeaux"
+city = "Bordeaux"
+country = "France"
+latitude = 44.84
+longitude = -0.58
+url = "https://www.meetup.com/flutter-bordeaux/"
+logo = "art/communities/flutter-bordeaux.webp"

@@ -5,3 +5,4 @@ latitude = 59.3293
 longitude = 18.0686
 url = "https://flutterfriends.dev/"
 description = "A community-organized Flutter conference combining technical talks, workshops and social events in Stockholm."
+logo = "art/communities/flutter-and-friends.webp"

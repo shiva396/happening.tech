@@ -5,3 +5,5 @@ latitude = 11.2588
 longitude = 75.7804
 url = "https://linktr.ee/flutterkkd"
 description = "A local Flutter community in Kerala and a co-organizer of Flutter South India."
+links = ["https://www.meetup.com/flutterkozhikode/"]
+logo = "art/communities/flutter-kozhikode.webp"

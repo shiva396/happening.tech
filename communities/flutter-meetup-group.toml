@@ -1,0 +1,7 @@
+name = "Flutter Ottawa"
+city = "Ottawa"
+country = "Canada"
+latitude = 45.45
+longitude = -75.69
+url = "https://www.meetup.com/flutter-meetup-group/"
+logo = "art/communities/flutter-meetup-group.webp"

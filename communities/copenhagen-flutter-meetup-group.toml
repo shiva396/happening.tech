@@ -1,0 +1,7 @@
+name = "Flutter Copenhagen"
+city = "Copenhagen"
+country = "Denmark"
+latitude = 55.68
+longitude = 12.57
+url = "https://www.meetup.com/copenhagen-flutter-meetup-group/"
+logo = "art/communities/copenhagen-flutter-meetup-group.webp"

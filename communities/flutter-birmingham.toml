@@ -1,0 +1,7 @@
+name = "Flutter Birmingham"
+city = "Birmingham"
+country = "United Kingdom"
+latitude = 52.48
+longitude = -1.91
+url = "https://www.meetup.com/flutter-birmingham/"
+logo = "art/communities/flutter-birmingham.webp"

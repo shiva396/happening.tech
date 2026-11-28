@@ -1,0 +1,7 @@
+name = "Flutter Nashik"
+city = "Nashik"
+country = "India"
+latitude = 20.01
+longitude = 73.78
+url = "https://www.meetup.com/nashik-knowledge-sharing-meetup-group/"
+logo = "art/communities/flutter-nashik.webp"

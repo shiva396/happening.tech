@@ -30,15 +30,16 @@ function initDirectory() {
   const embedded = Boolean(query.closest(".world-frame:not(.permalink)"));
   const countryKey = embedded ? "groupCountry" : "country";
   const queryKey = embedded ? "groupQ" : "q";
-  const rows = $$("[data-directory-id]");
+  const rows = $$("[data-directory-id]").map(row => ({
+    row, country: row.dataset.country, text: [row.dataset.name, row.dataset.place].join(" ").toLowerCase(),
+  }));
   function apply() {
+    const term = query.value.trim().toLowerCase();
     let visible = 0;
-    for (const row of rows) {
-      const data = row.dataset;
-      row.hidden =
-        Boolean(country.value && data.country !== country.value) ||
-        ![data.name, data.place].join(" ").toLowerCase().includes(query.value.trim().toLowerCase());
-      if (!row.hidden) visible++;
+    for (const entry of rows) {
+      const hidden = Boolean(country.value && entry.country !== country.value) || !entry.text.includes(term);
+      if (entry.row.hidden !== hidden) entry.row.hidden = hidden;
+      if (!hidden) visible++;
     }
     $("#community-empty").hidden = visible > 0;
     const url = new URL(location.href);
@@ -217,6 +218,7 @@ function initAtlas({ events, communities }) {
     }
     if (selected?.artwork) {
       const image = node("img");
+      if (!isEvent) image.className = "community-logo";
       image.src = base(selected.artwork);
       image.alt = "";
       preview.append(image);
@@ -514,11 +516,12 @@ const frame = $(".world-frame");
 if (frame) {
   mountTheme(frame, animate);
   const reader = frame.querySelector(".globe-pages");
+  reader.classList.add("awaiting-scrollbar");
   new IntersectionObserver(([entry], observer) => {
     if (!entry.isIntersecting) return;
     observer.disconnect();
     import("./scrollbar.js").then(({ mountScrollbar }) => mountScrollbar(reader)).catch(() => {
-      // Native scrolling remains available if the enhancement cannot load.
+      reader.classList.remove("awaiting-scrollbar");
     });
   }).observe(reader);
 }

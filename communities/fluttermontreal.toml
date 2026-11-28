@@ -1,0 +1,7 @@
+name = "Flutter Montréal"
+city = "Montréal"
+country = "Canada"
+latitude = 45.43
+longitude = -73.68
+url = "https://www.meetup.com/fluttermontreal/"
+logo = "art/communities/fluttermontreal.webp"

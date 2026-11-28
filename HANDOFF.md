@@ -2,7 +2,9 @@
 
 The redesign is on `feature/flutter-community-atlas`. The Earth fills the opening viewport. Tap land or use Find a place to open local events and communities inside the sphere. The dock opens the program, directory and activity there. Event details, profiles, the listing form and notification settings use the same interior. Browser history restores place and selection. Shared permanent links render within the same globe frame directly from HTML. The atlas uses the `flutter_spot` Dart package. The public event URLs from the earlier catalog still resolve. All calendar downloads use `@flutter.spot` UIDs, so re-importing an event saved with an earlier UID can create a duplicate in a calendar app.
 
-The production build generated 40 static pages from 12 Flutter events, 11 communities and 10 archived event records on 28 November 2026. The sitemap contains 28 primary atlas pages. The additional routes preserve previously shared links. [Product brief](docs/atlas/BRIEF.md) · [Implementation guide](PLAN.md)
+The production build generated 179 static pages from 12 Flutter events, 150 communities and 10 archived event records on 28 November 2026. The sitemap contains 167 primary atlas pages. The additional routes preserve previously shared links. [Product brief](docs/atlas/BRIEF.md) · [Implementation guide](PLAN.md)
+
+The directory includes all 144 groups in the public Flutter Meetup Network across 64 countries and six additional organizers. Five existing profiles also belong to the network and retain their permanent IDs and event links. The site serves all artwork locally. Flutter Kumasi uses the network icon because the group lists no photo. [Meetup directory](https://www.meetup.com/pro/flutter/) · [Image sources](docs/atlas/community-art.md)
 
 ## Review the design
 
@@ -13,7 +15,7 @@ The production build generated 40 static pages from 12 Flutter events, 11 commun
 
 The 2,048 × 1,024 overview and two regional detail levels use NASA’s August 2004 Blue Marble satellite mosaic. The finest level is 21,504 × 10,752 pixels. The globe loads visible tiles on demand, with three requests in flight and up to 16 resident WebGL tiles. Spreading two fingers by 50% increases the camera zoom by about 2.16× and keeps the place under their midpoint. Curved leaders connect the existing pin and card endpoints. Selecting a listing opens details at the right edge on desktop and above the dock on phones. The comparison shows Warsaw from the same camera position. [Zoom comparison](docs/atlas/screenshots/zoom-comparison.webp)
 
-The atlas follows the system light or dark setting on first visit. The sun or moon button saves a choice across pages and visits. Switching themes reveals a circle to the globe’s rim, then opens a second circle from the same point to the screen corners. Reduced motion and the atlas pause setting apply the choice immediately. The right edge of a scrollable reading panel has a curved track with fixed endpoints. Its thumb supports dragging, touch and keyboard navigation. [Watch the theme change](docs/atlas/screenshots/theme-iris.webp)
+The atlas follows the system light or dark setting on first visit. The sun or moon button saves a choice across pages and visits. Light opens from the globe’s center to its rim, then from the center to the screen corners. Dark closes the screen iris first, then the globe iris. Reduced motion and the atlas pause setting apply the choice immediately. One curved scrollbar follows the reader’s right rim with an even inset on desktop and stays inside the viewport on phones. Its thumb supports dragging, touch and keyboard navigation. [Watch the theme change](docs/atlas/screenshots/theme-iris.webp)
 
 The atlas uses a self-hosted Source Sans 3 variable font for map labels, reading views and forms.
 
@@ -30,11 +32,11 @@ Medians of three cold visits to the production build on a loopback HTTP server. 
 
 | Cold profile | LCP | Lab INP candidate | CLS | Zoom frame p95 | Initial transfer | JS heap at end |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: |
-| Desktop, 1440 × 900, DPR 1, unthrottled | 140 ms | 72 ms | 0.0000 | 16.7 ms | 639 KiB, 31 requests | 4.3 MiB |
-| Mobile emulation, 390 × 844, DPR 2 | 644 ms | 160 ms | 0.0000 | 16.8 ms | 592 KiB, 27 requests | 3.9 MiB |
+| Desktop, 1440 × 900, DPR 1, unthrottled | 124 ms | 56 ms | 0.0000 | 16.7 ms | 804 KiB, 32 requests | 5.1 MiB |
+| Mobile emulation, 390 × 844, DPR 2 | 740 ms | 120 ms | 0.0000 | 16.7 ms | 755 KiB, 28 requests | 3.4 MiB |
 
 The mobile profile used 4× CPU slowdown, 80 ms latency, 4 Mbit/s downstream and 1 Mbit/s upstream. The Earth poster was the LCP element. The whole-device GPU counter varied across the short zoom samples and does not isolate browser work. Transfer totals cover requests through initial network idle. A physical iOS or Android handset and real-user performance data were unavailable. [Repeat the tests](tool/browser/README.md)
 
 ## Publication
 
-The redesign PR targets the open repository-rename branch. After the rename merges, the redesign can target main. The Pages workflow publishes main and rebuilds daily. Live source polling would require an approved integration and credentials. The contribution form and local JSON-LD import are ready for use. [Contribution guide](CONTRIBUTING.md)
+The repository rename merged in #3. The redesign PR targets main. The Pages workflow publishes main and rebuilds daily. Live source polling would require an approved integration and credentials. The contribution form and local JSON-LD import are ready for use. [Contribution guide](CONTRIBUTING.md)

@@ -1,0 +1,7 @@
+name = "Flutter SP"
+city = "São Paulo"
+country = "Brazil"
+latitude = -23.53
+longitude = -46.63
+url = "https://www.meetup.com/fluttersp/"
+logo = "art/communities/fluttersp.webp"

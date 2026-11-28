@@ -1,0 +1,7 @@
+name = "Flutter Lyon"
+city = "Lyon"
+country = "France"
+latitude = 45.76
+longitude = 4.83
+url = "https://www.meetup.com/lyon-mobile-social-meetup-group/"
+logo = "art/communities/flutter-lyon.webp"

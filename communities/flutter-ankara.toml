@@ -1,0 +1,7 @@
+name = "Flutter Ankara"
+city = "Ankara"
+country = "Turkey"
+latitude = 39.93
+longitude = 32.85
+url = "https://www.meetup.com/flutter-ankara/"
+logo = "art/communities/flutter-ankara.webp"

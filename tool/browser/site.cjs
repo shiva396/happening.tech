@@ -117,8 +117,20 @@ async function atlas(page) {
   await page.locator(".split-heading [data-view=world]").click();
   assert.equal(new URL(page.url()).searchParams.get("period"), "past");
   await page.goto(url("communities/"));
-  await page.getByRole("searchbox", { name: "Search communities" }).fill("namma");
+  const directorySearch = page.getByRole("searchbox", { name: "Search communities" });
   const community = page.locator(".community-card:visible");
+  await directorySearch.fill("Nairobi");
+  assert.equal(await community.count(), 1);
+  assert.equal(await community.getByRole("link").textContent(), "Flutter Nairobi");
+  const groupImage = community.locator("img");
+  await groupImage.scrollIntoViewIfNeeded();
+  await page.waitForFunction(image => image.complete && image.naturalWidth > 0, await groupImage.elementHandle());
+  await community.getByRole("link").click();
+  await page.getByRole("heading", { name: "Flutter Nairobi", exact: true }).waitFor();
+  assert.equal(await page.getByRole("link", { name: "Official community site" }).getAttribute("href"),
+    "https://www.meetup.com/flutter_nairobi/");
+  await page.goBack();
+  await directorySearch.fill("namma");
   assert.equal(await community.count(), 1);
   await community.getByRole("link").click();
   assert(await page.getByRole("heading", { name: "Namma Flutter", exact: true }).isVisible());

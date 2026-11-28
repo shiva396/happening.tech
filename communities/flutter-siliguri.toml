@@ -1,0 +1,7 @@
+name = "Flutter Siliguri"
+city = "Shiliguri"
+country = "India"
+latitude = 26.73
+longitude = 88.42
+url = "https://www.meetup.com/flutter-siliguri/"
+logo = "art/communities/flutter-siliguri.webp"

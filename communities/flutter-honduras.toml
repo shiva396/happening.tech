@@ -1,0 +1,7 @@
+name = "Flutter Honduras"
+city = "San Pedro Sula"
+country = "Honduras"
+latitude = 15.47
+longitude = -88.03
+url = "https://www.meetup.com/flutter-honduras/"
+logo = "art/communities/flutter-honduras.webp"

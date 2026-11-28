@@ -129,16 +129,24 @@ class CommunityDetails extends StatelessComponent {
   @override
   Component build(BuildContext context) {
     final c = community;
+    final location = locationName(c.city, c.country);
     final related = events.where((e) => e.communityId == c.id);
     final now = DateTime.now();
     return article(classes: 'section-inner detail-page', [
-      pageHead(c.name, 'communities/${c.id}/', description: c.description),
+      pageHead(
+        c.name,
+        'communities/${c.id}/',
+        description: c.description.isNotEmpty
+            ? c.description
+            : [c.name, location, 'Flutter community directory'].where((part) => part.isNotEmpty).join(' · '),
+        image: c.logo ?? 'art/world-poster.webp',
+      ),
       a(classes: 'text-link', href: 'communities/', [icon('users'), .text('All communities')]),
       div(classes: 'community-profile', [
         communityIdentity(c),
-        overline('map-pin', locationName(c.city, c.country)),
+        if (location.isNotEmpty) overline('map-pin', location),
         h1([.text(c.name)]),
-        p(classes: 'section-lede', [.text(c.description)]),
+        if (c.description.isNotEmpty) p(classes: 'section-lede', [.text(c.description)]),
         div(classes: 'inline-actions', [
           a(classes: 'pill solid', href: c.url, [.text('Official community site')]),
           if (c.latitude != null)
