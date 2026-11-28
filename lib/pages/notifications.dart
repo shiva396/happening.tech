@@ -40,7 +40,7 @@ class NotificationsPage extends StatelessComponent {
                 .text('Enable notifications'),
               ],
             ),
-            script(src: 'notifications.js', defer: true),
+            script(src: 'notifications.js', attributes: {'type': 'module'}),
           ],
           p([
             a(href: 'https://github.com/$projectRepository/commits/main/events.atom', [

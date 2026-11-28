@@ -68,6 +68,7 @@ export async function mountWorld(stage, options = {}) {
   let drag = null,
     pinch = null;
   const animated = () => motionPreference && !reduced.matches;
+  let reading = false;
   const canDraw = () => !disposed && visible && !document.hidden && width > 0 && height > 0;
 
   function queue() {
@@ -75,9 +76,9 @@ export async function mountWorld(stage, options = {}) {
   }
   function scheduleIdle() {
     clearTimeout(idleTimer);
-    if (allowIdle && animated() && canDraw() && !renderer?.software) {
+    if (!reading && allowIdle && animated() && canDraw() && !renderer?.software) {
       idleTimer = setTimeout(() => {
-        if (!allowIdle || !animated() || !canDraw()) return;
+        if (reading || !allowIdle || !animated() || !canDraw()) return;
         idle = true;
         previous = 0;
         queue();
@@ -237,9 +238,7 @@ export async function mountWorld(stage, options = {}) {
   });
   listen(hit, "keydown", (e) => {
     const step = e.shiftKey ? 25 : 10;
-    const dir = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, step], ArrowDown: [0, -step] }[
-      e.key
-    ];
+    const dir = { ArrowLeft: [-step, 0], ArrowRight: [step, 0], ArrowUp: [0, step], ArrowDown: [0, -step] }[e.key];
     if (dir) flyTo(camera.latitude + dir[1], camera.longitude + dir[0], camera.zoom);
     else if (["=", "+", "-"].includes(e.key)) zoomBy(e.key === "-" ? 1 / 1.24 : 1.24);
     else if (e.key === "Home") reset();
@@ -250,8 +249,7 @@ export async function mountWorld(stage, options = {}) {
     hit,
     "wheel",
     (e) => {
-      // Intentional pinch/zoom always works. Scrolling past the globe remains possible before engagement.
-      if (!e.ctrlKey && document.activeElement !== hit) return;
+      // The world owns the viewport. Scrollable readers sit above this surface.
       e.preventDefault();
       if (gestureZoom !== undefined || pointers.size) return;
       const unit = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? height : 1;
@@ -350,8 +348,7 @@ export async function mountWorld(stage, options = {}) {
       const { countryAt } = await import("./locations.js");
       const country = await countryAt(...geo);
       if (country && seq === tapSequence && !disposed) {
-        flyTo(geo[1], geo[0], CAMERA.countryZoom);
-        options.onCountry(country);
+        options.onCountry(country, geo[1], geo[0]);
       }
     } catch {
       /* Existing photo targets and program links remain available offline. */
@@ -447,6 +444,15 @@ export async function mountWorld(stage, options = {}) {
   });
   listen(window, "pageshow", resume);
   return {
+    setReading(value) {
+      if (reading === value) return;
+      reading = value;
+      if (reading) {
+        pause();
+        velocityX = velocityY = 0;
+        queue();
+      } else resume();
+    },
     focus,
     flyTo,
     reset,

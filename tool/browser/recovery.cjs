@@ -63,7 +63,18 @@ async function check() {
     await touch("touchStart", [[x, y]]);
     for (let i = 1; i <= 10; i++) await touch("touchMove", [[x, y - i * 10]]);
     await touch("touchEnd", []);
-    await page.waitForFunction(() => scrollY > 20);
+    await page.waitForFunction((s) => document.querySelector(".coordinates").textContent !== s, home);
+    assert.equal(await page.evaluate(() => scrollY), 0);
+    await page.getByRole("link", { name: "Program view", exact: true }).click();
+    await page.locator("[data-period=past]").click();
+    const panel = await page.locator(".globe-pages").boundingBox();
+    const sx = panel.x + panel.width * 0.5,
+      sy = panel.y + panel.height * 0.76;
+    await touch("touchStart", [[sx, sy]]);
+    for (let i = 1; i <= 12; i++) await touch("touchMove", [[sx, sy - i * 12]]);
+    await touch("touchEnd", []);
+    await page.waitForFunction(() => document.querySelector(".globe-pages").scrollTop > 20);
+    assert.equal(await page.evaluate(() => scrollY), 0);
     const desktop = await browser.newPage({ reducedMotion: "reduce", viewport: { width: 1440, height: 900 } });
     await desktop.goto(preview);
     await desktop.locator('.atlas-earth[data-rendered="true"]').waitFor();
@@ -89,6 +100,29 @@ async function check() {
     const card = desktop.locator(".world-postcard:not(.world-stack)").first();
     await card.click();
     await desktop.locator("#world-preview h3").waitFor();
+    await desktop.goto(preview);
+    await desktop.locator('.atlas-earth[data-rendered="true"]').waitFor();
+    // The opening camera is centered over land in Saudi Arabia, which has no catalog records.
+    const earth = await desktop.locator(".atlas-earth").boundingBox();
+    await desktop.mouse.click(earth.x + earth.width / 2, earth.y + earth.height / 2);
+    await desktop.getByRole("heading", { name: "Saudi Arabia" }).waitFor();
+    const land = new URL(desktop.url());
+    assert.equal(land.hash, "#place");
+    assert.equal(Number(land.searchParams.get("lat")), 25);
+    assert.equal(Number(land.searchParams.get("lon")), 42);
+    assert(await desktop.locator("#place").getByText("No local community has been listed yet.").isVisible());
+    await desktop.reload();
+    await desktop.getByRole("heading", { name: "Saudi Arabia" }).waitFor();
+    await desktop.getByRole("link", { name: "Globe", exact: true }).click();
+    await desktop.locator("#world-preview h3").filter({ hasText: "Saudi Arabia" }).waitFor();
+    const detailsUrl = new URL("events/flutter-tech-summit-2027/", preview).href;
+    await desktop.route(detailsUrl, (route) => route.abort());
+    await desktop.goto(new URL("#events/flutter-tech-summit-2027", preview).href);
+    const retry = desktop.locator("#globe-story").getByRole("link", { name: "Open the full page" });
+    await retry.waitFor();
+    await desktop.unroute(detailsUrl);
+    await retry.click();
+    await desktop.locator(".permalink .globe-pages article h1").waitFor();
     await desktop.close();
     const canvas = await browser.newPage({ reducedMotion: "reduce" });
     await canvas.addInitScript(() => {

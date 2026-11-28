@@ -1,15 +1,30 @@
-// URL state is shared by both views. Event expiry uses instants; date filters use host calendar days.
+// The globe and its reading views share URL state. Event expiry uses instants; date filters use host calendar days.
 export const filterKeys = ["q", "country", "city", "category", "attendance", "from", "until"];
-const keys = [...filterKeys, "period", "event", "community"];
+const keys = [...filterKeys, "lat", "lon", "period", "event", "community"];
 export const isPast = (event, now = Date.now()) => Date.parse(event.end) <= now;
 const lower = (value) => String(value || "").toLocaleLowerCase();
 
 export function createDiscovery(events, communities, archive) {
   const listeners = new Set();
   const initialPeriod = archive ? "past" : "upcoming";
+  const views = new Set([
+    "world",
+    "program",
+    "communities",
+    "activity",
+    "place",
+    "submit",
+    "notifications",
+    ...events.map((e) => "events/" + e.id),
+    ...communities.map((c) => "communities/" + c.id),
+  ]);
   function read() {
     const url = new URL(location.href);
     const state = Object.fromEntries(keys.map((k) => [k, url.searchParams.get(k) || ""]));
+    const validPoint = (key, limit) => state[key].trim() && Math.abs(Number(state[key])) <= limit;
+    if (!state.country || !validPoint("lat", 90) || !validPoint("lon", 180)) {
+      state.lat = state.lon = "";
+    }
     state.period = ["upcoming", "past"].includes(state.period) ? state.period : initialPeriod;
     const event = events.find((entry) => entry.id === state.event);
     if (event) {
@@ -17,7 +32,9 @@ export function createDiscovery(events, communities, archive) {
       state.country ||= event.country;
       state.city ||= event.city;
     }
-    state.mode = url.hash === "#program" || archive ? "program" : "world";
+    const hash = url.hash.slice(1);
+    state.mode = archive ? "program" : views.has(hash) ? hash : "world";
+    if (state.mode === "place" && !state.country) state.mode = "world";
     return state;
   }
   let current = read();
@@ -46,7 +63,7 @@ export function createDiscovery(events, communities, archive) {
       lower([e.title, e.community, e.city, e.country, e.category].join(" ")).includes(lower(current.q).trim())
     );
   }
-  const empty = Object.fromEntries([...filterKeys, "event", "community"].map((k) => [k, ""]));
+  const empty = Object.fromEntries([...filterKeys, "lat", "lon", "event", "community"].map((k) => [k, ""]));
   function select(place) {
     const patch = { ...empty, mode: "world" };
     if (place.kind === "event")
@@ -57,7 +74,13 @@ export function createDiscovery(events, communities, archive) {
         country: place.country,
       });
     else if (place.kind === "community") Object.assign(patch, { community: place.id });
-    else Object.assign(patch, { country: place.country, city: place.city || "" });
+    else {
+      Object.assign(patch, { country: place.country, city: place.city || "", mode: "place" });
+      if (Number.isFinite(place.latitude) && Number.isFinite(place.longitude)) {
+        patch.lat = place.latitude.toFixed(3);
+        patch.lon = place.longitude.toFixed(3);
+      }
+    }
     update(patch, true);
   }
   window.addEventListener("popstate", () => publish(read()));

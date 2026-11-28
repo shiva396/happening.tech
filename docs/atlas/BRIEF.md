@@ -1,5 +1,7 @@
 # Rethink the Entire Global Flutter Community Platform
 
+The later design direction places the entire site inside the globe. The sections named below open within the sphere, and the credits and resource links live in the atlas information menu.
+
 ## 1. Product Vision
 
 Completely rethink the existing website from first principles. Do not treat this as a conventional website redesign or an incremental improvement to the existing layout.

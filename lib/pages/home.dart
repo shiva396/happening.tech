@@ -16,9 +16,13 @@ class Atlas extends StatelessComponent {
   Component build(BuildContext context) => div(id: 'atlas', [
     pageHead(archive ? 'Past Flutter events' : 'The global Flutter atlas', archive ? 'archive/' : ''),
     dataIsland(events, communities),
-    if (!archive) WorldView(events, communities),
-    ProgramView(events, archive: archive),
-    Communities(communities, events),
-    Activity(events),
+    if (archive)
+      ProgramView(events, archive: true)
+    else
+      WorldView(events, communities, [
+        ProgramView(events),
+        Communities(communities, events),
+        Activity(events),
+      ]),
   ]);
 }

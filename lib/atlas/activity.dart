@@ -13,15 +13,13 @@ class Activity extends StatelessComponent {
     final now = DateTime.now().toUtc();
     final ordered = [...events]..sort((left, right) => right.startsAt.compareTo(left.startsAt));
     final started = ordered.where((e) => e.status != 'cancelled' && !e.startsAt.isAfter(now)).take(4);
-    return section(classes: 'section activity', [
+    return section(id: 'activity', classes: 'section activity', [
       div(classes: 'section-inner activity-layout', [
         div([
-          overline('radio', 'Global activity'),
           h2([
-            .text('From the '),
-            em([.text('field.')]),
+            .text('Recent '),
+            em([.text('activity.')]),
           ]),
-          p(classes: 'section-lede', [.text('Recent gatherings from across the Flutter community.')]),
         ]),
         div(classes: 'timeline', [
           for (final e in started)

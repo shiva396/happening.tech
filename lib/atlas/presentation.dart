@@ -99,6 +99,8 @@ Map<String, Object?> eventRecord(Event e) => {
   'longitude': e.longitude,
   'artwork': eventImage(e),
   'thumbnail': e.artworkThumbnail,
+  'artworkCredit': e.artworkCredit,
+  'artworkSource': e.artworkSource,
   'start': e.startsAt.toUtc().toIso8601String(),
   'end': e.endsAtExclusive.toUtc().toIso8601String(),
   'firstDay': hostDay(e).toIso8601String().substring(0, 10),

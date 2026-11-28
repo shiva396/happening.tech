@@ -191,7 +191,12 @@ export function makeOverlays(stage, activate) {
         for (const [sx, sy, shift] of align) {
           const x = clamp(ax + (sx > 0 ? shift : -w - shift), LAYOUT.padding, width - w - LAYOUT.padding);
           const y = clamp(ay + (sy > 0 ? 13 : -h - 13), LAYOUT.padding, height - h - LAYOUT.padding);
-          const proposal = { x, y, w, h };
+          // Keep each postcard on the visible face of the Earth, including at its limb.
+          const dx = x + w / 2 - width / 2,
+            dy = y + h / 2 - height / 2;
+          const limit = Math.max(0, radius - Math.hypot(w, h) / 2 - LAYOUT.padding);
+          const inward = Math.min(1, limit / (Math.hypot(dx, dy) || 1));
+          const proposal = { x: width / 2 + dx * inward - w / 2, y: height / 2 + dy * inward - h / 2, w, h };
           if (!boxes.some((other) => intersects(proposal, other, LAYOUT.gap))) {
             box = proposal;
             break;

@@ -1,6 +1,9 @@
 export const HOME = Object.freeze({ latitude: 25, longitude: 42, zoom: 1 });
 export const CAMERA = Object.freeze({
-  globeFraction: 0.88,
+  globeFraction: 0.96,
+  heightFraction: 0.86,
+  portraitWidth: 600,
+  portraitFraction: 1.23,
   minZoom: 0.8,
   maxZoom: 4.1,
   maxLatitude: 89.5,
@@ -17,7 +20,13 @@ export const CAMERA = Object.freeze({
 const radians = Math.PI / 180;
 export const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
 export const wrap = (n) => ((((n + 180) % 360) + 360) % 360) - 180;
-export const radiusAt = (w, h, zoom) => (Math.min(w, h) * CAMERA.globeFraction * zoom) / 2;
+export const radiusAt = (w, h, zoom) =>
+  (Math.min(
+    w * (w <= CAMERA.portraitWidth ? CAMERA.portraitFraction : CAMERA.globeFraction),
+    h * CAMERA.heightFraction,
+  ) *
+    zoom) /
+  2;
 
 export function project(latitude, longitude, camera) {
   const north = camera.latitude * radians,

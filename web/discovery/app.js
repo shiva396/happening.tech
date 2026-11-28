@@ -1,3 +1,5 @@
+import { placeUrl } from "./place.js";
+import { mountGlobePages, refreshRegistration } from "./pages.js";
 import { createDiscovery, filterKeys, isPast } from "./state.js";
 
 const $ = (selector) => document.querySelector(selector);
@@ -26,6 +28,9 @@ function initDirectory() {
   const query = $("#community-query"),
     country = $("#community-country");
   if (!query) return;
+  const embedded = Boolean(query.closest(".world-frame:not(.permalink)"));
+  const countryKey = embedded ? "groupCountry" : "country";
+  const queryKey = embedded ? "groupQ" : "q";
   const rows = $$("[data-directory-id]");
   function apply() {
     let visible = 0;
@@ -39,26 +44,32 @@ function initDirectory() {
     $("#community-empty").hidden = visible > 0;
     const url = new URL(location.href);
     for (const [k, val] of [
-      ["country", country.value],
-      ["q", query.value],
+      [countryKey, country.value],
+      [queryKey, query.value],
     ]) {
       if (val) url.searchParams.set(k, val);
       else url.searchParams.delete(k);
     }
     history.replaceState(null, "", url);
   }
-  const params = new URLSearchParams(location.search);
-  country.value = params.get("country") || "";
-  query.value = params.get("q") || "";
+  function restore() {
+    const params = new URLSearchParams(location.search);
+    country.value = params.get(countryKey) || "";
+    query.value = params.get(queryKey) || "";
+    apply();
+  }
+  window.addEventListener("popstate", restore);
+  restore();
   query.addEventListener("input", apply);
   country.addEventListener("change", apply);
-  apply();
 }
 
 function initAtlas({ events, communities }) {
-  const stage = $(".atlas-earth"),
+  const stage = $("#atlas .atlas-earth"),
     archive = $("#program").dataset.archive === "true";
   const state = createDiscovery(events, communities, archive);
+  const frame = $("#atlas .world-frame");
+  const showPage = frame && mountGlobePages(frame, state, [...events, ...communities]);
   const cards = new Map($$("[data-event]").map((el) => [el.dataset.event, el]));
   const eventIndex = new Map(events.map((e) => [e.id, e]));
   const groupIndex = new Map(communities.map((c) => [c.id, c]));
@@ -87,7 +98,8 @@ function initAtlas({ events, communities }) {
       return;
     }
     if (state.current.mode !== mode || location.hash !== "#" + mode) state.update({ mode }, true);
-    document.getElementById(mode)?.scrollIntoView({ behavior: animate() ? "smooth" : "instant" });
+    if (!frame) document.getElementById(mode)?.scrollIntoView({ behavior: animate() ? "smooth" : "instant" });
+    closeLocator();
     reaction(mode);
   }
   function focus(place) {
@@ -98,8 +110,10 @@ function initAtlas({ events, communities }) {
     }
     closeLocator();
     state.select(place);
-    go("world");
-    preview?.querySelector("h3")?.focus({ preventScroll: true });
+    if (state.current.mode === "world") {
+      go("world");
+      preview?.querySelector("h3")?.focus({ preventScroll: true });
+    }
   }
   function button(text, action, cls = "pill") {
     const result = node("button", text, cls);
@@ -157,13 +171,51 @@ function initAtlas({ events, communities }) {
         ),
         link(selected.community, base("communities/" + selected.communityId + "/"), "text-link"),
       );
+      if (selected.country)
+        actions.append(
+          link(
+            "Explore " + (selected.city || selected.country),
+            placeUrl(selected.country, selected.city),
+            "text-link",
+          ),
+        );
       copy.append(actions);
     } else {
-      if (selected) copy.append(node("p", [selected.city, selected.country].filter(Boolean).join(", ")));
+      if (selected)
+        copy.append(
+          node("p", selected.description || [selected.city, selected.country].filter(Boolean).join(", ")),
+        );
+      else {
+        const local = (p) => (!s.city || p.city === s.city) && (!s.country || p.country === s.country);
+        const groups = communities.filter(local);
+        const upcoming = events.filter((e) => local(e) && !isPast(e) && e.status !== "cancelled");
+        copy.append(
+          node(
+            "p",
+            upcoming.length +
+              " upcoming " +
+              (upcoming.length === 1 ? "event" : "events") +
+              " · " +
+              groups.length +
+              " " +
+              (groups.length === 1 ? "community" : "communities"),
+          ),
+        );
+        for (const group of groups.slice(0, 3))
+          copy.append(link(group.title, base("communities/" + group.id + "/"), "place-group"));
+      }
       const actions = node("div", null, "preview-actions");
       actions.append(button("See events", () => go("program"), "text-link"));
       if (selected)
         actions.append(link("Community profile", base("communities/" + selected.id + "/"), "text-link"));
+      if (selected?.country || s.country)
+        actions.append(
+          link(
+            "Explore " + (selected?.city || s.city || selected?.country || s.country),
+            placeUrl(selected?.country || s.country, selected?.city || s.city),
+            "text-link",
+          ),
+        );
       copy.append(actions);
     }
     if (selected?.artwork) {
@@ -176,6 +228,8 @@ function initAtlas({ events, communities }) {
   }
 
   function render(s) {
+    showPage?.(s);
+    globe?.setReading(s.mode !== "world");
     const now = Date.now();
     const matches = state.filtered(now);
     const ids = new Set(matches.map((e) => e.id));
@@ -213,10 +267,29 @@ function initAtlas({ events, communities }) {
     $("#clear-active").hidden = !filterKeys.some((k) => s[k]) && !s.community;
     if (previousEmpty === false && !matches.length) reaction("empty");
     previousEmpty = !matches.length;
+    if (frame) {
+      const host = frame.querySelector("[data-dash]");
+      const perch =
+        s.mode === "program"
+          ? matches.length
+            ? "program"
+            : "empty"
+          : s.mode === "communities"
+            ? "community"
+            : "world";
+      const destination = frame.querySelector(".atlas-info")?.open ? "footer" : perch;
+      const slot = frame.querySelector('[data-perch="' + destination + '"]');
+      if (host && slot && host.parentNode !== slot) {
+        slot.append(host);
+        requestAnimationFrame(() => reaction(destination));
+      }
+    }
     const total = $("#upcoming-total");
     if (total) total.textContent = events.filter((e) => !isPast(e, now) && e.status !== "cancelled").length;
     places = state.places(matches, now);
     const selected = eventIndex.get(s.event) || groupIndex.get(s.community);
+    const [collection, storyId] = s.mode.split("/");
+    const storyPlace = storyId && (collection === "events" ? eventIndex : groupIndex).get(storyId);
     if (selected?.latitude != null && !places.some((p) => p.id === selected.id)) places.push(selected);
     const signature = places.map((p) => [p.kind, p.id, Boolean(p.ongoing), Boolean(p.recent)].join(":")).join("|");
     if (globe && signature !== renderedPlaces) {
@@ -224,14 +297,20 @@ function initAtlas({ events, communities }) {
       renderedPlaces = signature;
     }
     const anchor =
+      storyPlace ||
       selected ||
+      (s.lat && s.lon && { latitude: Number(s.lat), longitude: Number(s.lon) }) ||
       ((s.city || s.country) &&
         [...places, ...communities, ...events].find(
           (p) => p.latitude != null && (!s.country || p.country === s.country) && (!s.city || p.city === s.city),
         ));
-    const targetKey = selected ? [selected.kind, selected.id].join(":") : [s.country, s.city].join(":");
+    const targetKey = storyPlace
+      ? s.mode
+      : selected
+        ? [selected.kind, selected.id].join(":")
+        : [s.country, s.city, s.lat, s.lon].join(":");
     if (anchor && anchor.latitude != null && cameraTarget !== targetKey && globe) {
-      if (selected) globe.focus(selected);
+      if (storyPlace || selected) globe.focus(storyPlace || selected);
       else globe.flyTo(anchor.latitude, anchor.longitude, s.city ? 2.9 : 1.6);
       cameraTarget = targetKey;
       reaction(selected?.kind || "country");
@@ -242,29 +321,11 @@ function initAtlas({ events, communities }) {
     drawPreview(s, selected);
   }
   state.subscribe(render);
-  if (stage) {
-    const host = $("[data-dash]");
-    const slots = $$("[data-perch]");
-    const visible = new Set();
-    const order = ["world", "empty", "program", "community", "footer"];
-    const observer = new IntersectionObserver((entries) => {
-      for (const entry of entries) {
-        if (entry.isIntersecting) visible.add(entry.target);
-        else visible.delete(entry.target);
-      }
-      const perch = order
-        .map((name) => slots.find((slot) => slot.dataset.perch === name && visible.has(slot)))
-        .find(Boolean);
-      if (perch && host.parentNode !== perch) {
-        perch.append(host);
-        requestAnimationFrame(() => reaction(perch.dataset.perch));
-      }
-    });
-    slots.forEach((slot) => observer.observe(slot));
-  }
+  frame?.querySelector(".atlas-info")?.addEventListener("toggle", () => render(state.current));
   for (const field of filters) {
     field.addEventListener(field.type === "search" ? "input" : "change", () => {
       const patch = { [field.dataset.filter]: field.value, event: "", community: "" };
+      if (["country", "city"].includes(field.dataset.filter)) Object.assign(patch, { lat: "", lon: "" });
       if (field.dataset.filter === "country") {
         patch.city = "";
         reaction("country");
@@ -283,7 +344,7 @@ function initAtlas({ events, communities }) {
       e.preventDefault();
       focus(eventIndex.get(el.dataset.onMap));
     });
-  for (const el of $$("[data-view]"))
+  for (const el of $$("a[data-view]"))
     el.addEventListener("click", (e) => {
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
       e.preventDefault();
@@ -322,6 +383,7 @@ function initAtlas({ events, communities }) {
       );
       if (!result.length) list.append(node("p", "No matching places. Try a country or community name."));
     }
+    if (location.hash === "#find") locator.open = true;
     search.addEventListener("input", suggestions);
     locator.addEventListener("toggle", () => {
       if (locator.open) {
@@ -331,6 +393,17 @@ function initAtlas({ events, communities }) {
     });
     document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") {
+        const info = $(".atlas-info");
+        const extra = $(".extra-filters[open]");
+        if (info?.open) {
+          info.open = false;
+          info.querySelector("summary").focus();
+          return;
+        }
+        if (!locator.open && !extra) {
+          if (state.current.mode !== "world") go("world");
+          else if (!preview.hidden) preview.querySelector(".preview-close").click();
+        }
         if (locator.open) {
           closeLocator();
           locator.querySelector("summary").focus();
@@ -349,7 +422,8 @@ function initAtlas({ events, communities }) {
       }
     });
     document.addEventListener("pointerdown", (e) => {
-      for (const d of [locator, $(".extra-filters")]) if (d?.open && !d.contains(e.target)) d.open = false;
+      for (const d of [locator, $(".atlas-info"), $(".extra-filters")])
+        if (d?.open && !d.contains(e.target)) d.open = false;
     });
   }
   function applyMotion() {
@@ -375,8 +449,8 @@ function initAtlas({ events, communities }) {
         globe = await mountWorld(stage, {
           places,
           onSelect: focus,
-          onCountry: (country) => {
-            if (country) state.select({ kind: "location", country });
+          onCountry: (country, latitude, longitude) => {
+            state.select({ kind: "location", country, latitude, longitude });
           },
           onRevolution: () => reaction("orbit"),
           onCamera: ({ latitude, longitude }) => {
@@ -445,12 +519,7 @@ function initAtlas({ events, communities }) {
 
 const registration = $("[data-registration-until]");
 if (registration) {
-  const refresh = () => {
-    if (Date.now() >= Date.parse(registration.dataset.registrationUntil)) {
-      registration.href = registration.dataset.organizerUrl;
-      registration.textContent = "Organizer’s event page";
-    }
-  };
+  const refresh = () => refreshRegistration(document);
   refresh();
   registration.addEventListener("focus", refresh);
   registration.addEventListener("click", refresh);
@@ -460,4 +529,13 @@ if (registration) {
 initDirectory();
 const data = $("#atlas-data");
 if (data) initAtlas(JSON.parse(data.textContent));
+const localEarth = $(".permalink .atlas-earth[data-lat]");
+if (localEarth) {
+  import("../world/world.js").then(async ({ mountWorld }) => {
+    const globe = await mountWorld(localEarth);
+    globe.setMotion(false);
+    globe.setReading(true);
+    globe.flyTo(Number(localEarth.dataset.lat), Number(localEarth.dataset.lon), 3.4);
+  }).catch(() => {});
+}
 document.documentElement.classList.add("interactive");

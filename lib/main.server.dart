@@ -21,6 +21,7 @@ void main() {
         link(href: 'constants/atlas.css', rel: 'stylesheet'),
         link(href: 'atlas.css', rel: 'stylesheet'),
         link(href: 'world/world.css', rel: 'stylesheet'),
+        link(href: 'world/frame.css', rel: 'stylesheet'),
         script(src: 'discovery/app.js', attributes: {'type': 'module'}),
       ],
       body: App(loadEvents(), communities, loadLegacyEvents()),

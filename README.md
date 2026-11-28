@@ -1,6 +1,6 @@
 # flutter.spot
 
-Explore Flutter gatherings and the communities that host them on an interactive Earth. Select a postcard, search for a city, or switch to the chronological program. The program, archive, community directory and individual listings are static HTML and work with JavaScript disabled.
+The globe is the interface for exploring Flutter gatherings. Rotate the Earth, tap a country, or find a city to see its events and organizers. The bottom dock opens the program, community directory and activity inside the globe. Each listing also has a permanent HTML page with the same globe frame. The program, archive, directory and event pages work with JavaScript disabled.
 
 ## Run locally
 

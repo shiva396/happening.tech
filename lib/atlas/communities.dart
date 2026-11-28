@@ -47,7 +47,7 @@ class Communities extends StatelessComponent {
       div(classes: 'section-inner', [
         div(classes: 'split-heading', [
           div([
-            overline('users', 'Community directory'),
+            if (directory) overline('users', 'Community directory'),
             if (directory)
               h1([
                 .text('Global Flutter '),
@@ -55,20 +55,20 @@ class Communities extends StatelessComponent {
               ])
             else
               h2([
-                .text('People behind the '),
-                em([.text('places.')]),
+                .text('Flutter '),
+                em([.text('communities.')]),
               ]),
           ]),
           if (!directory)
             div(classes: 'heading-actions', [
               div(classes: 'dash-slot', attributes: {'data-perch': 'community'}, []),
-              a(classes: 'pill', href: 'communities/', [icon('users'), .text('All communities')]),
             ]),
         ]),
-        if (directory) ...[
-          p(classes: 'section-lede', [
-            .text('An open directory of local Flutter groups. Find your community or suggest one to add.'),
-          ]),
+        ...[
+          if (directory)
+            p(classes: 'section-lede', [
+              .text('An open directory of local Flutter groups. Find your community or suggest one to add.'),
+            ]),
           div(classes: 'filter-bar enhanced', [
             label(classes: 'search-field', [
               icon('search'),
@@ -92,7 +92,7 @@ class Communities extends StatelessComponent {
           ]),
         ],
         div(classes: 'community-grid', [
-          for (final c in directory ? curated : curated.take(4)) communityCard(c, events),
+          for (final c in curated) communityCard(c, events),
         ]),
         p(
           id: 'community-empty',

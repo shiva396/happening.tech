@@ -21,11 +21,16 @@ async function atlas(page) {
       )
       .map((e) => e.id);
   const visibleOrder = () => cards.evaluateAll((elements) => elements.map((el) => el.dataset.event));
+  await page.locator('.world-frame[data-view="world"]').waitFor();
+  assert.equal(await cards.count(), 0);
+  assert(await page.locator(".globe-pages").isHidden());
+  assert(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1));
+  await page.getByRole("link", { name: "Program view", exact: true }).click();
   assert.deepEqual(await visibleOrder(), expectedOrder(false));
   const homeCount = await cards.count();
   const event = data.events.find((e) => e.latitude != null && e.kind === "event");
   assert(event);
-  await page.locator("[data-camera=motion]:disabled").waitFor();
+  assert(await page.locator("[data-camera=motion]").isDisabled());
   await page.getByRole("link", { name: "Program view", exact: true }).click();
   await page.getByRole("searchbox", { name: "Search events" }).fill("no_result_anywhere");
   assert(await page.locator("#event-empty").isVisible());
@@ -51,7 +56,17 @@ async function atlas(page) {
   await page.getByRole("searchbox", { name: "Find a city, country or community" }).fill("Chennai");
   await page.getByRole("button", { name: "Chennai India" }).click();
   assert.equal(new URL(page.url()).searchParams.get("city"), "Chennai");
-  await page.getByRole("button", { name: "See events", exact: true }).click();
+  await page.getByRole("heading", { name: "Chennai", exact: true }).waitFor();
+  assert.equal(new URL(page.url()).hash, "#place");
+  const surface = await page.locator(".atlas-earth").elementHandle();
+  await page.locator("#place .local-entry").filter({ hasText: "Namma Flutter" }).first().click();
+  await page.locator("#globe-story article").waitFor();
+  assert.equal(await page.evaluate((el) => el === document.querySelector(".atlas-earth"), surface), true);
+  await page.goBack();
+  await page.getByRole("heading", { name: "Chennai", exact: true }).waitFor();
+  await page.locator("#place .place-chip").filter({ hasText: "India" }).click();
+  await page.getByRole("heading", { name: "India", exact: true }).waitFor();
+  await page.getByRole("link", { name: "Program view", exact: true }).click();
   await page.getByRole("button", { name: "Clear active filters" }).click();
   await page.locator("[data-period=past]").click();
   await page.locator("[data-filter=country]").selectOption(event.country);
@@ -59,6 +74,25 @@ async function atlas(page) {
   await page.locator("[data-filter=city]").selectOption(event.city);
   await page.locator("[data-filter=from]").fill("2010-01-01");
   assert((await cards.allTextContents()).every((text) => text.includes(event.city)));
+  await page.locator(".world-dock [data-view=communities]").click();
+  await page.getByRole("searchbox", { name: "Search communities" }).fill("namma");
+  await page.locator(".world-frame .community-card:visible h3 a").click();
+  await page.locator("#globe-story h1").filter({ hasText: "Namma Flutter" }).waitFor();
+  await page.reload();
+  await page.locator("#globe-story h1").filter({ hasText: "Namma Flutter" }).waitFor();
+  await page.locator(".world-dock [data-view=activity]").click();
+  await page.locator("#activity .timeline a").first().click();
+  await page.locator("#globe-story .detail-facts").waitFor();
+  await page.locator(".atlas-info summary").click();
+  await page.locator(".info-page").getByRole("link", { name: "List an event" }).click();
+  await page.locator("#submit [name=title]").fill("Unfinished local listing");
+  await page.locator(".world-dock [data-view=world]").click();
+  await page.goBack();
+  assert.equal(await page.locator("#submit [name=title]").inputValue(), "Unfinished local listing");
+  await page.locator(".atlas-info summary").click();
+  await page.locator(".info-page").getByRole("link", { name: "Notifications" }).click();
+  await page.locator("#notifications #push-status").waitFor();
+  assert.equal(new URL(page.url()).pathname, root.pathname);
   await page.goto(url("archive/"));
   await page.locator(".split-heading [data-view=world]").click();
   assert.equal(new URL(page.url()).searchParams.get("period"), "past");
@@ -71,6 +105,8 @@ async function atlas(page) {
   await page.getByRole("link", { name: "Find on globe" }).click();
   await page.locator("#world-preview h3").filter({ hasText: "Namma Flutter" }).waitFor();
   await page.goto(url("events/" + event.id + "/"));
+  assert(await page.locator(".permalink.inside .globe-pages article h1").isVisible());
+  assert(await page.evaluate(() => document.documentElement.scrollHeight <= innerHeight + 1));
   const schema = JSON.parse(await page.locator('script[type="application/ld+json"]').innerText());
   assert.equal(schema.name, event.title);
   assert(
@@ -78,6 +114,8 @@ async function atlas(page) {
       "data:text/calendar",
     ),
   );
+  await page.locator(".permalink .world-tools").getByRole("link", { name: "Find a place" }).click();
+  await page.getByRole("searchbox", { name: "Find a city, country or community" }).waitFor();
 }
 
 async function listing(page) {
@@ -218,7 +256,7 @@ eachBrowser(async (browser, name) => {
   const staticPage = await browser.newPage({ javaScriptEnabled: false });
   await staticPage.goto(root.href);
   assert(await staticPage.locator(".atlas-earth-poster").isVisible());
-  assert(await staticPage.locator(".filter-bar").isHidden());
+  assert(await staticPage.locator("#program .filter-bar").isHidden());
   await staticPage.locator("[data-period=past]").click();
   assert.equal(
     await staticPage.locator(".event-card:visible").count(),

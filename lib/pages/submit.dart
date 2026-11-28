@@ -221,7 +221,7 @@ class SubmitPage extends StatelessComponent {
           ]),
         ],
       ),
-      const script(src: 'submit.js', defer: true),
+      const script(src: 'submit.js', attributes: {'type': 'module'}),
     ]);
   }
 }

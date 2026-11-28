@@ -48,7 +48,7 @@ async function check() {
       },
       { publicKey, endpoint },
     );
-    await page.addScriptTag({ url: new URL("notifications.js", root).href });
+    await page.addScriptTag({ type: "module", url: new URL("notifications.js", root).href });
     const toggle = page.locator("#push-toggle");
     await toggle.waitFor();
     assert.equal(await page.evaluate(() => window.permissionRequests), 0);

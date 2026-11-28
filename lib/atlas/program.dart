@@ -63,7 +63,7 @@ class ProgramView extends StatelessComponent {
         div(classes: 'section-inner', [
           div(classes: 'split-heading', [
             div([
-              overline('calendar-days', 'The program'),
+              if (archive) overline('calendar-days', 'The program'),
               if (archive)
                 h1(id: 'program-title', [
                   .text('Past Flutter '),
@@ -71,13 +71,13 @@ class ProgramView extends StatelessComponent {
                 ])
               else
                 h2(id: 'program-title', [
-                  .text('Find your next '),
-                  em([.text('gathering.')]),
+                  .text('Event '),
+                  em([.text('program.')]),
                 ]),
             ]),
             div(classes: 'heading-actions', [
               if (!archive) div(classes: 'dash-slot', attributes: {'data-perch': 'program'}, []),
-              homeLink('world', 'World view', 'globe'),
+              if (archive) homeLink('world', 'World view', 'globe'),
             ]),
           ]),
           div(classes: 'filter-bar enhanced', [

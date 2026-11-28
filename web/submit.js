@@ -1,18 +1,24 @@
-(() => {
-  "use strict";
-
-  const studio = document.getElementById("entry-studio");
-  if (!studio) return;
+export function initSubmit(studio) {
+  if (!studio || studio.dataset.ready) return;
+  studio.dataset.ready = "true";
   const form = studio.querySelector("form");
   const field = (name) => form.elements.namedItem(name);
   const value = (name) => field(name).value.trim();
-  const node = (name) => document.getElementById("entry-" + name);
+  const node = (name) => studio.querySelector("#entry-" + name);
   const art = node("art");
   const repository = studio.dataset.repository;
   const hasRepository = /^[\w.-]+\/[\w.-]+$/.test(repository);
   let fileUrl;
   for (const anchor of studio.querySelectorAll(".entry-jump")) {
-    anchor.href = location.pathname + location.search + anchor.hash;
+    if (studio.closest(".globe-pages")) {
+      anchor.addEventListener("click", (event) => {
+        event.preventDefault();
+        const target = studio.querySelector(anchor.hash);
+        target.tabIndex = -1;
+        target.focus();
+        target.scrollIntoView({ block: "start" });
+      });
+    } else anchor.href = location.pathname + location.search + anchor.hash;
   }
 
   const zones = Intl.supportedValuesOf?.("timeZone") || [];
@@ -287,4 +293,6 @@
   node("submit").disabled = false;
   node("note").textContent = "You can review your file before sharing it with the directory.";
   update();
-})();
+}
+
+initSubmit(document.getElementById("entry-studio"));
