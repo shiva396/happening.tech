@@ -28,18 +28,21 @@ async function check() {
     await page.waitForFunction((s) => document.querySelector(".coordinates").textContent === s, home);
     const diameter = () => globe.evaluate(el => parseFloat(getComputedStyle(el).getPropertyValue("--hit-size")));
     const initialDiameter = await diameter();
-    const geography = (x, y) => page.evaluate(async ([x, y]) => {
-      // Input can arrive between paints. Read the camera label and diameter after the queued draw.
-      await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
-      const { unproject } = await import(new URL("world/camera.js", document.baseURI).href);
-      const earth = document.querySelector(".atlas-earth");
-      const r = parseFloat(getComputedStyle(earth).getPropertyValue("--hit-size")) / 2;
-      const rect = earth.getBoundingClientRect();
-      const [, lat, ns, lon, ew] = document.querySelector(".coordinates").textContent.match(/([\d.]+)° ([NS])\s*\/\s*([\d.]+)° ([EW])/);
-      return unproject((x - rect.x - rect.width/2) / r, (rect.y + rect.height/2 - y) / r, {
-        latitude: Number(lat) * (ns === "N" ? 1 : -1), longitude: Number(lon) * (ew === "E" ? 1 : -1),
-      });
-    }, [x, y]);
+    const { unproject } = await import("../../web/world/camera.js");
+    async function geography(x, y) {
+      const projection = await page.evaluate(async ([x, y]) => {
+        // Input can arrive between paints. Read the camera label and diameter after the queued draw.
+        await new Promise(resolve => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+        const earth = document.querySelector(".atlas-earth");
+        const r = parseFloat(getComputedStyle(earth).getPropertyValue("--hit-size")) / 2;
+        const rect = earth.getBoundingClientRect();
+        const [, lat, ns, lon, ew] = document.querySelector(".coordinates").textContent.match(/([\d.]+)° ([NS])\s*\/\s*([\d.]+)° ([EW])/);
+        return [(x - rect.x - rect.width/2) / r, (rect.y + rect.height/2 - y) / r, {
+          latitude: Number(lat) * (ns === "N" ? 1 : -1), longitude: Number(lon) * (ew === "E" ? 1 : -1),
+        }];
+      }, [x, y]);
+      return unproject(...projection);
+    }
     // Choose an unobstructed point on the globe to start a native touch gesture.
     const point = await globe.evaluate((el) => {
       const r = el.getBoundingClientRect();
